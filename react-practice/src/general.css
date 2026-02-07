@@ -1,0 +1,86 @@
+:root {
+  /* Alap színek */
+  --color-bg: #121a2a;           /* sötétkékes alap */
+  --color-container: #1e2740;    /* task és panel háttér */
+  --color-panel-border: #3a4260; /* panel border */
+  --color-text: #e0e6ff;         /* alap szöveg */
+  --color-muted: #a0a8c0;        /* kisebb szöveg, placeholder */
+  --color-accent: #f9a825;       /* gombok / kiemelés */
+  --color-success: #43a047;      /* done gomb */
+  --color-warning: #ffb300;      /* undone gomb */
+  --color-danger: #e53935;       /* törlés gomb */
+  --color-task-bg: #2a3450;      /* task item háttér */
+  --color-dropdown-bg: #2a3450;  /* dropdown panel */
+  --color-dropdown-border: #3a4260;
+  --color-checkbox: #fbbc04;     /* default checkbox szín */
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--color-bg);
+  margin: 0;
+  padding-top: 10px;
+  overflow: hidden;
+  color: var(--color-text);
+}
+
+h1 {
+  text-align: center;
+  color: var(--color-text);
+}
+
+/* Alap input / select */
+select, input {
+  background-color: var(--color-container);
+  color: var(--color-text);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 5px;
+  padding: 5px 10px;
+}
+
+select:focus, input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/* BUTTON */
+button {
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 
+    transform 0.15s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+button:hover {
+  transform: scale(0.95);          
+  filter: brightness(0.9);     
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: scale(0.9);
+  filter: brightness(0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
+}
+
+button.done {
+  background-color: var(--color-success);
+}
+
+button.undone {
+  background-color: var(--color-warning);
+}
+
+.button-delete {
+  background-color: var(--color-danger);
+}
+
+.button-delete:hover {
+  background-color: #c62828;
+}

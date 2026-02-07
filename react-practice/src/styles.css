@@ -1,29 +1,30 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f9;
-  margin: 0;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-  color: #333;
-}
-
 .app-container {
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
-  background: #fff;
+  background: var(--color-container);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  display: flex;
+  flex-direction: column;
+  height: 92vh;
 }
 
-select {
-  margin: 10px 5px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+#title {
+  margin: 10px auto;
+}
+
+.top-section {
+  flex: 0 0 auto;
+}
+
+/* TASK */
+.task-list-container {
+  flex: 1 1 auto;
+  margin-top: 10px;
+  overflow-y: auto;
+  padding-right: 5px;
+  border-top: 1px solid var(--color-panel-border);
 }
 
 .task-item {
@@ -33,7 +34,7 @@ select {
   padding: 10px;
   margin-bottom: 8px;
   border-radius: 5px;
-  background-color: #f0f0f0;
+  background-color: var(--color-task-bg);
 }
 
 .task-title {
@@ -43,30 +44,15 @@ select {
 .task-title.finished {
   text-decoration: line-through;
   opacity: 0.6;
+  color: var(--color-muted);
 }
 
-.task-button {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.task-button.done {
-  background-color: #4caf50;
-  color: white;
-}
-
-.task-button.undone {
-  background-color: #ff9800;
-  color: white;
-}
-
-
-
+/* ADD TASK */
 .add-task {
     margin: 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .add-task-selection {
@@ -74,8 +60,35 @@ select {
     padding: 5px;
 }
 
-.add-task-input {
-    padding: "5px";
-    width: "60%";
-    margin-right: "5px";
+
+#filter-labels-button {
+  background-color: var(--color-container);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-panel-border);
+  padding: 7px;
+  margin-left: 10px;
+}
+
+
+/* Scrollbar */
+.task-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
+}
+
+.task-list-container::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+
+
+
+/* In task */
+.task-actions {
+  display: flex;
+  gap: 5px;
 }
