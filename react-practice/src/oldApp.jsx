@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Task from "./Task.jsx";
-import Label from "./Label.jsx";
+import Label from "./Label.jsx"
 import ColorPicker from "./colorPicker.jsx";
 import ProjectPicker from "./projectPicker.jsx";
+
+import { useTasks } from "./useTasks.js";
+import { useProjects } from "./useProjects.js";
 
 import "./styles.css";
 import "./general.css";
 import { useClickOutside } from "./utils.js";
 
+
 function App() {
-  
   // ===== State-ek =====
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [labelsOpen, setLabelsOpen] = useState(false);
@@ -17,155 +20,78 @@ function App() {
   const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
+
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("mid");
 
+  
+
   // ===== Ref-ek =====
   const newTitleRef = useRef(null);
-  const lastTaskRef = useRef(null);
+  const lastTaskRef = useRef(null); 
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
 
-  // ===== PROJECTS =====
-  const initialProjects = () => {
-    const saved = localStorage.getItem("projects");
-    if (saved) return JSON.parse(saved);
 
-    return [
-      {
-        id: crypto.randomUUID(),
-        name: "General",
-        tasks: [
-          { id: 1, title: "Programming", done: false, priority: "high", labels: [1, 2] },
-          { id: 2, title: "Work out", done: false, priority: "mid", labels: [1, 2], },
-          { id: 3, title: "Learning English", done: false, priority: "low", labels: [1, 2], },
-        ],
-        labels: [
-          { id: 1, name: "Work", color: "#f28b82" },
-          { id: 2, name: "Personal", color: "#fbbc04" },
-          { id: 3, name: "Urgent", color: "#34a853" },
-        ],
-      },
-    ];
-  };
 
-  const [projects, setProjects] = useState(initialProjects());
-  const savedProjectId = localStorage.getItem("activeProjectId");
-  const [activeProjectId, setActiveProjectId] = useState(
-    savedProjectId || projects[0].id
-  );
 
-  useEffect(
-    () => localStorage.setItem("projects", JSON.stringify(projects)),
-    [projects]
-  );
 
-  useEffect(
-    () => localStorage.setItem("activeProjectId", activeProjectId),
-    [activeProjectId]
-  );
 
   // ===== Selected project tasks =====
   const actualTasksList = useMemo(() => {
-    const project = projects.find((p) => p.id === activeProjectId);
+    const project = projects.find(p => p.id === activeProjectId);
     return project ? project.tasks : [];
   }, [projects, activeProjectId]);
 
+
   const actualLabelsList = useMemo(() => {
-    const project = projects.find((p) => p.id === activeProjectId);
+    const project  = projects.find(p => p.id === activeProjectId);
     return project ? project.labels : [];
-  }, [projects, activeProjectId]);
+  }, [projects, activeProjectId])
+
 
   // ===== Completed tasks counter =====
-  const completedCount = actualTasksList.filter((t) => t.done).length;
+  const completedCount = actualTasksList.filter(t => t.done).length;
+
 
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
 
-  // ===== Label manipuláló függvények =====
-  const deleteLabel = useCallback(
-    (id) => {
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === activeProjectId
-            ? {
-                ...p,
-                labels: p.labels.filter((label) => label.id !== id),
-                tasks: p.tasks.map((task) => ({
-                  ...task,
-                  labels: task.labels.filter((lid) => lid !== id),
-                })),
-              }
-            : p
-        )
-      );
-    },
-    [activeProjectId]
-  );
 
-  const addLabelToProject = useCallback(
-    (newLabel) => {
-      setProjects((prev) =>
-        prev.map((p) =>
-          p.id === activeProjectId
-            ? { ...p, labels: [...(p.labels || []), newLabel] }
-            : p
-        )
-      );
-    },
-    [activeProjectId]
-  );
 
   // ===== Task manipuláló függvények =====
   const toggleTask = useCallback((id) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === id ? { ...t, done: !t.done } : t
-              ),
-            }
-          : p
-      )
-    );
+    setProjects(prev => prev.map(p =>
+      p.id === activeProjectId
+        ? { ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t) }
+        : p
+    ));
   }, []);
 
   const deleteTask = useCallback((id) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? { ...p, tasks: p.tasks.filter((t) => t.id !== id) }
-          : p
-      )
-    );
+    setProjects(prev => prev.map(p =>
+      p.id === activeProjectId
+        ? { ...p, tasks: p.tasks.filter(t => t.id !== id) }
+        : p
+    ));
+
     localStorage.removeItem(`task-${id}-seconds`);
   }, []);
 
   const updateTask = useCallback((id, updatedTask) => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === id ? { ...t, ...updatedTask } : t
-              ),
-            }
-          : p
-      )
-    );
+      setProjects(prev => prev.map(p =>
+      p.id === activeProjectId
+        ? { ...p, tasks: p.tasks.map(t => t.id === id ? { ...t, ...updatedTask } : t) }
+        : p
+    ));
   }, []);
 
   const deleteAllTasks = useCallback(() => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId ? { ...p, tasks: [] } : p
-      )
-    );
+    setProjects(prev => prev.map(p =>
+      p.id === activeProjectId ? { ...p, tasks: [] } : p
+    ));
   }, []);
 
   // ===== Add new task =====
@@ -180,14 +106,9 @@ function App() {
       priority: newPriority,
       labels: selectedLabels,
     };
-
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? { ...p, tasks: [...p.tasks, newTask] }
-          : p
-      )
-    );
+    setProjects(prev => prev.map(p =>
+      p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
+    ));
 
     setNewTitle("");
     newTitleRef.current.focus();
@@ -201,47 +122,41 @@ function App() {
   }, [actualTasksList]);
 
   // ===== Filtered tasks =====
-  const filteredTasks = useMemo(() => {
-    return actualTasksList.filter((task) => {
-      const statusMatch =
-        statusFilter === "ALL" ||
-        (statusFilter === "Finished" && task.done) ||
-        (statusFilter === "On working" && !task.done);
+const filteredTasks = useMemo(() => {
+  return actualTasksList.filter((task) => {
+    const statusMatch =
+      statusFilter === "ALL" ||
+      (statusFilter === "Finished" && task.done) ||
+      (statusFilter === "On working" && !task.done);
 
-      const priorityMatch =
-        priorityFilter === "ALL" ||
-        task.priority.toLowerCase() === priorityFilter.toLowerCase();
+    const priorityMatch =
+      priorityFilter === "ALL" ||
+      task.priority.toLowerCase() === priorityFilter.toLowerCase();
 
-      const labelsMatch =
-        labelsFilter.length === 0 ||
-        task.labels.some((labelId) => labelsFilter.includes(labelId));
+    const labelsMatch =
+      labelsFilter.length === 0 || task.labels.some(labelId => labelsFilter.includes(labelId)); // legalább egy egyezik
 
-      return statusMatch && priorityMatch && labelsMatch;
-    });
-  }, [actualTasksList, statusFilter, priorityFilter, labelsFilter]);
+    return statusMatch && priorityMatch && labelsMatch;
+  });
+}, [actualTasksList, statusFilter, priorityFilter, labelsFilter]);
+
 
   return (
     <div className="app-container">
       <h1 id="title">Task Manager</h1>
 
-      {/* ===== Felső rész ===== */}
+      {/* ===== Felső rész: filterek, új task, counter ===== */}
       <div className="top-section">
         <div className="filters">
           <label>Status: </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="ALL">All</option>
             <option value="Finished">Finished</option>
             <option value="On working">On working</option>
           </select>
 
           <label>Priority: </label>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
+          <select value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
             <option value="ALL">All</option>
             <option value="high">High</option>
             <option value="mid">Mid</option>
@@ -253,30 +168,27 @@ function App() {
               type="button"
               className="labels-button"
               id="filter-labels-button"
-              onClick={() => setFilterLabelsOpen((prev) => !prev)}
+              onClick={() => setFilterLabelsOpen(prev => !prev)}
             >
               select labels
             </button>
 
             {filterlabelsOpen && (
               <div className="labels-dropdown">
-                {actualLabelsList.map((label) => (
+                {actualLabelsList.map(label => (
                   <label key={label.id} className="labels-item">
                     <input
                       type="checkbox"
                       checked={labelsFilter.includes(label.id)}
                       onChange={() => {
-                        setLabelsFilter((prev) =>
+                        setLabelsFilter(prev =>
                           prev.includes(label.id)
-                            ? prev.filter((id) => id !== label.id)
+                            ? prev.filter(id => id !== label.id)
                             : [...prev, label.id]
                         );
                       }}
                     />
-                    <Label
-                      label={label}
-                      deleteLabel={() => deleteLabel(label.id)}
-                    />
+                    <Label key={label.id} label={label} deleteLabel={() => deleteLabel(label.id)} />
                   </label>
                 ))}
               </div>
@@ -289,7 +201,6 @@ function App() {
           >
             ➕ Create Label
           </button>
-
           <button
             className="task-button done"
             onClick={() => setShowProjectModal(true)}
@@ -297,28 +208,32 @@ function App() {
             ➕ Add Project
           </button>
 
-          <label>Project: </label>
-          <select
-            value={activeProjectId}
-            onChange={(e) => setActiveProjectId(e.target.value)}
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
+
+          {/* ===== Project selector ===== */}
+            <label>Project: </label>
+            <select
+              value={activeProjectId}
+              onChange={(e) => setActiveProjectId(e.target.value)}
+            >
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+
 
           <span style={{ marginLeft: "20px", fontWeight: "bold" }}>
             Completed: {completedCount}/{actualTasksList.length}
           </span>
 
-          <button onClick={deleteAllTasks} className="button-delete">
+          <button
+            onClick={deleteAllTasks}
+            className="button-delete">
+          
             Delete All
           </button>
         </div>
 
-        {/* ===== Új task ===== */}
+        {/* Új task form */}
         <form onSubmit={addTask} className="add-task">
           <input
             type="text"
@@ -327,7 +242,6 @@ function App() {
             onChange={(e) => setNewTitle(e.target.value)}
             ref={newTitleRef}
           />
-
           <select
             value={newPriority}
             className="add-task-selection"
@@ -342,27 +256,27 @@ function App() {
             <button
               type="button"
               className="labels-button"
-              onClick={() => setLabelsOpen((prev) => !prev)}
+              onClick={() => setLabelsOpen(prev => !prev)}
             >
               Add labels
             </button>
 
             {labelsOpen && (
               <div className="labels-dropdown">
-                {actualLabelsList.map((label) => (
+                {labels.map(label => (
                   <label key={label.id} className="labels-item">
                     <input
                       type="checkbox"
                       checked={selectedLabels.includes(label.id)}
                       onChange={() => {
-                        setSelectedLabels((prev) =>
+                        setSelectedLabels(prev =>
                           prev.includes(label.id)
-                            ? prev.filter((id) => id !== label.id)
+                            ? prev.filter(id => id !== label.id)
                             : [...prev, label.id]
                         );
                       }}
                     />
-                    <Label label={label} />
+                    <Label key={label.id} label={label} />
                   </label>
                 ))}
               </div>
@@ -372,10 +286,11 @@ function App() {
           <button type="submit" className="task-button done">
             Add Task
           </button>
+
         </form>
       </div>
 
-      {/* ===== Task lista ===== */}
+      {/* ===== Görgethető Task lista ===== */}
       <div className="task-list-container">
         {filteredTasks.map((task, index) => {
           const isLast = index === filteredTasks.length - 1;
@@ -385,26 +300,24 @@ function App() {
               task={task}
               toggleTask={() => toggleTask(task.id)}
               deleteTask={() => deleteTask(task.id)}
-              updateTask={(updatedTask) =>
-                updateTask(task.id, updatedTask)
-              }
+              updateTask={(updatedTask) => updateTask(task.id, updatedTask)}
               allLabels={actualLabelsList}
               ref={isLast ? lastTaskRef : null}
             />
           );
         })}
       </div>
-
       {showLabelModal && (
         <ColorPicker
           onClose={(result) => {
             setShowLabelModal(false);
+
             if (result) {
               addLabelToProject({
                 id: crypto.randomUUID(),
                 name: result.name,
                 color: result.color,
-              });
+              })
             }
           }}
         />
@@ -421,15 +334,17 @@ function App() {
                 name: result.name,
                 color: result.color,
                 tasks: [],
-                labels: generalLabels.map((l) => ({ ...l })),
+                labels: generalLabels.map(l => ({ ...l })) // klónozzuk, hogy független legyen
               };
-              setProjects((prev) => [...prev, newProject]);
+              setProjects(prev => [...prev, newProject]);
               setActiveProjectId(newProject.id);
             }
           }}
         />
       )}
+
     </div>
+
   );
 }
 

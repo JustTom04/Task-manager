@@ -123,3 +123,4 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
 });
 
 export default Task;
+
