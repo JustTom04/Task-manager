@@ -1,5 +1,4 @@
 import { useState, useEffect, forwardRef } from "react";
-import "./styles.css";
 import { secondsToReadable } from "./utils";
 import Label from "./Label.jsx";
 
@@ -53,6 +52,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
   return (
     <div className="task-item" ref={ref}>
       <div>
+        {/* ===== Editing mode ===== */}
         {isEditing ? (
           <>
             <input
@@ -77,6 +77,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
           </>
         ) : (
           <>
+            {/* ===== Normal mode ===== */}
             <span
               className={`task-title ${task.done ? "finished" : ""}`}
               style={{ color }}
@@ -91,9 +92,8 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
         )}
       </div>
 
-      {/* Labels megjelenítése */}
+      {/* ===== Labels ===== */}
       <div className="task-labels">
-        {console.log(allLabels)}
         {allLabels
           .filter((label) => task.labels.includes(label.id))
           .map((label) => (
@@ -101,7 +101,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
           ))}
       </div>
 
-      {/* Editing panel */}
+      {/* ===== Action buttons ===== */}
       {!isEditing && (
         <div className="task-actions">
           <button

@@ -2,29 +2,67 @@
   max-width: 800px;
   margin: 0 auto;
   background: var(--color-container);
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   display: flex;
   flex-direction: column;
-  height: 92vh;
+  height: 96vh;
+}
+
+#title-row {
+  display: flex;
+  align-items: center;
+  position: relative; 
 }
 
 #title {
-  margin: 10px auto;
+  margin: -5px auto 10px auto;
+  color: var(--color-settings-title);
 }
 
+#completed-counter {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-style: italic;
+}
+
+/* ===== Top section ===== */
 .top-section {
   flex: 0 0 auto;
 }
 
-/* TASK */
+.row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  align-items: center;
+}
+
+.section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.add-task-selection {
+  padding: 5px;
+}
+
+
+
+
+
+/* ===== Task ===== */
 .task-list-container {
   flex: 1 1 auto;
   margin-top: 10px;
   overflow-y: auto;
-  padding-right: 5px;
-  border-top: 1px solid var(--color-panel-border);
+  padding: 6px;
+  border: 1px solid var(--color-panel-border);
+  background-color: rgb(20, 20, 20)
 }
 
 .task-item {
@@ -47,18 +85,7 @@
   color: var(--color-muted);
 }
 
-/* ADD TASK */
-.add-task {
-    margin: 15px 0;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
 
-.add-task-selection {
-    margin-right: 5px;
-    padding: 5px;
-}
 
 
 #filter-labels-button {
@@ -83,9 +110,6 @@
 .task-list-container::-webkit-scrollbar-track {
   background: var(--color-bg);
 }
-
-
-
 
 /* In task */
 .task-actions {

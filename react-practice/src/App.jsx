@@ -1,34 +1,46 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Task from "./Task.jsx";
-import Label from "./Label.jsx";
-import ColorPicker from "./colorPicker.jsx";
-import ProjectPicker from "./projectPicker.jsx";
+import LabelsPanel from "./LabelsPanel.jsx";
+import ColorPicker from "./ColorPicker.jsx";
+import ProjectPicker from "./ProjectPicker.jsx";
+import ConfirmModal from "./ConfirmModal.jsx";
+import SettingsPanel from "./SettingsPanel.jsx";
+
+import { useClickOutside } from "./utils.js";
 
 import "./styles.css";
 import "./general.css";
-import { useClickOutside } from "./utils.js";
+import "./colorPicker.css";
+import "./label.css";
+import "./settingsPanel.css";
+
+
 
 function App() {
-  
-  // ===== State-ek =====
+  // ===== States =====
   const [selectedLabels, setSelectedLabels] = useState([]);
   const [labelsOpen, setLabelsOpen] = useState(false);
+
   const [labelsFilter, setLabelsFilter] = useState([]);
   const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
-  const [showLabelModal, setShowLabelModal] = useState(false);
-  const [showProjectModal, setShowProjectModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("mid");
 
-  // ===== Ref-ek =====
+  const [showLabelModal, setShowLabelModal] = useState(false);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
+
+
+  // ===== Ref =====
   const newTitleRef = useRef(null);
   const lastTaskRef = useRef(null);
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
 
-  // ===== PROJECTS =====
+  // ===== Projects =====
   const initialProjects = () => {
     const saved = localStorage.getItem("projects");
     if (saved) return JSON.parse(saved);
@@ -57,6 +69,12 @@ function App() {
     savedProjectId || projects[0].id
   );
 
+  const actualProject = useMemo(() => {
+    return projects.find(p => p.id === activeProjectId);
+  }, [projects, activeProjectId]);
+
+  
+
   useEffect(
     () => localStorage.setItem("projects", JSON.stringify(projects)),
     [projects]
@@ -67,15 +85,13 @@ function App() {
     [activeProjectId]
   );
 
-  // ===== Selected project tasks =====
+  // ===== Tasks and Labels for current project =====
   const actualTasksList = useMemo(() => {
-    const project = projects.find((p) => p.id === activeProjectId);
-    return project ? project.tasks : [];
+    return actualProject?.tasks || [];
   }, [projects, activeProjectId]);
 
   const actualLabelsList = useMemo(() => {
-    const project = projects.find((p) => p.id === activeProjectId);
-    return project ? project.labels : [];
+    return actualProject?.labels || [];
   }, [projects, activeProjectId]);
 
   // ===== Completed tasks counter =====
@@ -84,7 +100,15 @@ function App() {
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
 
-  // ===== Label manipuláló függvények =====
+    // ===== Scroll to last task =====
+  useEffect(() => {
+    if (lastTaskRef.current) {
+      lastTaskRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [actualTasksList]);
+
+
+  // ===== Label functions =====
   const deleteLabel = useCallback(
     (id) => {
       setProjects((prev) =>
@@ -105,6 +129,14 @@ function App() {
     [activeProjectId]
   );
 
+  const deleteAllLabels = useCallback(() => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId ? { ...p, labels: [] } : p
+      )
+    );
+  }, [activeProjectId]);
+
   const addLabelToProject = useCallback(
     (newLabel) => {
       setProjects((prev) =>
@@ -118,7 +150,7 @@ function App() {
     [activeProjectId]
   );
 
-  // ===== Task manipuláló függvények =====
+  // ===== Task functions =====
   const toggleTask = useCallback((id) => {
     setProjects((prev) =>
       prev.map((p) =>
@@ -132,7 +164,7 @@ function App() {
           : p
       )
     );
-  }, []);
+  }, [activeProjectId]);
 
   const deleteTask = useCallback((id) => {
     setProjects((prev) =>
@@ -143,7 +175,7 @@ function App() {
       )
     );
     localStorage.removeItem(`task-${id}-seconds`);
-  }, []);
+  }, [activeProjectId]);
 
   const updateTask = useCallback((id, updatedTask) => {
     setProjects((prev) =>
@@ -158,7 +190,7 @@ function App() {
           : p
       )
     );
-  }, []);
+  }, [activeProjectId]);
 
   const deleteAllTasks = useCallback(() => {
     setProjects((prev) =>
@@ -166,9 +198,8 @@ function App() {
         p.id === activeProjectId ? { ...p, tasks: [] } : p
       )
     );
-  }, []);
+  }, [activeProjectId]);
 
-  // ===== Add new task =====
   const addTask = (e) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
@@ -193,12 +224,7 @@ function App() {
     newTitleRef.current.focus();
   };
 
-  // ===== Scroll to last task =====
-  useEffect(() => {
-    if (lastTaskRef.current) {
-      lastTaskRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [actualTasksList]);
+
 
   // ===== Filtered tasks =====
   const filteredTasks = useMemo(() => {
@@ -220,162 +246,161 @@ function App() {
     });
   }, [actualTasksList, statusFilter, priorityFilter, labelsFilter]);
 
+
   return (
     <div className="app-container">
-      <h1 id="title">Task Manager</h1>
+      <div id="title-row">
+        <h1 id="title">{actualProject.name}</h1>
 
-      {/* ===== Felső rész ===== */}
-      <div className="top-section">
-        <div className="filters">
-          <label>Status: </label>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="ALL">All</option>
-            <option value="Finished">Finished</option>
-            <option value="On working">On working</option>
-          </select>
-
-          <label>Priority: </label>
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-          >
-            <option value="ALL">All</option>
-            <option value="high">High</option>
-            <option value="mid">Mid</option>
-            <option value="low">Low</option>
-          </select>
-
-          <div className="labels-select" ref={filterLabelsRef}>
-            <button
-              type="button"
-              className="labels-button"
-              id="filter-labels-button"
-              onClick={() => setFilterLabelsOpen((prev) => !prev)}
-            >
-              select labels
-            </button>
-
-            {filterlabelsOpen && (
-              <div className="labels-dropdown">
-                {actualLabelsList.map((label) => (
-                  <label key={label.id} className="labels-item">
-                    <input
-                      type="checkbox"
-                      checked={labelsFilter.includes(label.id)}
-                      onChange={() => {
-                        setLabelsFilter((prev) =>
-                          prev.includes(label.id)
-                            ? prev.filter((id) => id !== label.id)
-                            : [...prev, label.id]
-                        );
-                      }}
-                    />
-                    <Label
-                      label={label}
-                      deleteLabel={() => deleteLabel(label.id)}
-                    />
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button
-            className="task-button done"
-            onClick={() => setShowLabelModal(true)}
-          >
-            ➕ Create Label
-          </button>
-
-          <button
-            className="task-button done"
-            onClick={() => setShowProjectModal(true)}
-          >
-            ➕ Add Project
-          </button>
-
-          <label>Project: </label>
-          <select
-            value={activeProjectId}
-            onChange={(e) => setActiveProjectId(e.target.value)}
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-
-          <span style={{ marginLeft: "20px", fontWeight: "bold" }}>
-            Completed: {completedCount}/{actualTasksList.length}
-          </span>
-
-          <button onClick={deleteAllTasks} className="button-delete">
-            Delete All
-          </button>
-        </div>
-
-        {/* ===== Új task ===== */}
-        <form onSubmit={addTask} className="add-task">
-          <input
-            type="text"
-            placeholder="Task title"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            ref={newTitleRef}
-          />
-
-          <select
-            value={newPriority}
-            className="add-task-selection"
-            onChange={(e) => setNewPriority(e.target.value)}
-          >
-            <option value="high">High</option>
-            <option value="mid">Mid</option>
-            <option value="low">Low</option>
-          </select>
-
-          <div className="labels-select" ref={labelsRef}>
-            <button
-              type="button"
-              className="labels-button"
-              onClick={() => setLabelsOpen((prev) => !prev)}
-            >
-              Add labels
-            </button>
-
-            {labelsOpen && (
-              <div className="labels-dropdown">
-                {actualLabelsList.map((label) => (
-                  <label key={label.id} className="labels-item">
-                    <input
-                      type="checkbox"
-                      checked={selectedLabels.includes(label.id)}
-                      onChange={() => {
-                        setSelectedLabels((prev) =>
-                          prev.includes(label.id)
-                            ? prev.filter((id) => id !== label.id)
-                            : [...prev, label.id]
-                        );
-                      }}
-                    />
-                    <Label label={label} />
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button type="submit" className="task-button done">
-            Add Task
-          </button>
-        </form>
+        <span id="completed-counter">
+          Completed: {completedCount}/{actualTasksList.length}
+        </span>
       </div>
 
-      {/* ===== Task lista ===== */}
+      {/* ===== Top section ===== */}
+      <div className="top-section">
+        <div className="row">
+          
+          {/* ===== Filters ===== */}
+          <div className="section">
+            <label>Status: </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="Finished">Finished</option>
+              <option value="On working">On working</option>
+            </select>
+
+            <label>Priority: </label>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <option value="ALL">All</option>
+              <option value="high">High</option>
+              <option value="mid">Mid</option>
+              <option value="low">Low</option>
+            </select>
+
+            <div className="labels-select" ref={filterLabelsRef}>
+              <button
+                type="button"
+                className="labels-button"
+                id="filter-labels-button"
+                onClick={() => setFilterLabelsOpen((prev) => !prev)}
+              >
+                select labels
+              </button>
+
+              {filterlabelsOpen && (
+                <LabelsPanel
+                  labels={actualLabelsList}
+                  selectedIds={labelsFilter}
+                  setSelectedIds={setLabelsFilter}
+                  showDelete={true}
+                  deleteLabel={deleteLabel}
+                />
+              )}
+
+            </div>
+          </div>
+
+
+          <div className="section">
+            <button
+              className="task-button done"
+              onClick={() => setShowLabelModal(true)}
+            >
+              ➕ Create Label
+            </button>
+
+            <button
+              className="task-button done"
+              onClick={() => setShowProjectModal(true)}
+            >
+              ➕ Add Project
+            </button>
+          </div>
+
+        </div>
+
+        <div className="row">
+        {/* ===== Add new task ===== */}
+          <form onSubmit={addTask} className="section">
+            <input
+              type="text"
+              placeholder="Task title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              ref={newTitleRef}
+            />
+
+            <select
+              value={newPriority}
+              className="add-task-selection"
+              onChange={(e) => setNewPriority(e.target.value)}
+            >
+              <option value="high">High</option>
+              <option value="mid">Mid</option>
+              <option value="low">Low</option>
+            </select>
+
+            <div className="labels-select" ref={labelsRef}>
+              <button
+                type="button"
+                className="labels-button"
+                onClick={() => setLabelsOpen((prev) => !prev)}
+              >
+                Add labels
+              </button>
+
+              {labelsOpen && (
+                  <LabelsPanel
+                    labels={actualLabelsList}
+                    selectedIds={selectedLabels}
+                    setSelectedIds={setSelectedLabels}
+                    showDelete={false}
+                  /> 
+              )}
+            </div>
+
+            <button type="submit" className="task-button done">
+              Add Task
+            </button>
+          </form>
+
+          <div className="section">
+            <button
+              onClick={() =>
+                setConfirmAction(() => deleteAllTasks)
+              }
+                className={`button-delete ${
+                  actualTasksList.length === 0 ? "inactive" : ""
+                }`}
+                disabled={actualTasksList.length === 0}
+            >
+              Delete All
+            </button>
+
+            <button
+              onClick={() =>
+                setConfirmAction(() => deleteAllLabels)
+              }
+                className={`button-delete ${
+                  actualLabelsList.length === 0 ? "inactive" : ""
+                }`}
+                disabled={actualLabelsList.length === 0}
+            >
+              Delete All labels
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ===== Tasks list ===== */}
       <div className="task-list-container">
         {filteredTasks.map((task, index) => {
           const isLast = index === filteredTasks.length - 1;
@@ -419,7 +444,6 @@ function App() {
               const newProject = {
                 id: crypto.randomUUID(),
                 name: result.name,
-                color: result.color,
                 tasks: [],
                 labels: generalLabels.map((l) => ({ ...l })),
               };
@@ -429,6 +453,22 @@ function App() {
           }}
         />
       )}
+
+      {confirmAction && (
+        <ConfirmModal
+          title="Are you sure?"
+          message="This action cannot be undone."
+          onConfirm={confirmAction}
+          onCancel={() => setConfirmAction(null)}
+        />
+      )}
+
+      <SettingsPanel
+        projects={projects}
+        activeProjectId={activeProjectId}
+        onSelectProject={setActiveProjectId}
+      />
+
     </div>
   );
 }

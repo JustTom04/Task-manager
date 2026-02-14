@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./colorPicker.css";
 
 function ColorPicker({ onClose }) {
   const [name, setName] = useState("");

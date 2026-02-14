@@ -1,18 +1,27 @@
 :root {
-  /* Alap színek */
-  --color-bg: #121a2a;           /* sötétkékes alap */
-  --color-container: #1e2740;    /* task és panel háttér */
-  --color-panel-border: #3a4260; /* panel border */
-  --color-text: #e0e6ff;         /* alap szöveg */
-  --color-muted: #a0a8c0;        /* kisebb szöveg, placeholder */
-  --color-accent: #f9a825;       /* gombok / kiemelés */
-  --color-success: #43a047;      /* done gomb */
-  --color-warning: #ffb300;      /* undone gomb */
-  --color-danger: #e53935;       /* törlés gomb */
-  --color-task-bg: #2a3450;      /* task item háttér */
-  --color-dropdown-bg: #2a3450;  /* dropdown panel */
+  /* ===== Colors ===== */
+  --color-bg: #121a2a;          
+  --color-container: #1e2740;   
+  --color-panel-border: #3a4260; 
+  --color-text: #e0e6ff;     
+  --color-muted: #a0a8c0;    
+  --color-accent: #f9a825;     
+  --color-success: #43a047;      
+  --color-warning: #ffb300;      
+  --color-danger: #e53935;       
+  --color-task-bg: #2a3450;    
+  --color-dropdown-bg: #2a3450; 
   --color-dropdown-border: #3a4260;
-  --color-checkbox: #fbbc04;     /* default checkbox szín */
+  --color-checkbox: #fbbc04;    
+
+  --color-settings-bg: #1b2338;           
+  --color-settings-border: #3f4a6b;       
+  --color-settings-title: #f9a825;       
+  --color-settings-item: #2a3450;         
+  --color-settings-item-hover: #3a4260;   
+  --color-settings-item-active: #34a853; 
+  --color-settings-text: #e0e6ff;         
+  --color-settings-muted: #a0a8c0;  
 }
 
 body {
@@ -29,7 +38,7 @@ h1 {
   color: var(--color-text);
 }
 
-/* Alap input / select */
+
 select, input {
   background-color: var(--color-container);
   color: var(--color-text);
@@ -57,17 +66,22 @@ button {
     box-shadow 0.15s ease;
 }
 
-button:hover {
+button:not(.inactive):hover {
   transform: scale(0.95);          
   filter: brightness(0.9);     
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
-button:active {
+button:not(.inactive):active {
   transform: scale(0.9);
   filter: brightness(0.8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;
 }
+
+.inactive {
+  opacity: 0.4;
+}
+
 
 button.done {
   background-color: var(--color-success);

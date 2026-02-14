@@ -5,11 +5,10 @@
   border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--color-text);
+  color: black;
   margin-right: 6px;
   user-select: none;
 }
-
 
 
 .labels-select {
@@ -22,6 +21,11 @@
   cursor: pointer;
   background-color: var(--color-accent);
   color: #fff;
+}
+
+.label-delete-button {
+  transform: scale(0.8);
+  transform-origin: center;
 }
 
 .labels-dropdown {
