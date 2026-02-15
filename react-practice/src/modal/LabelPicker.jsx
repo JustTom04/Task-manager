@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function ColorPicker({ onClose }) {
+function LabelPicker({ onClose }) {
   const [name, setName] = useState("");
   const [color, setColor] = useState("#34a853");
 
@@ -40,4 +40,4 @@ function ColorPicker({ onClose }) {
   );
 }
 
-export default ColorPicker;
+export default LabelPicker;

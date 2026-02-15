@@ -1,6 +1,6 @@
 import { useState, useEffect, forwardRef } from "react";
 import { secondsToReadable } from "./utils";
-import Label from "./Label.jsx";
+import Label from "./components/Label.jsx";
 
 const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }, ref) => {
   const [seconds, setSeconds] = useState(0);
