@@ -2,7 +2,7 @@ import { useState, useEffect, forwardRef } from "react";
 import { secondsToReadable } from "@/utils.js"
 import Label from "./Label.jsx";
 
-const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }, ref) => {
+const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, deleteTaskLabel }, ref) => {
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -50,11 +50,11 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
   }
 
   return (
-    <div className="task-item" ref={ref}>
+    <div className={`task-item ${isEditing ? "active" : ""}`} ref={ref}>
       <div>
         {/* ===== Editing mode ===== */}
         {isEditing ? (
-          <>
+          <div className="edit-panel">
             <input
               type="text"
               value={editedTitle}
@@ -74,7 +74,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
             <button className="task-button done" onClick={cancelEdit}>
               Cancel
             </button>
-          </>
+          </div>
         ) : (
           <>
             {/* ===== Normal mode ===== */}
@@ -97,7 +97,8 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
         {allLabels
           .filter((label) => task.labels.includes(label.id))
           .map((label) => (
-            <Label key={label.id} label={label} />
+            <Label key={label.id} label={label} deleteLabel={() => deleteTaskLabel(task.id, label.id)}
+            showDelete={isEditing}/>
           ))}
       </div>
 
@@ -113,7 +114,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels }
           <button className="task-button undone" onClick={() => setIsEditing(true)}>
             ✏️ Edit
           </button>
-          <button className="task-delete" onClick={deleteTask}>
+          <button className="remove-button" onClick={deleteTask}>
             ❌
           </button>
         </div>

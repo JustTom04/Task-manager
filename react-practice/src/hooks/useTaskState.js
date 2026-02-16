@@ -70,6 +70,24 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     localStorage.removeItem(`task-${id}-seconds`);
   }, [activeProjectId, setProjects]);
 
+  const deleteTaskLabel = useCallback((taskId, labelId) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) =>
+                t.id === taskId
+                  ? { ...t, labels: t.labels.filter((lId) => lId !== labelId) }
+                  : t
+              ),
+            }
+          : p
+      )
+    );
+  }, [activeProjectId, setProjects]);
+
+
   const updateTask = useCallback((id, updatedTask) => {
     setProjects((prev) =>
       prev.map((p) =>
@@ -102,6 +120,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     addTask,
     toggleTask,
     deleteTask,
+    deleteTaskLabel,
     updateTask,
     deleteAllTasks,
   };

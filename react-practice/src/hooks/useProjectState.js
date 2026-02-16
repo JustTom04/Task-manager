@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useTaskState } from "./useTaskState";
 import { useLabelState } from "./useLabelState";
 import { useTaskFilterState } from "./useTaskFilterState";
@@ -47,6 +47,25 @@ export function useProjectState() {
     return actualProject?.labels || [];
   }, [projects, activeProjectId]);
 
+
+  const deleteProject = useCallback((projectId) => {
+    setProjects((prevProjects) => {
+      if (prevProjects[0].id === projectId) {
+        return prevProjects;
+      }
+
+      const newProjects = prevProjects.filter((p) => p.id !== projectId);
+
+      setActiveProjectId((prevActiveId) => {
+        const stillExists = newProjects.find(p => p.id === prevActiveId);
+        if (stillExists) return prevActiveId;        
+        return newProjects.length > 0 ? newProjects[0].id : null; 
+      });
+
+      return newProjects;
+    });
+  }, [setProjects, setActiveProjectId]);
+
   // ===== LocalStorage Sync =====
   useEffect(() => {
     localStorage.setItem("projects", JSON.stringify(projects));
@@ -68,6 +87,7 @@ export function useProjectState() {
   return {
     projects, setProjects,
     activeProjectId, setActiveProjectId,
+    deleteProject,
     actualProject,
     actualTasksList,
     actualLabelsList,

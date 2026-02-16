@@ -1,14 +1,19 @@
+import React from "react";
 
-function Label({ label, deleteLabel }) {
+function Label({ label, showDelete = false, deleteLabel }) {
   return (
     <div className="label-item">
       <span
         className="label"
-        style={{ backgroundColor: label.color}}
+        style={{ backgroundColor: label.color }}
       >
         {label.name}
       </span>
-      <button onClick={deleteLabel} className="label-delete-button">❌</button>
+      {showDelete && deleteLabel && (
+        <button onClick={deleteLabel} className="remove-button small">
+          ❌
+        </button>
+      )}
     </div>
   );
 }

@@ -19,7 +19,8 @@ function LabelsPanel({ labels, selectedIds, setSelectedIds, showDelete = false, 
           />
           <Label
             label={label}
-            deleteLabel={showDelete ? () => deleteLabel(label.id) : undefined}
+            deleteLabel={() => deleteLabel(label.id)}
+            showDelete={showDelete}
           />
         </label>
       ))}

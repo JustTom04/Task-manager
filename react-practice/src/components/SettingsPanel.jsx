@@ -1,5 +1,5 @@
 
-function SettingsPanel({ projects, activeProjectId, onSelectProject }) {
+function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject }) {
   return (
     <div className="settings-panel">
       <h2 className="settings-title">Projects</h2>
@@ -10,7 +10,15 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject }) {
             className={`project-item ${p.id === activeProjectId ? "active" : ""}`}
             onClick={() => onSelectProject(p.id)}
           >
-            {p.name}
+            <div>{p.name}</div>
+            <button className="remove-button small" 
+              onClick={(e) => {
+                  e.stopPropagation(); 
+                  deleteProject(p.id);
+                }}
+            >
+              ❌
+            </button>
           </div>
         ))}
       </div>

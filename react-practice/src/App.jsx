@@ -32,10 +32,11 @@ function App() {
   const filterLabelsRef = useRef(null);
 
 
-  // ===== Project & Task & Label State =====
+  // ===== Project State =====
   const {
     projects,setProjects,
     activeProjectId, setActiveProjectId,
+    deleteProject,
     actualProject,
     actualTasksList,
     actualLabelsList,
@@ -55,6 +56,7 @@ function App() {
     addTask,
     toggleTask,
     deleteTask,
+    deleteTaskLabel,
     updateTask,
     deleteAllTasks
   } = taskState;
@@ -242,6 +244,7 @@ function App() {
               updateTask={(updatedTask) =>
                 updateTask(task.id, updatedTask)
               }
+              deleteTaskLabel={deleteTaskLabel}
               allLabels={actualLabelsList}
               ref={isLast ? lastTaskRef : null}
             />
@@ -296,6 +299,7 @@ function App() {
         projects={projects}
         activeProjectId={activeProjectId}
         onSelectProject={setActiveProjectId}
+        deleteProject={deleteProject}
       />
 
     </div>

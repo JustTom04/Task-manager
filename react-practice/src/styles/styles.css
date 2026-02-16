@@ -73,7 +73,18 @@
   margin-bottom: 8px;
   border-radius: 5px;
   background-color: var(--color-task-bg);
+
+  box-shadow: var(--shadow-task-light);
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.12s ease,
+    border-color 0.15s ease;
 }
+
+.task-item:hover, .task-item.active {
+  box-shadow: var(--shadow-task-hover);
+}
+
 
 .task-title {
   font-weight: bold;
@@ -83,6 +94,12 @@
   text-decoration: line-through;
   opacity: 0.6;
   color: var(--color-muted);
+}
+
+.edit-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 
