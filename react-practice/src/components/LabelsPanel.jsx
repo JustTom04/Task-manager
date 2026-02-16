@@ -1,5 +1,5 @@
 import React from "react";
-import Label from "./components/Label";
+import Label from "./Label";
 
 function LabelsPanel({ labels, selectedIds, setSelectedIds, showDelete = false, deleteLabel }) {
   return (

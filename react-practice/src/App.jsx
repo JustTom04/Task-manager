@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Task from "./Task.jsx";
-import LabelsPanel from "./LabelsPanel.jsx";
+import Task from "./components/Task.jsx"
+import LabelsPanel from "./components/LabelsPanel.jsx";
 import ColorPicker from "./modal/LabelPicker.jsx";
 import ProjectPicker from "./modal/ProjectPicker.jsx";
 import ConfirmModal from "./modal/ConfirmModal.jsx";
