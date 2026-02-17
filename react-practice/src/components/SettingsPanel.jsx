@@ -1,7 +1,7 @@
 
-function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject }) {
+function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, isOpen }) {
   return (
-    <div className="settings-panel">
+    <div className={`settings-panel ${isOpen ? "open" : ""}`}>
       <h2 className="settings-title">Projects</h2>
       <div className="projects-list">
         {projects.map((p) => (

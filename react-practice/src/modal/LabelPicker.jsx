@@ -28,12 +28,13 @@ function LabelPicker({ onClose }) {
         />
 
         <div className="modal-actions">
-          <button className="task-button undone" onClick={() => onClose(null)}>
-            Cancel
-          </button>
           <button className="task-button done" onClick={handleSave}>
             Save
           </button>
+          <button className="task-button undone" onClick={() => onClose(null)}>
+            Cancel
+          </button>
+
         </div>
       </div>
     </div>

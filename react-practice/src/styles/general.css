@@ -32,12 +32,23 @@
   --shadow-task-hover: 0 0 15px rgba(249, 168, 37, 0.25);
 }
 
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+}
+
+
 body {
   font-family: Arial, sans-serif;
   background-color: var(--color-bg);
   margin: 0;
-  padding-top: 10px;
-  overflow: hidden;
+
   color: var(--color-text);
 }
 
@@ -46,16 +57,19 @@ h1 {
   color: var(--color-text);
 }
 
-
 select, input {
   background-color: var(--color-container);
   color: var(--color-text);
   border: 1px solid var(--color-panel-border);
   border-radius: 5px;
-  padding: 5px 10px;
 
   box-shadow: var(--shadow-soft);
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+select, input, button {
+  padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
+  font-size: 0.9rem;
 }
 
 input::placeholder {
@@ -74,7 +88,6 @@ button {
   color: white;
   border: none;
   border-radius: 5px;
-  padding: 5px 8px;
   cursor: pointer;
   font-weight: bold;
 

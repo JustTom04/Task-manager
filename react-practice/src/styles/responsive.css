@@ -1,0 +1,59 @@
+/* ===== Responsive ===== */
+@media (max-width: 1024px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+
+@media (max-width: 768px) {
+  html {
+    font-size: 14px; 
+  }
+
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .section {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  .task-list-container {
+    margin-top: 0px;
+  }
+
+  button, select, input, .labels-select {
+    flex: 1; 
+  }
+
+  .labels-select button {
+    width: 100%;
+    text-wrap: nowrap;
+  }
+}
+
+
+@media (max-width: 580px) {
+  html {
+    font-size: 13px; 
+  }
+
+  form.section {
+    flex-direction: column;
+    align-items: stretch; 
+    gap: 10px;          
+  }
+
+  .task-button {
+    width: 100%; 
+  }
+}
+
+
+
+

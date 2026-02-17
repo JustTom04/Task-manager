@@ -2,12 +2,16 @@
   max-width: 800px;
   margin: 0 auto;
   background: var(--color-container);
-  padding: 15px;
+  padding: clamp(0.75rem, 2vw, 1.25rem);
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+
   display: flex;
   flex-direction: column;
-  height: 96vh;
+
+  height: 100dvh;
+  overflow: hidden;
+
 }
 
 #title-row {
@@ -23,7 +27,7 @@
 
 #completed-counter {
   position: absolute;
-  right: 0;
+  left: 0;
   top: 0;
   font-style: italic;
 }
@@ -40,15 +44,10 @@
   align-items: center;
 }
 
-.section {
+.section, .form-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-}
-
-
-.add-task-selection {
-  padding: 5px;
+  gap: clamp(0.5rem, 1dvw, 0.8rem);
 }
 
 
@@ -58,11 +57,15 @@
 /* ===== Task ===== */
 .task-list-container {
   flex: 1 1 auto;
+  min-height: 0;
+
   margin-top: 10px;
-  overflow-y: auto;
   padding: 6px;
   border: 1px solid var(--color-panel-border);
-  background-color: rgb(20, 20, 20)
+  background-color: rgb(20, 20, 20);
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .task-item {
@@ -103,14 +106,25 @@
 }
 
 
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+
 
 
 #filter-labels-button {
   background-color: var(--color-container);
   color: var(--color-text);
   border: 1.5px solid var(--color-panel-border);
+  font-weight: normal;
+
   padding: 7px;
-  margin-left: 10px;
+  padding-left: 10px;
+  font-size: 0.9rem;
+  text-align: left;
 }
 
 

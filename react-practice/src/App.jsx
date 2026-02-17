@@ -12,6 +12,7 @@ import { useProjectState } from "./hooks/useProjectState.js";
 
 import "./styles/styles.css"
 import "./styles/general.css";
+import "./styles/responsive.css"
 import "./styles/modal.css";
 import "./styles/label.css";
 import "./styles/settingsPanel.css";
@@ -25,7 +26,10 @@ function App() {
 
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showProjectModal, setShowProjectModal] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState(null);
+
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
 
   // ===== Ref =====
   const labelsRef = useRef(null);
@@ -80,12 +84,19 @@ function App() {
 
   return (
     <div className="app-container">
-      <div id="title-row">
-        <h1 id="title">{actualProject.name}</h1>
+      <span
+        className="settings-toggle"
+        onClick={() => setSettingsOpen(prev => !prev)}
+      >
+      </span>
 
+      <div id="title-row">
         <span id="completed-counter">
           Completed: {completedCount}/{actualTasksList.length}
         </span>
+        <h1 id="title">{actualProject.name}</h1>
+
+
       </div>
 
       {/* ===== Top section ===== */}
@@ -94,27 +105,6 @@ function App() {
           
           {/* ===== Filters ===== */}
           <div className="section">
-            <label>Status: </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="ALL">All</option>
-              <option value="Finished">Finished</option>
-              <option value="On working">On working</option>
-            </select>
-
-            <label>Priority: </label>
-            <select
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="ALL">All</option>
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
-
             <div className="labels-select" ref={filterLabelsRef}>
               <button
                 type="button"
@@ -136,93 +126,123 @@ function App() {
               )}
 
             </div>
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="ALL">Status</option>
+              <option value="Finished">Finished</option>
+              <option value="On working">On working</option>
+            </select>
+
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <option value="ALL">Priority</option>
+              <option value="high">High</option>
+              <option value="mid">Mid</option>
+              <option value="low">Low</option>
+            </select>
           </div>
 
 
-          <div className="section">
+          <div className="section buttons">
             <button
-              className="task-button done"
+              className="done"
               onClick={() => setShowLabelModal(true)}
             >
               ➕ Create Label
             </button>
 
             <button
-              className="task-button done"
+              className="done"
               onClick={() => setShowProjectModal(true)}
             >
               ➕ Add Project
             </button>
           </div>
-
+          
         </div>
 
         <div className="row">
         {/* ===== Add new task ===== */}
           <form onSubmit={addTask} className="section">
-            <input
-              type="text"
-              placeholder="Task title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              ref={newTitleRef}
-            />
+            <div className="form-container">
+              <div className="labels-select" ref={labelsRef}>
+                <button
+                  type="button"
+                  className="labels-button"
+                  onClick={() => setLabelsOpen((prev) => !prev)}
+                >
+                  Add labels
+                </button>
 
-            <select
-              value={newPriority}
-              className="add-task-selection"
-              onChange={(e) => setNewPriority(e.target.value)}
-            >
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
+                {labelsOpen && (
+                    <LabelsPanel
+                      labels={actualLabelsList}
+                      selectedIds={selectedLabels}
+                      setSelectedIds={setSelectedLabels}
+                      showDelete={false}
+                    /> 
+                )}
+              </div>
 
-            <div className="labels-select" ref={labelsRef}>
-              <button
-                type="button"
-                className="labels-button"
-                onClick={() => setLabelsOpen((prev) => !prev)}
+              <input
+                type="text"
+                placeholder="Task title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                ref={newTitleRef}
+              />
+
+              <select
+                value={newPriority}
+                className="add-task-selection"
+                onChange={(e) => setNewPriority(e.target.value)}
               >
-                Add labels
-              </button>
-
-              {labelsOpen && (
-                  <LabelsPanel
-                    labels={actualLabelsList}
-                    selectedIds={selectedLabels}
-                    setSelectedIds={setSelectedLabels}
-                    showDelete={false}
-                  /> 
-              )}
+                <option value="high">High</option>
+                <option value="mid">Mid</option>
+                <option value="low">Low</option>
+              </select>
+            
             </div>
-
             <button type="submit" className="task-button done">
               Add Task
             </button>
           </form>
 
-          <div className="section">
+          <div className="section buttons">
             <button
               onClick={() =>
-                setConfirmAction(() => deleteAllTasks)
+                setConfirmConfig({
+                  action: deleteAllTasks,
+                  title: "Delete all tasks?",
+                  message: "All tasks in this project will be permanently deleted.",
+                })
               }
-                className={`button-delete ${
-                  actualTasksList.length === 0 ? "inactive" : ""
-                }`}
-                disabled={actualTasksList.length === 0}
+              className={`button-delete ${
+                actualTasksList.length === 0 ? "inactive" : ""
+              }`}
+              disabled={actualTasksList.length === 0}
             >
               Delete All
             </button>
 
             <button
               onClick={() =>
-                setConfirmAction(() => deleteAllLabels)
+                setConfirmConfig({
+                  action: deleteAllLabels,
+                  title: "Delete all labels?",
+                  message: "All labels in this project will be permanently deleted.",
+                })
               }
-                className={`button-delete ${
-                  actualLabelsList.length === 0 ? "inactive" : ""
-                }`}
-                disabled={actualLabelsList.length === 0}
+
+              className={`button-delete ${
+                actualLabelsList.length === 0 ? "inactive" : ""
+              }`}
+              disabled={actualLabelsList.length === 0}
             >
               Delete All labels
             </button>
@@ -286,12 +306,12 @@ function App() {
         />
       )}
 
-      {confirmAction && (
+      {confirmConfig && (
         <ConfirmModal
-          title="Are you sure?"
-          message="This action cannot be undone."
-          onConfirm={confirmAction}
-          onCancel={() => setConfirmAction(null)}
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          onConfirm={confirmConfig.action}
+          onCancel={() => setConfirmConfig(null)}
         />
       )}
 
@@ -300,6 +320,7 @@ function App() {
         activeProjectId={activeProjectId}
         onSelectProject={setActiveProjectId}
         deleteProject={deleteProject}
+        isOpen={settingsOpen}
       />
 
     </div>
