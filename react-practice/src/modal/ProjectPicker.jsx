@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { INPUT_LENGTH } from "@/utils";
 
 
 function ProjectPicker({ onClose }) {
@@ -17,6 +18,7 @@ function ProjectPicker({ onClose }) {
         <input
           type="text"
           placeholder="Project name"
+          maxLength={INPUT_LENGTH.PROJECT_NAME}
           value={name}
           onChange={(e) => setName(e.target.value)}
         />

@@ -9,12 +9,12 @@
   --color-success: #43a047;      
   --color-warning: #ffb300;      
   --color-danger: #e53935;       
-  --color-task-bg: #2a3450;    
+  --color-task-bg: #324060;    
   --color-dropdown-bg: #2a3450; 
   --color-dropdown-border: #3a4260;
   --color-checkbox: #fbbc04;    
 
-  --color-settings-bg: #1b2338;           
+  --color-settings-bg: rgba(15, 15, 40);           
   --color-settings-border: #3f4a6b;       
   --color-settings-title: #f9a825;       
   --color-settings-item: #2a3450;         
@@ -29,7 +29,7 @@
   --shadow-focus: 0 0 0 2px rgba(249, 168, 37, 0.25);
 
   --shadow-task-light: 0 2px 6px rgba(255, 255, 255, 0.05);
-  --shadow-task-hover: 0 0 15px rgba(249, 168, 37, 0.25);
+  --shadow-task-hover: 0 0 15px rgba(249, 168, 37, 0.35);
 }
 
 
@@ -55,6 +55,11 @@ body {
 h1 {
   text-align: center;
   color: var(--color-text);
+}
+
+.task-title, #title, .project-item-title {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 select, input {
@@ -133,7 +138,8 @@ button.undone {
 
 
 .remove-button {
-  padding: 6px;
+  padding: clamp(0.2rem, 0.75dvw, 0.4rem);
+  border-radius: 20px;
 }
 .remove-button.small {
 

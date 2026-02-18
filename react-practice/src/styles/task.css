@@ -1,0 +1,128 @@
+/* ===== Task ===== */
+.task-list-container {
+  flex: 1 1 auto;
+  min-height: 0;
+
+  margin-top: 10px;
+  padding: 6px;
+  border: 1px solid var(--color-panel-border);
+  background-color: rgb(20, 20, 20);
+
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(0.4rem, 1vw, 0.6rem);
+  margin-bottom: 8px;
+  border-radius: 5px;
+  background-color: var(--color-task-bg);
+
+  box-shadow: var(--shadow-task-light);
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.12s ease,
+    border-color 0.15s ease;
+}
+
+.task-item:hover, .task-item.active {
+  filter: brightness(0.9); 
+  box-shadow: var(--shadow-task-hover);
+}
+
+
+.task-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.task-title.finished {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: var(--color-muted);
+}
+
+.edit-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+
+
+
+#filter-labels-button {
+  background-color: var(--color-container);
+  color: var(--color-text);
+  border: 1.5px solid var(--color-panel-border);
+  font-weight: normal;
+
+  padding: 7px;
+  padding-left: 10px;
+  font-size: 0.9rem;
+  text-align: left;
+}
+
+
+/* Scrollbar */
+.task-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.task-list-container::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
+}
+
+.task-list-container::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+/* In task */
+.task-actions {
+  display: flex;
+  align-items: center;
+    gap: 0.2rem;
+}
+
+.task-edit-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.task-edit-buttons button {
+  padding: clamp(0.1rem, 0.4dvh, 0.2rem) clamp(0.2rem, 0.75dvw, 0.4rem);
+}
+
+
+.task-actions button {
+  flex: initial;
+  white-space: nowrap; 
+}
+
+
+.task-left-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.task-labels {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+

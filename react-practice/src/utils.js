@@ -32,3 +32,12 @@ export function useClickOutside(ref, onOutsideClick) {
     };
   }, [ref, onOutsideClick]);
 }
+
+
+
+// ===== Input length limits =====
+export const INPUT_LENGTH = {
+  TASK_TITLE: 60,
+  PROJECT_NAME: 60,
+  LABEL_NAME: 40,
+};

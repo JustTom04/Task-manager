@@ -2,7 +2,7 @@
   max-width: 800px;
   margin: 0 auto;
   background: var(--color-container);
-  padding: clamp(0.75rem, 2vw, 1.25rem);
+  padding: clamp(0.5rem, 1.5vw, 1.25rem);
   border-radius: 10px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 
@@ -37,7 +37,7 @@
   flex: 0 0 auto;
 }
 
-.row {
+.section-group {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
@@ -48,102 +48,15 @@
   display: flex;
   align-items: center;
   gap: clamp(0.5rem, 1dvw, 0.8rem);
+
+  flex-wrap: wrap;
+}
+
+.form-container input {
+  flex: 1;
+  min-width: 120px;
 }
 
 
 
 
-
-/* ===== Task ===== */
-.task-list-container {
-  flex: 1 1 auto;
-  min-height: 0;
-
-  margin-top: 10px;
-  padding: 6px;
-  border: 1px solid var(--color-panel-border);
-  background-color: rgb(20, 20, 20);
-
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px;
-  margin-bottom: 8px;
-  border-radius: 5px;
-  background-color: var(--color-task-bg);
-
-  box-shadow: var(--shadow-task-light);
-  transition:
-    box-shadow 0.18s ease,
-    transform 0.12s ease,
-    border-color 0.15s ease;
-}
-
-.task-item:hover, .task-item.active {
-  box-shadow: var(--shadow-task-hover);
-}
-
-
-.task-title {
-  font-weight: bold;
-}
-
-.task-title.finished {
-  text-decoration: line-through;
-  opacity: 0.6;
-  color: var(--color-muted);
-}
-
-.edit-panel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-
-.filter-field {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-
-
-
-#filter-labels-button {
-  background-color: var(--color-container);
-  color: var(--color-text);
-  border: 1.5px solid var(--color-panel-border);
-  font-weight: normal;
-
-  padding: 7px;
-  padding-left: 10px;
-  font-size: 0.9rem;
-  text-align: left;
-}
-
-
-/* Scrollbar */
-.task-list-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.task-list-container::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
-}
-
-.task-list-container::-webkit-scrollbar-track {
-  background: var(--color-bg);
-}
-
-/* In task */
-.task-actions {
-  display: flex;
-  gap: 5px;
-}

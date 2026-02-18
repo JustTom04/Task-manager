@@ -3,6 +3,8 @@ import { useTaskState } from "./useTaskState";
 import { useLabelState } from "./useLabelState";
 import { useTaskFilterState } from "./useTaskFilterState";
 
+import { INPUT_LENGTH } from "../utils.js"; 
+
 export function useProjectState() {
   // ===== Initial Projects =====
   const initialProjects = () => {
@@ -48,6 +50,27 @@ export function useProjectState() {
   }, [projects, activeProjectId]);
 
 
+
+  const addProject = useCallback((name) => {
+    const trimmedName = name?.trim();
+    if (!trimmedName) return;
+
+    if (trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return
+
+    const generalLabels = projects[0]?.labels || [];
+
+    const newProject = {
+      id: crypto.randomUUID(),
+      name: trimmedName,
+      tasks: [],
+      labels: generalLabels.map((l) => ({ ...l })),
+    };
+
+    setProjects((prev) => [...prev, newProject]);
+    setActiveProjectId(newProject.id);
+  }, [projects]);
+
+
   const deleteProject = useCallback((projectId) => {
     setProjects((prevProjects) => {
       if (prevProjects[0].id === projectId) {
@@ -87,6 +110,7 @@ export function useProjectState() {
   return {
     projects, setProjects,
     activeProjectId, setActiveProjectId,
+    addProject,
     deleteProject,
     actualProject,
     actualTasksList,

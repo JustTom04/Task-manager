@@ -2,7 +2,7 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: 300px;
+  width: min(300px, 100dvw);
   height: 100vh;
   background-color: var(--color-settings-bg);
   border-left: 1px solid var(--color-settings-title);
@@ -52,17 +52,28 @@
 /* ===== toggle button ===== */
 .settings-toggle {
   position: fixed;
-  top: 10px;
-  right: 10px;
+  top: 0px;
+  right: 0px;
   z-index: 1100;
   font-size: 24px;
   cursor: pointer;
   user-select: none;
   display: none; 
 
-  width: 32px;
-  height: 32px;
-  background: url("/src/assets/bars-solid-full.svg") center / contain no-repeat;;
+  width: clamp(32px, 6dvw, 40px);
+  height: clamp(32px, 6dvw, 40px);
+  background: url("/src/assets/bars-solid-full.svg") center / contain no-repeat;
+
+  transition: transform 0.3s ease, background-color 0.2s ease;
+
+}
+
+.settings-toggle:hover {
+  background: url("/src/assets/bars-solid-full-white.svg") center / contain no-repeat;
+}
+
+.settings-toggle.active {
+  transform: rotate(90deg);
 }
 
 

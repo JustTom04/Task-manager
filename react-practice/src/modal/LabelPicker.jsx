@@ -1,3 +1,4 @@
+import { INPUT_LENGTH } from "@/utils";
 import { useState } from "react";
 
 function LabelPicker({ onClose }) {
@@ -16,6 +17,7 @@ function LabelPicker({ onClose }) {
 
         <input
           type="text"
+          maxLength={INPUT_LENGTH.LABEL_NAME}
           placeholder="Label name"
           value={name}
           onChange={(e) => setName(e.target.value)}

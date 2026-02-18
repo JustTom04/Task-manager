@@ -1,3 +1,4 @@
+import { INPUT_LENGTH } from "@/utils";
 import { useState,  useEffect, useRef, useCallback } from "react";
 
 export function useTaskState({ actualTasksList, activeProjectId, setProjects }) {
@@ -23,6 +24,8 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
   const addTask = useCallback((e) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
+
+    if (newTitle.length > INPUT_LENGTH.TASK_TITLE) return
 
     const newTask = {
       id: crypto.randomUUID(),

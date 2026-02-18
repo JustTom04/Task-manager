@@ -51,70 +51,76 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
 
   return (
     <div className={`task-item ${isEditing ? "active" : ""}`} ref={ref}>
-      <div>
-        {/* ===== Editing mode ===== */}
-        {isEditing ? (
-          <div className="edit-panel">
-            <input
-              type="text"
-              value={editedTitle}
-              onChange={(e) => setEditedTitle(e.target.value)}
-            />
-            <select
-              value={editedPriority}
-              onChange={(e) => setEditedPriority(e.target.value)}
-            >
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
-            <button className="task-button undone" onClick={saveEdit}>
-              Save
-            </button>
-            <button className="task-button done" onClick={cancelEdit}>
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* ===== Normal mode ===== */}
-            <span
-              className={`task-title ${task.done ? "finished" : ""}`}
-              style={{ color }}
-            >
-              {task.title} - {task.done ? "Finished ✅" : "On working ❌"} (
-              {task.priority})
-            </span>
-            <span style={{ marginLeft: "10px", fontSize: "0.85rem", color: "white" }}>
-              ⏱ {secondsToReadable(seconds)}s
-            </span>
-          </>
-        )}
-      </div>
+      <div className="task-left-container">
+        <div>
+          {/* ===== Editing mode ===== */}
+          {isEditing ? (
+            <div className="edit-panel">
+              <input
+                type="text"
+                value={editedTitle}
+                onChange={(e) => setEditedTitle(e.target.value)}
+              />
+              <select
+                value={editedPriority}
+                onChange={(e) => setEditedPriority(e.target.value)}
+              >
+                <option value="high">High</option>
+                <option value="mid">Mid</option>
+                <option value="low">Low</option>
+              </select>
+              <button className="task-button done" onClick={saveEdit}>
+                Save
+              </button>
+              <button className="task-button undone" onClick={cancelEdit}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* ===== Normal mode ===== */}
+              <span
+                className={`task-title ${task.done ? "finished" : ""}`}
+                style={{ color }}
+              >(
+                {task.priority}) 
+                { task.title} 
+              </span>
+              <span style={{ marginLeft: "10px", fontSize: "0.85rem", color: "white" }}>
+                ⏱ {secondsToReadable(seconds)}s
+              </span>
+            </>
+          )}
+        </div>
 
-      {/* ===== Labels ===== */}
-      <div className="task-labels">
-        {allLabels
-          .filter((label) => task.labels.includes(label.id))
-          .map((label) => (
-            <Label key={label.id} label={label} deleteLabel={() => deleteTaskLabel(task.id, label.id)}
-            showDelete={isEditing}/>
-          ))}
+        {/* ===== Labels ===== */}
+        <div className="task-labels">
+          {allLabels
+            .filter((label) => task.labels.includes(label.id))
+            .map((label) => (
+              <Label key={label.id} label={label} deleteLabel={() => deleteTaskLabel(task.id, label.id)}
+              showDelete={isEditing}/>
+            ))}
+        </div>
       </div>
 
       {/* ===== Action buttons ===== */}
       {!isEditing && (
         <div className="task-actions">
-          <button
+          <div className="task-edit-buttons">
+            <button
             className={`task-button ${task.done ? "done" : "undone"}`}
             onClick={toggleTask}
-          >
-            {task.done ? "Mark Undone" : "Mark Done"}
-          </button>
-          <button className="task-button undone" onClick={() => setIsEditing(true)}>
-            ✏️ Edit
-          </button>
-          <button className="remove-button" onClick={deleteTask}>
+            >
+              {task.done ? "Mark Undone" : "Mark Done"}
+            </button>
+            <button className="task-button undone" onClick={() => setIsEditing(true)}>
+              Edit
+            </button>
+          </div>
+
+
+          <button className="remove-button small" onClick={deleteTask}>
             ❌
           </button>
         </div>

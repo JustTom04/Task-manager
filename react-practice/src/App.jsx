@@ -6,7 +6,7 @@ import ProjectPicker from "./modal/ProjectPicker.jsx";
 import ConfirmModal from "./modal/ConfirmModal.jsx";
 import SettingsPanel from "./components/SettingsPanel.jsx";
 
-import { useClickOutside } from "./utils.js";
+import { useClickOutside, INPUT_LENGTH } from "./utils.js";
 
 import { useProjectState } from "./hooks/useProjectState.js";
 
@@ -16,6 +16,7 @@ import "./styles/responsive.css"
 import "./styles/modal.css";
 import "./styles/label.css";
 import "./styles/settingsPanel.css";
+import "./styles/task.css";
 
 
 
@@ -40,6 +41,7 @@ function App() {
   const {
     projects,setProjects,
     activeProjectId, setActiveProjectId,
+    addProject,
     deleteProject,
     actualProject,
     actualTasksList,
@@ -85,7 +87,7 @@ function App() {
   return (
     <div className="app-container">
       <span
-        className="settings-toggle"
+        className={`settings-toggle ${settingsOpen ? "active" : ""}`}
         onClick={() => setSettingsOpen(prev => !prev)}
       >
       </span>
@@ -101,7 +103,7 @@ function App() {
 
       {/* ===== Top section ===== */}
       <div className="top-section">
-        <div className="row">
+        <div className="section-group">
           
           {/* ===== Filters ===== */}
           <div className="section">
@@ -166,7 +168,7 @@ function App() {
           
         </div>
 
-        <div className="row">
+        <div className="section-group">
         {/* ===== Add new task ===== */}
           <form onSubmit={addTask} className="section">
             <div className="form-container">
@@ -191,6 +193,7 @@ function App() {
 
               <input
                 type="text"
+                maxLength={INPUT_LENGTH.TASK_TITLE}
                 placeholder="Task title"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
@@ -291,20 +294,13 @@ function App() {
         <ProjectPicker
           onClose={(result) => {
             setShowProjectModal(false);
-            if (result) {
-              const generalLabels = projects[0]?.labels || [];
-              const newProject = {
-                id: crypto.randomUUID(),
-                name: result.name,
-                tasks: [],
-                labels: generalLabels.map((l) => ({ ...l })),
-              };
-              setProjects((prev) => [...prev, newProject]);
-              setActiveProjectId(newProject.id);
+            if (result?.name) {
+              addProject(result.name);
             }
           }}
         />
       )}
+
 
       {confirmConfig && (
         <ConfirmModal
