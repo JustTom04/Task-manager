@@ -8,6 +8,7 @@ function LabelsPanel({ labels, selectedIds, setSelectedIds, showDelete = false, 
         <label key={label.id} className="labels-item">
           <input
             type="checkbox"
+            className="label-checkbox"
             checked={selectedIds.includes(label.id)}
             onChange={() => {
               setSelectedIds((prev) =>

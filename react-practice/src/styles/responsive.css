@@ -27,7 +27,7 @@
     margin-top: 0px;
   }
 
-  button, select, input, .labels-select {
+  .top-section .section > * {
     flex: 1; 
   }
 
@@ -46,6 +46,12 @@
   }
 
 
+#completed-counter {
+
+  margin-top: -0.2rem;
+  margin-left: -0.2rem;
+
+} 
 }
 
 
@@ -56,14 +62,9 @@
   }
 
   form.section {
-    flex-direction: column;
-    align-items: stretch; 
-    gap: 10px;          
+    align-items: stretch;      
   }
 
-  .task-button {
-    width: 100%; 
-  }
 }
 
 

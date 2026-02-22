@@ -86,7 +86,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
                 {task.priority}) 
                 { task.title} 
               </span>
-              <span style={{ marginLeft: "10px", fontSize: "0.85rem", color: "white" }}>
+              <span style={{ marginLeft: "10px", fontSize: "0.85rem", color: "white", whiteSpace: "nowrap" }} >
                 ⏱ {secondsToReadable(seconds)}s
               </span>
             </>

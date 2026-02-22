@@ -62,15 +62,24 @@ h1 {
   word-break: break-word;
 }
 
-select, input {
+
+
+
+
+
+/* ===== Select, input ===== */
+select:not(.filter-select), input, .select-wrapper {
   background-color: var(--color-container);
   color: var(--color-text);
   border: 1px solid var(--color-panel-border);
   border-radius: 5px;
+  font-weight: normal;
 
   box-shadow: var(--shadow-soft);
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
+
+
 
 select, input, button {
   padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
@@ -88,7 +97,8 @@ select:focus, input:focus {
   box-shadow: var(--shadow-focus);
 }
 
-/* BUTTON */
+
+/* ===== Button ===== */
 button {
   color: white;
   border: none;

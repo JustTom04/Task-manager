@@ -16,6 +16,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
+
   padding: clamp(0.4rem, 1vw, 0.6rem);
   margin-bottom: 8px;
   border-radius: 5px;
@@ -59,19 +61,6 @@
 }
 
 
-
-
-#filter-labels-button {
-  background-color: var(--color-container);
-  color: var(--color-text);
-  border: 1.5px solid var(--color-panel-border);
-  font-weight: normal;
-
-  padding: 7px;
-  padding-left: 10px;
-  font-size: 0.9rem;
-  text-align: left;
-}
 
 
 /* Scrollbar */

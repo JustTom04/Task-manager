@@ -1,9 +1,21 @@
+import { useState } from "react";
 
-function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, isOpen }) {
+import ProjectPicker from "../modal/ProjectPicker.jsx";
+
+
+function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, addProject, isOpen }) {
+  const [showProjectModal, setShowProjectModal] = useState(false);
+
   return (
     <div className={`settings-panel ${isOpen ? "open" : ""}`}>
       <h2 className="settings-title">Projects</h2>
       <div className="projects-list">
+        <button
+          className="done add-project-button"
+          onClick={() => setShowProjectModal(true)}
+        >
+          ➕ Add Project
+        </button>
         {projects.map((p) => (
           <div
             key={p.id}
@@ -21,7 +33,20 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProje
             </button>
           </div>
         ))}
+
       </div>
+
+
+      {showProjectModal && (
+        <ProjectPicker
+          onClose={(result) => {
+            setShowProjectModal(false);
+            if (result?.name) {
+              addProject(result.name);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

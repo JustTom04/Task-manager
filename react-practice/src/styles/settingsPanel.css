@@ -49,6 +49,12 @@
 }
 
 
+.add-project-button {
+  margin-bottom: 15px;
+  width: 80%;
+}
+
+
 /* ===== toggle button ===== */
 .settings-toggle {
   position: fixed;
