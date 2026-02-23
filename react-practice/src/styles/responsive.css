@@ -27,10 +27,6 @@
     margin-top: 0px;
   }
 
-  .top-section .section > * {
-    flex: 1; 
-  }
-
   .labels-select button {
     width: 100%;
     text-wrap: nowrap;
@@ -52,6 +48,24 @@
   margin-left: -0.2rem;
 
 } 
+
+
+  .top-section .section > *:not(input):not(.add-task-selection):not(.task-button) {
+    flex: 1; 
+  }
+
+
+  .form-container input {
+    flex: 2 1 0;
+  }
+
+  .add-task-selection {
+    flex: 1 1 0;
+  }
+
+  .task-button.done {
+    flex: 2 1 0;
+  }
 }
 
 
@@ -61,12 +75,8 @@
     font-size: 13px; 
   }
 
-  form.section {
-    align-items: stretch;      
-  }
 
 }
-
 
 
 

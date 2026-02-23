@@ -50,17 +50,12 @@
 
 .section, .form-container {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: clamp(0.5rem, 1dvw, 0.8rem);
 
   flex-wrap: wrap;
-}
 
-.form-container input {
-  flex: 1;
-  min-width: 120px;
 }
-
 
 
 

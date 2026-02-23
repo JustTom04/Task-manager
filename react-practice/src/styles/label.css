@@ -12,8 +12,8 @@
 
 
 .labels-select {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
 }
 
 .labels-button {
@@ -29,6 +29,8 @@
   font-weight: normal;
   height: 100%;
 }
+
+
 
 
 .label-delete-button {

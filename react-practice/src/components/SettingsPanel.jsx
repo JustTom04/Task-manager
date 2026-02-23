@@ -1,6 +1,8 @@
 import { useState } from "react";
 
-import ProjectPicker from "../modal/ProjectPicker.jsx";
+import ItemPicker from "../modal/ItemPicker.jsx";
+
+import { INPUT_LENGTH } from "../utils.js";
 
 
 function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, addProject, isOpen }) {
@@ -38,7 +40,10 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProje
 
 
       {showProjectModal && (
-        <ProjectPicker
+        <ItemPicker
+          title="Create Project"
+          inputMaxLength={INPUT_LENGTH.PROJECT_NAME}
+          includeColor={false}
           onClose={(result) => {
             setShowProjectModal(false);
             if (result?.name) {

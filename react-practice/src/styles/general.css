@@ -82,6 +82,7 @@ select:not(.filter-select), input, .select-wrapper {
 
 
 select, input, button {
+  white-space: nowrap;
   padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
   font-size: 0.9rem;
 }
@@ -113,13 +114,13 @@ button {
     box-shadow 0.15s ease;
 }
 
-button:not(.inactive):hover {
+button:not(.inactive):not(#filter-labels-button):hover {
   transform: scale(0.95);          
   filter: brightness(0.9);     
   box-shadow: var(--shadow-medium);
 }
 
-button:not(.inactive):active {
+button:not(.inactive):not(#filter-labels-button):active {
   transform: scale(0.9);
   filter: brightness(0.8);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) inset;

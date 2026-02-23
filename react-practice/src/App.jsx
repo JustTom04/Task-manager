@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Task from "./components/Task.jsx"
 import LabelsPanel from "./components/LabelsPanel.jsx";
-import ColorPicker from "./modal/LabelPicker.jsx";
+import ItemPicker from "./modal/ItemPicker.jsx";
 
 import ConfirmModal from "./modal/ConfirmModal.jsx";
 import SettingsPanel from "./components/SettingsPanel.jsx";
@@ -102,13 +102,11 @@ function App() {
       >
       </span>
 
+      <span id="completed-counter">
+        Completed: {completedCount}/{actualTasksList.length}
+      </span>
       <div id="title-row">
-        <span id="completed-counter">
-          Completed: {completedCount}/{actualTasksList.length}
-        </span>
         <h1 id="title">{actualProject.name}</h1>
-
-
       </div>
 
       {/* ===== Top section ===== */}
@@ -121,10 +119,10 @@ function App() {
               <div className="select-wrapper">
                 <span className="filter-icon"></span>
 
-                <div className="labels-select " ref={filterLabelsRef}>
+                <div className="labels-select filter-select" ref={filterLabelsRef}>
                   <button
                     type="button"
-                    className="labels-button filter-select"
+                    className="labels-button"
                     id="filter-labels-button"
                     onClick={() => setFilterLabelsOpen((prev) => !prev)}
                   >
@@ -183,7 +181,7 @@ function App() {
                   Add labels
                 </button>
 
-                {labelsOpen && (
+                {filterlabelsOpen && (
                   <LabelsPanel
                     labels={actualLabelsList}
                     selectedIds={selectedLabels}
@@ -198,28 +196,26 @@ function App() {
 
         <div className="section-group">
         {/* ===== Add new task ===== */}
-          <form onSubmit={addTask} className="section">
-            <div className="form-container">
-              <input
-                type="text"
-                maxLength={INPUT_LENGTH.TASK_TITLE}
-                placeholder="Task title"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                ref={newTitleRef}
-              />
+          <form onSubmit={addTask} className="section form-container">
+            <input
+              type="text"
+              maxLength={INPUT_LENGTH.TASK_TITLE}
+              placeholder="Task title"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              ref={newTitleRef}
+            />
 
-              <select
-                value={newPriority}
-                className="add-task-selection"
-                onChange={(e) => setNewPriority(e.target.value)}
-              >
-                <option value="high">High</option>
-                <option value="mid">Mid</option>
-                <option value="low">Low</option>
-              </select>
-            
-            </div>
+            <select
+              value={newPriority}
+              className="add-task-selection"
+              onChange={(e) => setNewPriority(e.target.value)}
+            >
+              <option value="high">High</option>
+              <option value="mid">Mid</option>
+              <option value="low">Low</option>
+            </select>
+
             <button type="submit" className="task-button done">
               Add Task
             </button>
@@ -239,7 +235,7 @@ function App() {
               }`}
               disabled={actualTasksList.length === 0}
             >
-              Delete All
+              Delete All Tasks
             </button>
 
             <button
@@ -336,8 +332,7 @@ function App() {
 
           <div className="section-group">
           {/* ===== Add new task ===== */}
-            <form onSubmit={addTask} className="section">
-              <div className="form-container">
+            <form onSubmit={addTask} className="section form-container">
                 <div className="labels-select" ref={labelsRef}>
                   <button
                     type="button"
@@ -376,10 +371,9 @@ function App() {
                   <option value="low">Low</option>
                 </select>
               
-              </div>
-              <button type="submit" className="task-button done">
-                Add Task
-              </button>
+                <button type="submit" className="task-button done">
+                  Add Task
+                </button>
             </form>
 
             <div className="section buttons">
@@ -396,7 +390,7 @@ function App() {
                 }`}
                 disabled={actualTasksList.length === 0}
               >
-                Delete All
+                Delete All tasks
               </button>
 
               <button
@@ -444,7 +438,10 @@ function App() {
       </div>
 
       {showLabelModal && (
-        <ColorPicker
+        <ItemPicker
+          title="Create Label"
+          inputMaxLength={INPUT_LENGTH.LABEL_NAME}
+          includeColor={true}
           onClose={(result) => {
             setShowLabelModal(false);
             if (result) {
