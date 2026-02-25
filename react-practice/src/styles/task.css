@@ -78,6 +78,50 @@
 }
 
 /* In task */
+.mark-btn {
+  padding: clamp(0.1rem, 0.45dvh, 0.2rem) clamp(0.2rem, 0.75dvw, 0.4rem);
+  background-color: var(--color-task-bg);
+  font-weight: normal;
+
+  border: 1px solid rgba(140, 140, 140, 0.7);
+  box-shadow: none;
+
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.mark-btn:hover {
+  background-color: rgba(72, 200, 100, 0.7); 
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); 
+}
+
+.mark-btn.completed {
+  background-color: rgba(40, 140, 70, 0.7); 
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset; 
+  border: 1px solid black;
+}
+
+
+.task-item.done-overlay {
+  position: relative; 
+}
+
+.task-item.done-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0; 
+  background-color: rgba(0, 250, 0, 0.3); 
+  pointer-events: none; 
+  border-radius: inherit; 
+  z-index: 0; 
+}
+
+
+.task-item > * {
+  position: relative;
+  z-index: 1;
+}
+
+
 .task-actions {
   display: flex;
   align-items: center;

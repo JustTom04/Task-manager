@@ -1,11 +1,9 @@
+import { createPortal } from "react-dom";
 
 function ConfirmModal({ title, message, onConfirm, onCancel }) {
-  return (
+  return createPortal(
     <div className="modal-overlay" onClick={onCancel}>
-      <div
-        className="modal"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>{title}</h2>
         <p>{message}</p>
 
@@ -24,7 +22,8 @@ function ConfirmModal({ title, message, onConfirm, onCancel }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

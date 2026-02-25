@@ -1,15 +1,20 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import ItemPicker from "../modal/ItemPicker.jsx";
+import ConfirmModal from "../modal/ConfirmModal.jsx";
 
-import { INPUT_LENGTH } from "../utils.js";
+import { INPUT_LENGTH, useClickOutside } from "../utils.js";
 
 
-function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, addProject, isOpen }) {
+function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, addProject, isOpen, setIsOpen }) {
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState(null);
+
+  const settingsRef = useRef(null);
+  useClickOutside(settingsRef, () => { setIsOpen(false) })
 
   return (
-    <div className={`settings-panel ${isOpen ? "open" : ""}`}>
+    <div className={`settings-panel ${isOpen ? "open" : ""}`} ref={settingsRef} >
       <h2 className="settings-title">Projects</h2>
       <div className="projects-list">
         <button
@@ -25,11 +30,15 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProje
             onClick={() => onSelectProject(p.id)}
           >
             <div className="project-item-title">{p.name}</div>
-            <button className="remove-button small" 
+            <button className="remove-button" 
               onClick={(e) => {
-                  e.stopPropagation(); 
-                  deleteProject(p.id);
-                }}
+                e.stopPropagation();
+                setConfirmConfig({
+                  title: "Delete project?",
+                  message: `Project "${p.name}" will be permanently deleted.`,
+                  action: () => deleteProject(p.id),
+                });
+              }}
             >
               ❌
             </button>
@@ -50,6 +59,15 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProje
               addProject(result.name);
             }
           }}
+        />
+      )}
+
+      {confirmConfig && (
+        <ConfirmModal
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          onConfirm={confirmConfig.action}
+          onCancel={() => setConfirmConfig(null)}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import ItemPicker from "./modal/ItemPicker.jsx";
 
 import ConfirmModal from "./modal/ConfirmModal.jsx";
 import SettingsPanel from "./components/SettingsPanel.jsx";
+import TopSection from "./components/TopSection.jsx";
 
 import { useClickOutside, INPUT_LENGTH } from "./utils.js";
 
@@ -110,310 +111,18 @@ function App() {
       </div>
 
       {/* ===== Top section ===== */}
-      {isMobile ? (
-        <div className="top-section">
-          <div className="section-group">
-            
-            {/* ===== Filters ===== */}
-            <div className="section">
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-
-                <div className="labels-select filter-select" ref={filterLabelsRef}>
-                  <button
-                    type="button"
-                    className="labels-button"
-                    id="filter-labels-button"
-                    onClick={() => setFilterLabelsOpen((prev) => !prev)}
-                  >
-                    select labels
-                  </button>
-
-                  {filterlabelsOpen && (
-                    <LabelsPanel
-                      labels={actualLabelsList}
-                      selectedIds={labelsFilter}
-                      setSelectedIds={setLabelsFilter}
-                      showDelete={true}
-                      deleteLabel={deleteLabel}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-
-                <select
-                  className="filter-select"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="ALL">All status</option>
-                  <option value="Finished">Finished</option>
-                  <option value="On working">On working</option>
-                </select>
-              </div>
-
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-                <select
-                  className="filter-select"
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                >
-                  <option value="ALL">Any Priority</option>
-                  <option value="high">High</option>
-                  <option value="mid">Mid</option>
-                  <option value="low">Low</option>
-                </select>
-              </div>
-            </div>
-
-
-            <div className="section buttons">
-              <div className="labels-select" ref={labelsRef}>
-                <button
-                  type="button"
-                  className="labels-button"
-                  onClick={() => setLabelsOpen((prev) => !prev)}
-                >
-                  Add labels
-                </button>
-
-                {filterlabelsOpen && (
-                  <LabelsPanel
-                    labels={actualLabelsList}
-                    selectedIds={selectedLabels}
-                    setSelectedIds={setSelectedLabels}
-                    showDelete={false}
-                  /> 
-                )}
-              </div>
-              <button className="done" onClick={() => setShowLabelModal(true)}> ➕ Create Label</button>
-          </div>
-        </div>
-
-        <div className="section-group">
-        {/* ===== Add new task ===== */}
-          <form onSubmit={addTask} className="section form-container">
-            <input
-              type="text"
-              maxLength={INPUT_LENGTH.TASK_TITLE}
-              placeholder="Task title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              ref={newTitleRef}
-            />
-
-            <select
-              value={newPriority}
-              className="add-task-selection"
-              onChange={(e) => setNewPriority(e.target.value)}
-            >
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
-
-            <button type="submit" className="task-button done">
-              Add Task
-            </button>
-          </form>
-
-          <div className="section buttons">
-            <button
-              onClick={() =>
-                setConfirmConfig({
-                  action: deleteAllTasks,
-                  title: "Delete all tasks?",
-                  message: "All tasks in this project will be permanently deleted.",
-                })
-              }
-              className={`button-delete ${
-                actualTasksList.length === 0 ? "inactive" : ""
-              }`}
-              disabled={actualTasksList.length === 0}
-            >
-              Delete All Tasks
-            </button>
-
-            <button
-              onClick={() =>
-                setConfirmConfig({
-                  action: deleteAllLabels,
-                  title: "Delete all labels?",
-                  message: "All labels in this project will be permanently deleted.",
-                })
-              }
-
-              className={`button-delete ${
-                actualLabelsList.length === 0 ? "inactive" : ""
-              }`}
-              disabled={actualLabelsList.length === 0}
-            >
-              Delete All labels
-            </button>
-          </div>
-        </div>
-
-      </div>
-      ) : (
-        <div className="top-section">
-          <div className="section-group">
-            
-            {/* ===== Filters ===== */}
-            <div className="section">
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-
-                <div className="labels-select " ref={filterLabelsRef}>
-                  <button
-                    type="button"
-                    className="labels-button filter-select"
-                    id="filter-labels-button"
-                    onClick={() => setFilterLabelsOpen((prev) => !prev)}
-                  >
-                    select labels
-                  </button>
-
-                  {filterlabelsOpen && (
-                    <LabelsPanel
-                      labels={actualLabelsList}
-                      selectedIds={labelsFilter}
-                      setSelectedIds={setLabelsFilter}
-                      showDelete={true}
-                      deleteLabel={deleteLabel}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-
-                <select
-                  className="filter-select"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option value="ALL">All status</option>
-                  <option value="Finished">Finished</option>
-                  <option value="On working">On working</option>
-                </select>
-              </div>
-
-              <div className="select-wrapper">
-                <span className="filter-icon"></span>
-                <select
-                  className="filter-select"
-                  value={priorityFilter}
-                  onChange={(e) => setPriorityFilter(e.target.value)}
-                >
-                  <option value="ALL">Any Priority</option>
-                  <option value="high">High</option>
-                  <option value="mid">Mid</option>
-                  <option value="low">Low</option>
-                </select>
-              </div>
-            </div>
-
-
-            <div className="section buttons">
-              <button
-                className="done"
-                onClick={() => setShowLabelModal(true)}
-              >
-                ➕ Create Label
-              </button>
-            </div>
-            
-          </div>
-
-          <div className="section-group">
-          {/* ===== Add new task ===== */}
-            <form onSubmit={addTask} className="section form-container">
-                <div className="labels-select" ref={labelsRef}>
-                  <button
-                    type="button"
-                    className="labels-button"
-                    onClick={() => setLabelsOpen((prev) => !prev)}
-                  >
-                    Add labels
-                  </button>
-
-                  {labelsOpen && (
-                      <LabelsPanel
-                        labels={actualLabelsList}
-                        selectedIds={selectedLabels}
-                        setSelectedIds={setSelectedLabels}
-                        showDelete={false}
-                      /> 
-                  )}
-                </div>
-
-                <input
-                  type="text"
-                  maxLength={INPUT_LENGTH.TASK_TITLE}
-                  placeholder="Task title"
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  ref={newTitleRef}
-                />
-
-                <select
-                  value={newPriority}
-                  className="add-task-selection"
-                  onChange={(e) => setNewPriority(e.target.value)}
-                >
-                  <option value="high">High</option>
-                  <option value="mid">Mid</option>
-                  <option value="low">Low</option>
-                </select>
-              
-                <button type="submit" className="task-button done">
-                  Add Task
-                </button>
-            </form>
-
-            <div className="section buttons">
-              <button
-                onClick={() =>
-                  setConfirmConfig({
-                    action: deleteAllTasks,
-                    title: "Delete all tasks?",
-                    message: "All tasks in this project will be permanently deleted.",
-                  })
-                }
-                className={`button-delete ${
-                  actualTasksList.length === 0 ? "inactive" : ""
-                }`}
-                disabled={actualTasksList.length === 0}
-              >
-                Delete All tasks
-              </button>
-
-              <button
-                onClick={() =>
-                  setConfirmConfig({
-                    action: deleteAllLabels,
-                    title: "Delete all labels?",
-                    message: "All labels in this project will be permanently deleted.",
-                  })
-                }
-
-                className={`button-delete ${
-                  actualLabelsList.length === 0 ? "inactive" : ""
-                }`}
-                disabled={actualLabelsList.length === 0}
-              >
-                Delete All labels
-              </button>
-            </div>
-          </div>
-
-        </div>
-      )}
+      <TopSection
+        isMobile={isMobile}
+        taskState={taskState}
+        labelState={labelState}
+        filterState={taskFilterState}
+        projectData={{
+          actualLabelsList,
+          actualTasksList
+        }}
+        setConfirmConfig={setConfirmConfig}
+        setShowLabelModal={setShowLabelModal}
+      />
       
 
       {/* ===== Tasks list ===== */}
@@ -472,6 +181,7 @@ function App() {
         deleteProject={deleteProject}
         addProject={addProject}
         isOpen={settingsOpen}
+        setIsOpen={setSettingsOpen}
       />
 
     </div>

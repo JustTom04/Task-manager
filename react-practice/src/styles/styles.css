@@ -65,8 +65,11 @@
 .select-wrapper {
   position: relative;
   display: inline-block;
-  overflow: hidden; 
   padding-left: 22px;  
+}
+
+.select-wrapper:not() {
+  overflow: hidden;
 }
 
 .filter-select {
@@ -88,8 +91,8 @@
   display: inline-block;
   background-color: currentColor;
 
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='black' stroke-width='2' fill='none' d='M3 4h18l-7 8v6l-4 2v-8L3 4z'/%3E%3C/svg%3E") no-repeat center;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='black' stroke-width='2' fill='none' d='M3 4h18l-7 8v6l-4 2v-8L3 4z'/%3E%3C/svg%3E") no-repeat center;
+  -webkit-mask: url("/src/assets/filter.svg") no-repeat center;
+  mask: url("/src/assets/filter.svg") no-repeat center;
 
   -webkit-mask-size: contain;
   mask-size: contain;

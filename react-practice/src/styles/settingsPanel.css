@@ -14,7 +14,7 @@
 
 .settings-title {
   margin: 0 0 10px 0;
-  font-size: 18px;
+  font-size: 1.4rem;
   text-align: center;
   color: var(--color-settings-title);
 }
@@ -36,6 +36,10 @@
   transition: background-color 0.2s;
   background-color: var(--color-settings-item);
   color: var(--color-settings-text);
+}
+
+.project-item-title {
+  font-size: 1.2rem;
 }
 
 .project-item:hover {

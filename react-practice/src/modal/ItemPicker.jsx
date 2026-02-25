@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { INPUT_LENGTH } from "@/utils";
 
 function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
@@ -19,7 +20,7 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
     }
   }
 
-  return (
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal">
         <h2>{title}</h2>
@@ -53,7 +54,8 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
