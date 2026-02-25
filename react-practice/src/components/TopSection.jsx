@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
 import LabelsPanel from "./LabelsPanel";
+import CustomDropdown from "./CustomDropdown";
 import { useClickOutside, INPUT_LENGTH } from "../utils";
 
 function TopSection({
@@ -11,16 +12,10 @@ function TopSection({
   setConfirmConfig,
   setShowLabelModal,
 }) {
-  // ===== Local UI state =====
+  // ===== Labels =====
   const [labelsOpen, setLabelsOpen] = useState(false);
-  const [filterLabelsOpen, setFilterLabelsOpen] = useState(false);
-
-  // ===== Refs =====
   const labelsRef = useRef(null);
-  const filterLabelsRef = useRef(null);
-
   useClickOutside(labelsRef, () => setLabelsOpen(false));
-  useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
 
   // ===== Destructure =====
   const {
@@ -48,6 +43,19 @@ function TopSection({
 
   const { actualLabelsList, actualTasksList } = projectData;
 
+  const options = {
+    status: [
+      { value: "ALL", label: "All status" },
+      { value: "Finished", label: "Finished" },
+      { value: "On working", label: "On working" },
+    ],
+    priority: [
+      { value: "ALL", label: "Any Priority" },
+      { value: "high", label: "High" },
+      { value: "mid", label: "Mid" },
+      { value: "low", label: "Low" },
+    ],
+  };
 
   // =====================================================
   // ===================== MOBILE ========================
@@ -58,64 +66,33 @@ function TopSection({
         <div className="section-group">
           {/* ===== Filters ===== */}
           <div className="section">
-            <div className="select-wrapper">
-              <span className="filter-icon"></span>
+            <CustomDropdown
+              value={null}
+              options={[]}
+              customPanel={({ close }) => (
+                <LabelsPanel
+                  labels={actualLabelsList}
+                  selectedIds={labelsFilter}
+                  setSelectedIds={setLabelsFilter}
+                  showDelete={true}
+                  deleteLabel={deleteLabel}
+                />
+              )}
+              customTitle={"Select labels"}
+            />
 
-              <div
-                className="labels-select filter-select"
-                ref={filterLabelsRef}
-              >
-                <button
-                  type="button"
-                  className="labels-button filter-labels-button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFilterLabelsOpen((prev) => !prev);
-                  }}
-                >
-                  select labels
-                </button>
+            <CustomDropdown
+              options={options.status}
+              value={statusFilter}
+              onChange={setStatusFilter}
+            />
 
-                {filterLabelsOpen && (
-                  <LabelsPanel
-                    labels={actualLabelsList}
-                    selectedIds={labelsFilter}
-                    setSelectedIds={setLabelsFilter}
-                    showDelete
-                    deleteLabel={deleteLabel}
-                  />
-                )}
-              </div>
-            </div>
+            <CustomDropdown
+              options={options.priority}
+              value={priorityFilter}
+              onChange={setPriorityFilter}
+            /> 
 
-            <div className="select-wrapper">
-              <span className="filter-icon"></span>
-
-              <select
-                className="filter-select"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="ALL">All status</option>
-                <option value="Finished">Finished</option>
-                <option value="On working">On working</option>
-              </select>
-            </div>
-
-            <div className="select-wrapper">
-              <span className="filter-icon"></span>
-
-              <select
-                className="filter-select"
-                value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value)}
-              >
-                <option value="ALL">Any Priority</option>
-                <option value="high">High</option>
-                <option value="mid">Mid</option>
-                <option value="low">Low</option>
-              </select>
-            </div>
           </div>
 
           <div className="section buttons">
@@ -216,66 +193,40 @@ function TopSection({
   // =====================================================
   // ==================== DESKTOP ========================
   // =====================================================
-
   return (
     <div className="top-section">
       <div className="section-group">
             
             {/* ===== Filters ===== */}
         <div className="section">
-          <div className="select-wrapper">
-            <span className="filter-icon"></span>
+          
+         <CustomDropdown
+            value={null}
+            options={[]}
+            customPanel={({ close }) => (
+              <LabelsPanel
+                labels={actualLabelsList}
+                selectedIds={labelsFilter}
+                setSelectedIds={setLabelsFilter}
+                showDelete={true}
+                deleteLabel={deleteLabel}
+              />
+            )}
+            customTitle={"Select labels"}
+          />
 
-            <div className="labels-select filter-select " ref={filterLabelsRef}>
-              <button
-                type="button"
-                className="labels-button filter-labels-button"
-                onClick={() => setFilterLabelsOpen((prev) => !prev)}
-              >
-                select labels
-              </button>
+          <CustomDropdown
+            options={options.status}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
 
-              {filterLabelsOpen && (
-                <LabelsPanel
-                  labels={actualLabelsList}
-                  selectedIds={labelsFilter}
-                  setSelectedIds={setLabelsFilter}
-                  showDelete={true}
-                  deleteLabel={deleteLabel}
-                />
-              )}
-            </div>
-          </div>
-
-          <div className="select-wrapper">
-            <span className="filter-icon"></span>
-
-            <select
-              className="filter-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="ALL">All status</option>
-              <option value="Finished">Finished</option>
-              <option value="On working">On working</option>
-            </select>
-          </div>
-
-          <div className="select-wrapper">
-            <span className="filter-icon"></span>
-            <select
-              className="filter-select"
-              value={priorityFilter}
-              onChange={(e) => setPriorityFilter(e.target.value)}
-            >
-              <option value="ALL">Any Priority</option>
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
-          </div>
+          <CustomDropdown
+            options={options.priority}
+            value={priorityFilter}
+            onChange={setPriorityFilter}
+          /> 
         </div>
-
 
         <div className="section buttons">
           <button

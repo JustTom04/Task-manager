@@ -11,7 +11,7 @@ import { useClickOutside, INPUT_LENGTH } from "./utils.js";
 
 import { useProjectState } from "./hooks/useProjectState.js";
 
-import "./styles/styles.css"
+import "./styles/topSection.css"
 import "./styles/general.css";
 import "./styles/responsive.css"
 import "./styles/modal.css";

@@ -3,7 +3,7 @@ import Label from "./Label";
 
 function LabelsPanel({ labels, selectedIds, setSelectedIds, showDelete = false, deleteLabel }) {
   return (
-    <div className="labels-dropdown">
+    <div className="labels-dropdown dropdown">
       {labels.map((label) => (
         <label key={label.id} className="labels-item">
           <input
