@@ -39,7 +39,9 @@
 .task-title {
   font-weight: bold;
   font-size: 1.2rem;
+  color: var(--color-task-title);
 }
+
 
 .task-title.finished {
   text-decoration: line-through;
@@ -51,15 +53,21 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
-
-.filter-field {
+.edit-panel {
   display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  flex-direction: row;
+  gap: 10px;
 }
 
+.edit-top-row,
+.edit-bottom-row {
+  display: flex;
+  gap: 10px;              
+  align-items: center;
+}
 
 
 
@@ -85,6 +93,9 @@
 
   border: 1px solid rgba(140, 140, 140, 0.7);
   box-shadow: none;
+
+  position: relative;
+  top: -1px;
 
   transition: background-color 0.2s, box-shadow 0.2s;
 }

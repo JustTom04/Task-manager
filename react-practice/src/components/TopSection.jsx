@@ -6,19 +6,27 @@ import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/utils.js";
 function TopSection({
   isMobile,
   taskState,
-  labelState,
   filterState,
   projectData,
   setConfirmConfig,
   setShowLabelModal,
 }) {
+
   // ===== Labels =====
   const [labelsOpen, setLabelsOpen] = useState(false);
   const labelsRef = useRef(null);
-  useClickOutside(labelsRef, () => setLabelsOpen(false));
+  const labelsButtonRef = useRef(null);
 
-  const buttonRef = useRef(null);
-  const dropdownPos = useDropdownPosition(buttonRef, labelsOpen);
+  useClickOutside(labelsRef, () => setLabelsOpen(false));
+  const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen);
+
+  // ===== Delete labels =====
+  const [deleteLabelsOpen, setDeleteLabelsOpen] = useState(false);
+  const deleteLabelsRef = useRef(null);
+  const deleteLabelsButtonRef = useRef(null);
+
+  useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
+  const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen);
 
   // ===== Destructure =====
   const {
@@ -33,8 +41,6 @@ function TopSection({
     deleteAllTasks,
   } = taskState;
 
-  const { deleteLabel, deleteAllLabels } = labelState;
-
   const {
     labelsFilter,
     setLabelsFilter,
@@ -44,7 +50,7 @@ function TopSection({
     setPriorityFilter,
   } = filterState;
 
-  const { actualLabelsList, actualTasksList } = projectData;
+  const { actualLabelsList, actualTasksList, deleteLabel, deleteAllLabels } = projectData;
 
   const options = {
     status: [
@@ -53,12 +59,13 @@ function TopSection({
       { value: "On working", label: "On working" },
     ],
     priority: [
-      { value: "ALL", label: "Any Priority" },
+      { value: "ALL", label: "Any priority" },
       { value: "high", label: "High" },
       { value: "mid", label: "Mid" },
       { value: "low", label: "Low" },
     ],
   };
+
 
   // =====================================================
   // ===================== MOBILE ========================
@@ -72,38 +79,43 @@ function TopSection({
             <CustomDropdown
             value={null}
             options={[]}
-            customPanel={({ close, position }) => (
+            customPanel={({ close, position, ref }) => (
               <LabelsPanel
                 labels={actualLabelsList}
                 selectedIds={labelsFilter}
-                setSelectedIds={setLabelsFilter}
+                onToggle={(id) => setLabelsFilter(prev =>
+                  prev.includes(id)
+                    ? prev.filter(l => l !== id)
+                    : [...prev, id]
+                )}
                 showDelete={true}
                 deleteLabel={deleteLabel}
                 position={position}
+                ref={ref}
               />
             )}
             customTitle={"Select labels"}
           />
 
-            <CustomDropdown
-              options={options.status}
-              value={statusFilter}
-              onChange={setStatusFilter}
-            />
+          <CustomDropdown
+            options={options.status}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
 
-            <CustomDropdown
-              options={options.priority}
-              value={priorityFilter}
-              onChange={setPriorityFilter}
-            /> 
+          <CustomDropdown
+            options={options.priority}
+            value={priorityFilter}
+            onChange={setPriorityFilter}
+          /> 
 
           </div>
 
           <div className="section buttons">
-            <div className="labels-select" ref={labelsRef}>
+            <div className="labels-select">
               <button
                 type="button"
-                ref={buttonRef}
+                ref={labelsButtonRef}
                 className="labels-button"
                 onClick={() => setLabelsOpen((prev) => !prev)}
               >
@@ -114,8 +126,13 @@ function TopSection({
                 <LabelsPanel
                   labels={actualLabelsList}
                   selectedIds={selectedLabels}
-                  setSelectedIds={setSelectedLabels}
+                  onToggle={(id) => setSelectedLabels(prev =>
+                    prev.includes(id)
+                      ? prev.filter(l => l !== id)
+                      : [...prev, id]
+                  )}
                   position={dropdownPos}
+                  ref={labelsRef}
                 />
               )}
             </div>
@@ -124,7 +141,7 @@ function TopSection({
               className="done"
               onClick={() => setShowLabelModal(true)}
             >
-              ➕ Create Label
+              ➕ Create label
             </button>
           </div>
         </div>
@@ -152,11 +169,55 @@ function TopSection({
             </select>
 
             <button type="submit" className="task-button done">
-              Add Task
+              Add task
             </button>
           </form>
 
           <div className="section buttons">
+            <div className="labels-select">
+              <button
+                type="button"
+                ref={deleteLabelsButtonRef}
+                className="button-delete"
+                onClick={() => setDeleteLabelsOpen(prev => !prev)}
+
+              >
+                Delete labels
+              </button>
+
+              {deleteLabelsOpen && (
+                <LabelsPanel
+                  labels={actualLabelsList}
+                  selectedIds={selectedLabels}
+                  showDelete={true}
+                  deleteLabel={deleteLabel}
+                  position={deleteLabelsPos}
+                  showCheckbox={false}
+                  footer={
+                    <button
+                      onMouseDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setConfirmConfig({
+                          action: deleteAllLabels,
+                          title: "Delete all labels?",
+                          message:
+                            "All labels in this project will be permanently deleted.",
+                        });
+                        setDeleteLabelsOpen(false);
+                      }}
+                      className={`button-delete ${
+                        actualLabelsList.length === 0 ? "inactive" : ""
+                      }`}
+                      disabled={actualLabelsList.length === 0}
+                    >
+                      Delete All labels
+                    </button>
+                  }
+                  ref={deleteLabelsRef}
+                />
+              )}
+            </div>
             <button
               onClick={() =>
                 setConfirmConfig({
@@ -171,25 +232,9 @@ function TopSection({
               }`}
               disabled={actualTasksList.length === 0}
             >
-              Delete All Tasks
+              Delete all tasks
             </button>
 
-            <button
-              onClick={() =>
-                setConfirmConfig({
-                  action: deleteAllLabels,
-                  title: "Delete all labels?",
-                  message:
-                    "All labels in this project will be permanently deleted.",
-                })
-              }
-              className={`button-delete ${
-                actualLabelsList.length === 0 ? "inactive" : ""
-              }`}
-              disabled={actualLabelsList.length === 0}
-            >
-              Delete All labels
-            </button>
           </div>
         </div>
       </div>
@@ -209,14 +254,19 @@ function TopSection({
          <CustomDropdown
             value={null}
             options={[]}
-            customPanel={({ close, position }) => (
+            customPanel={({ close, position, ref }) => (
               <LabelsPanel
                 labels={actualLabelsList}
                 selectedIds={labelsFilter}
-                setSelectedIds={setLabelsFilter}
+                onToggle={(id) => setLabelsFilter(prev =>
+                  prev.includes(id)
+                    ? prev.filter(l => l !== id)
+                    : [...prev, id]
+                )}
                 showDelete={true}
                 deleteLabel={deleteLabel}
                 position={position}
+                ref={ref}
               />
             )}
             customTitle={"Select labels"}
@@ -240,7 +290,7 @@ function TopSection({
             className="done"
             onClick={() => setShowLabelModal(true)}
           >
-            ➕ Create Label
+            ➕ Create label
           </button>
         </div>
         
@@ -249,10 +299,10 @@ function TopSection({
       <div className="section-group">
       {/* ===== Add new task ===== */}
         <form onSubmit={addTask} className="section form-container">
-            <div className="labels-select" ref={labelsRef}>
+            <div className="labels-select">
               <button
                 type="button"
-                ref={buttonRef}
+                ref={labelsButtonRef}
                 className="labels-button"
                 onClick={() => setLabelsOpen((prev) => !prev)}
               >
@@ -263,9 +313,14 @@ function TopSection({
                   <LabelsPanel
                     labels={actualLabelsList}
                     selectedIds={selectedLabels}
-                    setSelectedIds={setSelectedLabels}
+                    onToggle={(id) => setSelectedLabels(prev =>
+                      prev.includes(id)
+                        ? prev.filter(l => l !== id)
+                        : [...prev, id]
+                    )}
                     showDelete={false}
                     position={dropdownPos}
+                    ref={labelsRef}
                   /> 
               )}
             </div>
@@ -290,17 +345,62 @@ function TopSection({
             </select>
           
             <button type="submit" className="task-button done">
-              Add Task
+              Add task
             </button>
         </form>
 
         <div className="section buttons">
+          <div className="labels-select">
+            <button
+              type="button"
+              ref={deleteLabelsButtonRef}
+              className="button-delete"
+              onClick={() => setDeleteLabelsOpen(prev => !prev)}
+
+            >
+              Delete labels
+            </button>
+
+            {deleteLabelsOpen && (
+              <LabelsPanel
+                labels={actualLabelsList}
+                selectedIds={selectedLabels}
+                showDelete={true}
+                deleteLabel={deleteLabel}
+                position={deleteLabelsPos}
+                showCheckbox={false}
+                footer={
+                  <button
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setConfirmConfig({
+                        action: deleteAllLabels,
+                        title: "Delete all labels?",
+                        message:
+                          "All labels in this project will be permanently deleted.",
+                      });
+                      setDeleteLabelsOpen(false);
+                    }}
+                    className={`button-delete ${
+                      actualLabelsList.length === 0 ? "inactive" : ""
+                    }`}
+                    disabled={actualLabelsList.length === 0}
+                  >
+                    Delete All labels
+                  </button>
+                }
+                ref={deleteLabelsRef}
+              />
+            )}
+          </div>
           <button
             onClick={() =>
               setConfirmConfig({
                 action: deleteAllTasks,
                 title: "Delete all tasks?",
-                message: "All tasks in this project will be permanently deleted.",
+                message:
+                  "All tasks in this project will be permanently deleted.",
               })
             }
             className={`button-delete ${
@@ -308,24 +408,7 @@ function TopSection({
             }`}
             disabled={actualTasksList.length === 0}
           >
-            Delete All tasks
-          </button>
-
-          <button
-            onClick={() =>
-              setConfirmConfig({
-                action: deleteAllLabels,
-                title: "Delete all labels?",
-                message: "All labels in this project will be permanently deleted.",
-              })
-            }
-
-            className={`button-delete ${
-              actualLabelsList.length === 0 ? "inactive" : ""
-            }`}
-            disabled={actualLabelsList.length === 0}
-          >
-            Delete All labels
+            Delete all tasks
           </button>
         </div>
       </div>

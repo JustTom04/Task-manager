@@ -1,5 +1,5 @@
 import { useState, useEffect, forwardRef, useRef } from "react";
-import { secondsToReadable, useClickOutside, useDropdownPosition, INPUT_LENGTH } from "@/utils.js"
+import { secondsToReadable, useClickOutside, useDropdownPosition, stopAnd, INPUT_LENGTH } from "@/utils.js"
 import Label from "./Label.jsx";
 import LabelsPanel from "./LabelsPanel.jsx";
 
@@ -9,19 +9,20 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedPriority, setEditedPriority] = useState(task.priority);
 
-  const localRef = useRef(null);
-  useClickOutside(localRef, () => {
-    setIsEditing(false);
-  });
 
   // ===== Handle labels ===== 
-  const [labelsOpen, setLabelsOpen] = useState(false);
+  const labelButtonRef = useRef(null);
   const labelsRef = useRef(null);
-  useClickOutside(labelsRef, () => setLabelsOpen(false));
+  const [labelsOpen, setLabelsOpen] = useState(false);
+
+  const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen);
+  useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
 
 
-  const buttonRef = useRef(null);
-  const dropdownPos = useDropdownPosition(buttonRef, labelsOpen);
+  const localRef = useRef(null);
+  useClickOutside([localRef, labelsRef], () => {
+    setIsEditing(false);
+  });
 
 
   // ===== Handle timer =====
@@ -42,6 +43,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
     return () => clearInterval(interval);
   }, [task.done, task.id]);
 
+  
   const saveEdit = () => {
     if (!editedTitle.trim()) return;
     updateTask({ title: editedTitle, priority: editedPriority });
@@ -68,124 +70,126 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
 
   return (
     <div
-  className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""}`}
-  ref={(node) => {
-    localRef.current = node;
-    if (ref) ref.current = node; 
-  }}
-  onClick={() => setIsEditing(true)} 
-  >
-  <div className="task-left-container">
-    <div>
-      {isEditing ? (
-        <div className="edit-panel">
+    className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""}`}
+    ref={(node) => {
+      localRef.current = node;
+      if (ref) ref.current = node; 
+    }}
+    onClick={() => setIsEditing(true)} 
+    >
+      <div className="task-left-container">
+        <div>
+          {isEditing ? (
+            <div className="edit-panel">
+              <div className="edit-top-row">
+                <div className="labels-select">
+                  <button
+                    ref={labelButtonRef}
+                    type="button"
+                    className="labels-button"
+                    onClick={stopAnd(() => setLabelsOpen(prev => !prev)) }
+                  >
+                    Add label
+                  </button>
 
-          <div className="labels-select" ref={labelsRef}>
-            <button
-              ref={buttonRef}
-              type="button"
-              className="labels-button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setLabelsOpen(prev => !prev);
-              }}
-            >
-              Add label
-            </button>
+                  {labelsOpen && (
+                    <LabelsPanel
+                      labels={allLabels}
+                      selectedIds={task.labels}
+                      onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)}
+                      position={dropdownPos}
+                      ref={labelsRef}
+                    />
+                  )}
+                </div>
 
-            {labelsOpen && (
-              <LabelsPanel
-                labels={allLabels}
-                selectedIds={task.labels}
-                onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)}
-                position={dropdownPos}
+                <input
+                  type="text"
+                  maxLength={INPUT_LENGTH.TASK_TITLE}
+                  value={editedTitle}
+                  onChange={(e) => setEditedTitle(e.target.value)}
+                />
+                <select
+                  value={editedPriority}
+                  onChange={(e) => setEditedPriority(e.target.value)}
+                >
+                  <option value="high">High</option>
+                  <option value="mid">Mid</option>
+                  <option value="low">Low</option>
+                </select>
+              </div>
+              
+              <div className="edit-bottom-row">
+                <button
+                  className="task-button done"
+                  onClick={stopAnd(saveEdit)}
+                >
+                  Save
+                </button>
+                <button
+                  className="task-button undone"
+                  onClick={stopAnd(cancelEdit)}
+                >
+                  Cancel
+              </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <button
+                className={`task-button mark-btn ${task.done ? "completed": ""}`}
+                onClick={stopAnd(toggleTask)}
+              >
+                ✓ {task.done ? "Completed" : "Mark complete"}
+              </button>
+              <span>&nbsp;&nbsp;</span>
+              <span className={`task-title ${task.done ? "finished" : ""}`}>
+                <span style={{ color }}>
+                  {`(${task.priority}) `}
+                </span>
+                {`${task.title}`}
+              </span>
+              <span
+                style={{
+                  marginLeft: "10px",
+                  fontSize: "0.85rem",
+                  color: "white",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ⏱ {secondsToReadable(seconds)}
+              </span>
+            </>
+          )}
+        </div>
+
+        <div className="task-labels">
+          {allLabels
+            .filter((label) => task.labels.includes(label.id))
+            .map((label) => (
+              <Label
+                key={label.id}
+                label={label}
+                deleteLabel={() => deleteTaskLabel(task.id, label.id)}
+                showDelete={isEditing}
               />
-            )}
-          </div>
+            ))}
+        </div>
+      </div>
 
-          <input
-            type="text"
-            maxLength={INPUT_LENGTH.TASK_TITLE}
-            value={editedTitle}
-            onChange={(e) => setEditedTitle(e.target.value)}
-          />
-          <select
-            value={editedPriority}
-            onChange={(e) => setEditedPriority(e.target.value)}
-          >
-            <option value="high">High</option>
-            <option value="mid">Mid</option>
-            <option value="low">Low</option>
-          </select>
+      {!isEditing && (
+        <div className="task-actions">
+          <div className="task-edit-buttons">
+          </div>
           <button
-            className="task-button done"
-            onClick={(e) => { e.stopPropagation(); saveEdit(); }}
+            className="remove-button medium"
+            onClick={stopAnd(deleteTask)}
           >
-            Save
-          </button>
-          <button
-            className="task-button undone"
-            onClick={(e) => { e.stopPropagation(); cancelEdit(); }}
-          >
-            Cancel
+            ❌
           </button>
         </div>
-      ) : (
-        <>
-          <button
-            className={`task-button mark-btn ${task.done ? "completed": ""}`}
-            onClick={(e) => { e.stopPropagation(); toggleTask(); }}
-          >
-            ✓ {task.done ? "Completed" : "Mark complete"}
-          </button>
-          <span>&nbsp;&nbsp;</span>
-          <span
-            className={`task-title ${task.done ? "finished" : ""}`}
-            style={{ color }}
-          >
-            {`${task.priority} ${task.title}`}
-          </span>
-          <span
-            style={{
-              marginLeft: "10px",
-              fontSize: "0.85rem",
-              color: "white",
-              whiteSpace: "nowrap",
-            }}
-          >
-            ⏱ {secondsToReadable(seconds)}
-          </span>
-        </>
       )}
     </div>
-
-    <div className="task-labels">
-      {allLabels
-        .filter((label) => task.labels.includes(label.id))
-        .map((label) => (
-          <Label
-            key={label.id}
-            label={label}
-            deleteLabel={(e) => { e.stopPropagation(); deleteTaskLabel(task.id, label.id); }}
-            showDelete={isEditing}
-          />
-        ))}
-    </div>
-  </div>
-
-  {!isEditing && (
-    <div className="task-actions">
-      <div className="task-edit-buttons">
-      </div>
-      <button
-        className="remove-button medium"
-        onClick={(e) => { e.stopPropagation(); deleteTask(); }}
-      >
-        ❌
-      </button>
-    </div>
-  )}
-</div>
   );
 });
 

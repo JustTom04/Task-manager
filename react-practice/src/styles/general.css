@@ -3,7 +3,8 @@
   --color-bg: #121a2a;          
   --color-container: #1e2740;   
   --color-panel-border: #3a4260; 
-  --color-text: #e0e6ff;     
+  --color-text: #e0e6ff;   
+  --color-task-title: #cfcfcf;  
   --color-muted: #a0a8c0;    
   --color-accent: #f9a825;     
   --color-success: #43a047;      
@@ -39,6 +40,10 @@
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+select, input, button, #completed-counter, .select-wrapper {
+  white-space: nowrap;
 }
 
 html {
@@ -95,6 +100,17 @@ h1 {
 
 
 
+#completed-counter {
+  font-size: 0.9rem;
+  justify-self: flex-end;
+  align-self: flex-start;
+
+  margin-top: -0.3rem;
+  margin-bottom: -0.3rem;
+  margin-left: 0.2rem;
+
+  font-style: italic;
+}
 
 
 /* ===== Select, input ===== */
@@ -111,8 +127,8 @@ select:not(.filter-select), input, .select-wrapper {
 
 
 
+
 select, input, button {
-  white-space: nowrap;
   padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
   font-size: 0.9rem;
 }

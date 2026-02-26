@@ -5,6 +5,9 @@ import { createPortal, children } from "react-dom";
 createPortal(children, document.getElementById("root"))
 
 
+export const stopAnd = (fn) => (e) => { e.stopPropagation(); fn(); }
+
+
 export function secondsToReadable(seconds) {
   const units = [
     { value: 86400, unit: "d" },  
@@ -24,18 +27,20 @@ export function secondsToReadable(seconds) {
 }
 
 
-export function useClickOutside(ref, onOutsideClick) {
+export function useClickOutside(refs, onOutsideClick) {
+  const refsArray = Array.isArray(refs) ? refs : [refs];
+
   useEffect(() => {
     function handleClickOutside(event) {
-      if (ref.current && !ref.current.contains(event.target)) {
+      const isInside = refsArray.some(ref => ref.current && ref.current.contains(event.target));
+      if (!isInside) {
         onOutsideClick();
       }
     }
+
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [ref, onOutsideClick]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [refsArray, onOutsideClick]);
 }
 
 
