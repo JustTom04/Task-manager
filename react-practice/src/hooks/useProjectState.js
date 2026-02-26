@@ -6,6 +6,7 @@ import { useTaskFilterState } from "./useTaskFilterState";
 import { INPUT_LENGTH } from "../utils.js"; 
 
 export function useProjectState() {
+
   // ===== Initial Projects =====
   const initialProjects = () => {
     const saved = localStorage.getItem("projects");
@@ -50,7 +51,48 @@ export function useProjectState() {
   }, [projects, activeProjectId]);
 
 
+  // ===== Filter State Hook =====
+  const taskFilterState = useTaskFilterState({ actualTasksList });
+  const { labelsFilter, setLabelsFilter } = taskFilterState;
 
+
+// ===== Delete label functions =====
+  const deleteLabel = useCallback(
+    (id) => {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === activeProjectId
+            ? {
+                ...p,
+                labels: p.labels.filter((label) => label.id !== id),
+                tasks: p.tasks.map((task) => ({
+                  ...task,
+                  labels: task.labels.filter((lid) => lid !== id),
+                })),
+              }
+            : p
+        )
+      );
+
+      setLabelsFilter((prev) => prev.filter((lid) => lid !== id));
+    },
+    [activeProjectId, setLabelsFilter] 
+  );
+
+  const deleteAllLabels = useCallback(() => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId
+          ? { ...p, labels: [], tasks: p.tasks.map(t => ({ ...t, labels: [] })) }
+          : p
+      )
+    );
+
+    setLabelsFilter([]);
+  }, [activeProjectId, setLabelsFilter]);
+
+
+// ===== Project functions
   const addProject = useCallback((name) => {
     const trimmedName = name?.trim();
     if (!trimmedName) return;
@@ -98,14 +140,11 @@ export function useProjectState() {
     localStorage.setItem("activeProjectId", activeProjectId);
   }, [activeProjectId]);
 
-  // ===== Task State Hook =====
+ ===== Task State Hook =====
   const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects });
 
   // ===== Label State Hook =====
   const labelState = useLabelState( {actualLabelsList, activeProjectId, setProjects})
-
-  // ===== Filter State Hook =====
-  const taskFilterState = useTaskFilterState( {actualTasksList} )
 
   return {
     projects, setProjects,
@@ -117,6 +156,8 @@ export function useProjectState() {
     actualLabelsList,
     taskState,
     labelState,
-    taskFilterState
+    taskFilterState,
+    deleteLabel,
+    deleteAllLabels,
   };
 }

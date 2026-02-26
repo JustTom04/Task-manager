@@ -30,7 +30,7 @@ function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProje
             onClick={() => onSelectProject(p.id)}
           >
             <div className="project-item-title">{p.name}</div>
-            <button className="remove-button" 
+            <button className="remove-button medium" 
               onClick={(e) => {
                 e.stopPropagation();
                 setConfirmConfig({

@@ -8,7 +8,6 @@ import SettingsPanel from "./components/SettingsPanel.jsx";
 import TopSection from "./components/TopSection.jsx";
 
 import { useClickOutside, INPUT_LENGTH } from "./utils.js";
-
 import { useProjectState } from "./hooks/useProjectState.js";
 
 import "./styles/topSection.css"
@@ -22,11 +21,13 @@ import "./styles/task.css";
 
 
 function App() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  // ===== Mobile =====
+  const breakpoint = 668;
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < breakpoint);
     };
 
     window.addEventListener("resize", handleResize);
@@ -59,7 +60,9 @@ function App() {
     actualLabelsList,
     taskState,
     labelState,
-    taskFilterState
+    taskFilterState,
+    deleteLabel,
+    deleteAllLabels
   } = useProjectState();
 
 
@@ -74,11 +77,12 @@ function App() {
     toggleTask,
     deleteTask,
     deleteTaskLabel,
+    toggleLabelOnTask,
     updateTask,
     deleteAllTasks
   } = taskState;
 
-  const {deleteLabel, deleteAllLabels, addLabelToProject} = labelState;
+  const { addLabelToProject } = labelState;
 
   const { 
     labelsFilter, setLabelsFilter,
@@ -103,9 +107,6 @@ function App() {
       >
       </span>
 
-      <span id="completed-counter">
-        Completed: {completedCount}/{actualTasksList.length}
-      </span>
       <div id="title-row">
         <h1 id="title">{actualProject.name}</h1>
       </div>
@@ -114,16 +115,20 @@ function App() {
       <TopSection
         isMobile={isMobile}
         taskState={taskState}
-        labelState={labelState}
         filterState={taskFilterState}
         projectData={{
           actualLabelsList,
-          actualTasksList
+          actualTasksList,
+          deleteLabel,
+          deleteAllLabels,
         }}
         setConfirmConfig={setConfirmConfig}
         setShowLabelModal={setShowLabelModal}
       />
-      
+
+      <span id="completed-counter">
+        Completed: {completedCount}/{actualTasksList.length}
+      </span>
 
       {/* ===== Tasks list ===== */}
       <div className="task-list-container">
@@ -139,6 +144,7 @@ function App() {
                 updateTask(task.id, updatedTask)
               }
               deleteTaskLabel={deleteTaskLabel}
+              toggleLabelOnTask={toggleLabelOnTask} 
               allLabels={actualLabelsList}
               ref={isLast ? lastTaskRef : null}
             />

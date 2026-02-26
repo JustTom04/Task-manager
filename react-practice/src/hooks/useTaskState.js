@@ -90,6 +90,32 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     );
   }, [activeProjectId, setProjects]);
 
+  const toggleLabelOnTask = useCallback((taskId, labelId) => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId
+          ? {
+              ...p,
+              tasks: p.tasks.map((t) => {
+                if (t.id !== taskId) return t;
+
+                const hasLabel = t.labels.includes(labelId);
+
+                return {
+                  ...t,
+                  labels: hasLabel
+                    ? t.labels.filter((id) => id !== labelId) 
+                    : [...t.labels, labelId],                 
+                };
+              }),
+            }
+          : p
+      )
+    );
+  }, [activeProjectId, setProjects]);
+
+  
+
 
   const updateTask = useCallback((id, updatedTask) => {
     setProjects((prev) =>
@@ -124,6 +150,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     toggleTask,
     deleteTask,
     deleteTaskLabel,
+    toggleLabelOnTask,
     updateTask,
     deleteAllTasks,
   };
