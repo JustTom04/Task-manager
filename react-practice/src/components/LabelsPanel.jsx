@@ -1,28 +1,13 @@
-import React, { forwardRef } from "react";
+import React from "react";
 import { createPortal } from "react-dom";
 import Label from "./Label";
 
-import { stopAnd } from "@/utils";
+function LabelsPanel({ labels, selectedIds, setSelectedIds, onToggle, position, showDelete = false, deleteLabel, }) {
 
-const LabelsPanel = forwardRef(({
-  // ===== Required / core data =====
-  labels,
-  selectedIds,
-  onToggle,
-  position,
+  console.log("POSITON:", position, "onTOGGEL", selectedIds)
 
-  // ===== Options / state =====
-  showDelete = false,
-  showCheckbox = true,
-
-  // ===== Callbacks / extra features =====
-  deleteLabel,
-  footer,
-}, ref) => {
-  
   return createPortal(
     <div
-      ref={ref}
       className="labels-dropdown dropdown"
       style={{
         position: "absolute",
@@ -37,23 +22,26 @@ const LabelsPanel = forwardRef(({
 
         return (
           <div key={label.id} className="labels-item">
-            {showCheckbox && (
-              <input
-                id={inputId}
-                type="checkbox"
-                className="label-checkbox"
-                checked={isChecked}
-                onMouseDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
-                onChange={() => onToggle?.(label.id)}
-              />
-            )}
+            <input
+              id={inputId}
+              type="checkbox"
+              className="label-checkbox"
+              checked={isChecked}
+              onClick={(e) => e.stopPropagation()}
+              onChange={() => {
+                if (onToggle) {
+                  onToggle(label.id);
+                  return;
+                }
+                setSelectedIds((prev) =>
+                  prev.includes(label.id)
+                    ? prev.filter((id) => id !== label.id)
+                    : [...prev, label.id]
+                );
+              }}
+            />
 
-            <label
-              htmlFor={inputId}
-              className="labels-main"
-              onMouseDown={(e) => e.stopPropagation()}
-            >
+            <label htmlFor={inputId} className="labels-main" onMouseDown={(e) => e.stopPropagation()}>
               <Label
                 label={label}
                 isSelected={isChecked}
@@ -65,11 +53,9 @@ const LabelsPanel = forwardRef(({
           </div>
         );
       })}
-
-      {footer && <div className="labels-footer">{footer}</div>}
     </div>,
     document.body
   );
-});
+}
 
 export default LabelsPanel;

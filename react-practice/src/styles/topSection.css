@@ -1,8 +1,21 @@
 
+#completed-counter {
+  justify-self: flex-start;
+  align-self: flex-start;
+  white-space: nowrap;
+
+  margin-top: -0.4rem;
+  margin-left: -0.4rem;
+
+  font-style: italic;
+}
 
 
 /* ===== Top section ===== */
-.top-section :is(button, input, select, .select-wrapper) {
+.top-section button,
+.top-section input,
+.top-section select,
+.top-section .select-wrapper {
   height: var(--top-section-elems-height) !important;
 }
 
@@ -37,8 +50,8 @@
   padding-left: 26px;  
   padding-right: 5px;
 
-  min-width: 8rem;
-  width: 9rem;
+  min-width: 7rem;
+  width: 8rem;
 
   font-size: 0.9rem;
   cursor: pointer;
@@ -59,12 +72,7 @@
 }
 
 .selected-text {
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
+  flex: 1;
   font-weight: normal;
   color: var(--font-color);
 }
@@ -92,21 +100,6 @@
   pointer-events: none;
 }
 
-
-/* ===== Delete labels ===== */
-.button-delete.active-delete {
-  background-color: #c0392b;   
-  color: white;
-  border-color: #e74c3c;
-  box-shadow: 0 0 6px rgba(200, 50, 50, 0.5);
-
-  font-style: italic
-}
-
-.button-delete.active-delete:hover {
-  background-color: #e74c3c;
-  box-shadow: 0 0 8px rgba(200, 50, 50, 0.7);
-}
 
 /* ===== Dropdown ===== */
 .dropdown-filter {
@@ -152,8 +145,6 @@
 
 /* ===== Arrow ===== */
 .arrow {
-  flex: 0 0 auto;
-
   border: solid white;
   border-width: 0 2px 2px 0;
   display: inline-block;

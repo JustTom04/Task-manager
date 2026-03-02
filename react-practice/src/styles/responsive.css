@@ -70,34 +70,13 @@
 
 
 
-@media (max-width: 450px) {
+@media (max-width: 580px) {
   html {
     font-size: 13px; 
   }
 
 
-  /* ===== Task ===== */
-  .edit-panel {
-    flex-direction: column;
-    align-items: stretch;   
-  }
-
-  .edit-top-row {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .edit-bottom-row {
-    width: 100%;
-  }
-
-  .edit-top-row > * {
-    flex: 1 1 0;
-  }
-
-  .edit-bottom-row .task-button {
-    flex: 1 1 0;
-  }
 }
+
 
 

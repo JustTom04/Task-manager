@@ -5,6 +5,34 @@ import { INPUT_LENGTH } from "../utils.js";
 export function useLabelState({ actualLabelsList, activeProjectId, setProjects }) {
 
   // ===== Label functions =====
+  const deleteLabel = useCallback(
+    (id) => {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === activeProjectId
+            ? {
+                ...p,
+                labels: p.labels.filter((label) => label.id !== id),
+                tasks: p.tasks.map((task) => ({
+                  ...task,
+                  labels: task.labels.filter((lid) => lid !== id),
+                })),
+              }
+            : p
+        )
+      );
+    },
+    [activeProjectId]
+  );
+
+  const deleteAllLabels = useCallback(() => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId ? { ...p, labels: [] } : p
+      )
+    );
+  }, [activeProjectId]);
+
   const addLabelToProject = useCallback(
     (newLabel) => {
       const trimmedName = newLabel.name?.trim();
@@ -23,6 +51,6 @@ export function useLabelState({ actualLabelsList, activeProjectId, setProjects }
     [activeProjectId]
   );
 
-  return {addLabelToProject};
+  return {deleteLabel, deleteAllLabels, addLabelToProject};
 }
 

@@ -50,7 +50,7 @@
   gap: 8px;
 
   width: 300px;
-  max-width: 90dvw;
+  max-width: 100dvw;
 }
 
 .labels-item {
@@ -99,16 +99,4 @@
 .label-item {
   display: flex;
   align-items: center;
-}
-
-
-.labels-footer {
-  display: flex;
-  justify-content: center;
-  margin-top: 1rem;
-  margin-bottom: 0.5rem;
-}
-
-.labels-footer button {
-  font-size: 1.1rem;
 }

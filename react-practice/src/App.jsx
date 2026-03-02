@@ -8,6 +8,7 @@ import SettingsPanel from "./components/SettingsPanel.jsx";
 import TopSection from "./components/TopSection.jsx";
 
 import { useClickOutside, INPUT_LENGTH } from "./utils.js";
+
 import { useProjectState } from "./hooks/useProjectState.js";
 
 import "./styles/topSection.css"
@@ -21,13 +22,11 @@ import "./styles/task.css";
 
 
 function App() {
-  // ===== Mobile =====
-  const breakpoint = 668;
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < breakpoint);
+      setIsMobile(window.innerWidth < 768);
     };
 
     window.addEventListener("resize", handleResize);
@@ -60,9 +59,7 @@ function App() {
     actualLabelsList,
     taskState,
     labelState,
-    taskFilterState,
-    deleteLabel,
-    deleteAllLabels
+    taskFilterState
   } = useProjectState();
 
 
@@ -82,7 +79,7 @@ function App() {
     deleteAllTasks
   } = taskState;
 
-  const { addLabelToProject } = labelState;
+  const {deleteLabel, deleteAllLabels, addLabelToProject} = labelState;
 
   const { 
     labelsFilter, setLabelsFilter,
@@ -107,6 +104,9 @@ function App() {
       >
       </span>
 
+      <span id="completed-counter">
+        Completed: {completedCount}/{actualTasksList.length}
+      </span>
       <div id="title-row">
         <h1 id="title">{actualProject.name}</h1>
       </div>
@@ -115,20 +115,16 @@ function App() {
       <TopSection
         isMobile={isMobile}
         taskState={taskState}
+        labelState={labelState}
         filterState={taskFilterState}
         projectData={{
           actualLabelsList,
-          actualTasksList,
-          deleteLabel,
-          deleteAllLabels,
+          actualTasksList
         }}
         setConfirmConfig={setConfirmConfig}
         setShowLabelModal={setShowLabelModal}
       />
-
-      <span id="completed-counter">
-        Completed: {completedCount}/{actualTasksList.length}
-      </span>
+      
 
       {/* ===== Tasks list ===== */}
       <div className="task-list-container">
