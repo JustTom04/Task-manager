@@ -4,7 +4,6 @@ import { INPUT_LENGTH } from "../utils.js";
 
 export function useLabelState({ actualLabelsList, activeProjectId, setProjects }) {
 
-  // ===== Label functions =====
   const addLabelToProject = useCallback(
     (newLabel) => {
       const trimmedName = newLabel.name?.trim();

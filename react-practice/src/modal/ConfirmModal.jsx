@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom";
 
 function ConfirmModal({ title, message, onConfirm, onCancel }) {
+  
   return createPortal(
     <div className="modal-overlay" onClick={onCancel}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>

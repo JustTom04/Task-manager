@@ -1,11 +1,8 @@
 
-
-
 /* ===== Top section ===== */
 .top-section :is(button, input, select, .select-wrapper) {
   height: var(--top-section-elems-height) !important;
 }
-
 
 .top-section {
   flex: 0 0 auto;
@@ -30,7 +27,6 @@
 
 
 /* ===== Filter select ===== */
-
 .select-wrapper {
   position: relative;
   display: inline-flex;
@@ -152,12 +148,13 @@
 
 /* ===== Arrow ===== */
 .arrow {
+  display: inline-block;
   flex: 0 0 auto;
 
   border: solid white;
   border-width: 0 2px 2px 0;
-  display: inline-block;
   padding: 3px;
+  
   transform: rotate(45deg);
   transition: transform 0.2s;
 }

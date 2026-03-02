@@ -1,9 +1,12 @@
+
+/* ===== Settings panel ===== */
 .settings-panel {
   position: fixed;
   top: 0;
   right: 0;
   width: min(300px, 100dvw);
   height: 100vh;
+
   background-color: var(--color-settings-bg);
   border-left: 1px solid var(--color-settings-title);
   padding: 10px;
@@ -19,6 +22,7 @@
   color: var(--color-settings-title);
 }
 
+/* ===== Project ===== */
 .projects-list {
   overflow-y: auto;
   flex: 1;

@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import { createPortal, children } from "react-dom";
 
 
-createPortal(children, document.getElementById("root"))
-
-
-export const stopAnd = (fn) => (e) => { e.stopPropagation(); fn(); }
+// ===== Helpers =====
+export const stopAnd = (fn) => (e) => {
+  e.stopPropagation();
+  fn();
+};
 
 
 export function secondsToReadable(seconds) {
   const units = [
-    { value: 86400, unit: "d" },  
-    { value: 3600, unit: "h" },   
-    { value: 60, unit: "m" },     
-    { value: 1, unit: "s" },      
+    { value: 86400, unit: "d" },
+    { value: 3600, unit: "h" },
+    { value: 60, unit: "m" },
+    { value: 1, unit: "s" },
   ];
 
   for (let i = 0; i < units.length; i++) {
@@ -23,26 +23,30 @@ export function secondsToReadable(seconds) {
     }
   }
 
-  return `0s`; 
+  return "0s";
 }
 
 
+// ===== Hooks =====
 export function useClickOutside(refs, onOutsideClick) {
   const refsArray = Array.isArray(refs) ? refs : [refs];
 
   useEffect(() => {
     function handleClickOutside(event) {
-      const isInside = refsArray.some(ref => ref.current && ref.current.contains(event.target));
+      const isInside = refsArray.some(
+        (ref) => ref.current && ref.current.contains(event.target)
+      );
+
       if (!isInside) {
         onOutsideClick();
       }
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, [refsArray, onOutsideClick]);
 }
-
 
 
 export function useDropdownPosition(buttonRef, labelsOpen) {
@@ -51,6 +55,7 @@ export function useDropdownPosition(buttonRef, labelsOpen) {
   useEffect(() => {
     if (labelsOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+
       setDropdownPos({
         top: rect.bottom + window.scrollY,
         left: rect.left + window.scrollX,
@@ -62,8 +67,7 @@ export function useDropdownPosition(buttonRef, labelsOpen) {
 }
 
 
-
-// ===== Input length limits =====
+// ===== Constants =====
 export const INPUT_LENGTH = {
   TASK_TITLE: 60,
   PROJECT_NAME: 60,

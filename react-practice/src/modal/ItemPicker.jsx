@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { INPUT_LENGTH } from "@/utils";
 
 function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
+  
   const [name, setName] = useState("");
   const [color, setColor] = useState("#34a853");
   const inputRef = useRef(null);
@@ -20,6 +21,7 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
     }
   }
 
+  // ===== Return JSX =====
   return createPortal(
     <div className="modal-overlay">
       <div className="modal">

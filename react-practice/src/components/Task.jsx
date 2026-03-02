@@ -1,9 +1,20 @@
 import { useState, useEffect, forwardRef, useRef } from "react";
+
 import { secondsToReadable, useClickOutside, useDropdownPosition, stopAnd, INPUT_LENGTH } from "@/utils.js"
 import Label from "./Label.jsx";
 import LabelsPanel from "./LabelsPanel.jsx";
 
-const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, deleteTaskLabel, toggleLabelOnTask }, ref) => {
+const Task = forwardRef(({ 
+  task,
+  toggleTask, 
+  deleteTask, 
+  updateTask, 
+  allLabels, 
+  deleteTaskLabel, 
+  toggleLabelOnTask 
+}, ref) => {
+
+  // ===== States =====
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -18,7 +29,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
   const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen);
   useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
 
-
+  // ===== Editing =====
   const localRef = useRef(null);
   useClickOutside([localRef, labelsRef], () => {
     setIsEditing(false);
@@ -43,7 +54,7 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
     return () => clearInterval(interval);
   }, [task.done, task.id]);
 
-  
+  // ===== Functions =====
   const saveEdit = () => {
     if (!editedTitle.trim()) return;
     updateTask({ title: editedTitle, priority: editedPriority });
@@ -56,18 +67,11 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
     setIsEditing(false);
   };
 
-  let color;
-  switch (task.priority) {
-    case "high":
-      color = "red";
-      break;
-    case "mid":
-      color = "orange";
-      break;
-    default:
-      color = "green";
-  }
 
+  const colorMap = { high: "red", mid: "orange", low: "green" };
+  const color = colorMap[task.priority] || "green";
+
+  // ===== Return JSX =====
   return (
     <div
     className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""}`}
@@ -179,8 +183,6 @@ const Task = forwardRef(({ task, toggleTask, deleteTask, updateTask, allLabels, 
 
       {!isEditing && (
         <div className="task-actions">
-          <div className="task-edit-buttons">
-          </div>
           <button
             className="remove-button medium"
             onClick={stopAnd(deleteTask)}

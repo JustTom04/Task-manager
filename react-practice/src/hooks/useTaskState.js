@@ -47,6 +47,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     newTitleRef.current.focus();
   }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects]);
 
+
   const toggleTask = useCallback((id) => {
     setProjects((prev) =>
       prev.map((p) =>
@@ -62,6 +63,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     );
   }, [activeProjectId, setProjects]);
 
+
   const deleteTask = useCallback((id) => {
     setProjects((prev) =>
       prev.map((p) =>
@@ -72,6 +74,16 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     );
     localStorage.removeItem(`task-${id}-seconds`);
   }, [activeProjectId, setProjects]);
+
+  
+  const deleteAllTasks = useCallback(() => {
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeProjectId ? { ...p, tasks: [] } : p
+      )
+    );
+  }, [activeProjectId, setProjects]);
+
 
   const deleteTaskLabel = useCallback((taskId, labelId) => {
     setProjects((prev) =>
@@ -89,6 +101,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       )
     );
   }, [activeProjectId, setProjects]);
+
 
   const toggleLabelOnTask = useCallback((taskId, labelId) => {
     setProjects((prev) =>
@@ -114,8 +127,6 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     );
   }, [activeProjectId, setProjects]);
 
-  
-
 
   const updateTask = useCallback((id, updatedTask) => {
     setProjects((prev) =>
@@ -128,14 +139,6 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
               ),
             }
           : p
-      )
-    );
-  }, [activeProjectId, setProjects]);
-
-  const deleteAllTasks = useCallback(() => {
-    setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId ? { ...p, tasks: [] } : p
       )
     );
   }, [activeProjectId, setProjects]);

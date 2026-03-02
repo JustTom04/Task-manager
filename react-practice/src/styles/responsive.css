@@ -11,6 +11,24 @@
     font-size: 14px; 
   }
 
+  /* ===== Top-section ===== */
+  .top-section .section > :not(:is(input, .add-task-selection, .task-button)) {
+    flex: 1; 
+  }
+
+  .form-container input {
+    flex: 2 1 0;
+  }
+
+  .add-task-selection {
+    flex: 1 1 0;
+  }
+
+  .task-button.done {
+    flex: 2 1 0;
+  }
+
+
   .section-group {
     flex-direction: column;
     align-items: stretch;
@@ -23,6 +41,13 @@
     justify-content: flex-start;
   }
 
+  #completed-counter {
+    margin-top: -0.2rem;
+    margin-left: -0.2rem;
+  } 
+
+
+  /* ===== Task ===== */
   .task-list-container {
     margin-top: 0px;
   }
@@ -30,41 +55,6 @@
   .labels-select button {
     width: 100%;
     text-wrap: nowrap;
-  }
-
-  .task-actions {
-    flex-direction: column-reverse;
-    align-items: flex-end !important;
-  }
-
-  .task-edit-buttons {
-    margin-right: 5px;
-  }
-
-
-#completed-counter {
-
-  margin-top: -0.2rem;
-  margin-left: -0.2rem;
-
-} 
-
-
-  .top-section .section > *:not(input):not(.add-task-selection):not(.task-button) {
-    flex: 1; 
-  }
-
-
-  .form-container input {
-    flex: 2 1 0;
-  }
-
-  .add-task-selection {
-    flex: 1 1 0;
-  }
-
-  .task-button.done {
-    flex: 2 1 0;
   }
 }
 

@@ -62,19 +62,20 @@ body {
 
 .app-container {
   max-width: 800px;
+  height: 100dvh;
   margin: 0 auto;
   background: var(--color-container);
   padding: clamp(0.5rem, 1.5vw, 1.25rem);
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 
   display: flex;
   flex-direction: column;
 
-  height: 100dvh;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   overflow: hidden;
 }
 
+/* ===== Title ===== */
 #title-row {
   display: flex;
   align-items: center;
@@ -87,19 +88,12 @@ body {
 }
 
 
-h1 {
-  text-align: center;
-  color: var(--color-text);
-}
-
 .task-title, #title, .project-item-title {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
-
-
-
+/* ===== Completed counter =====
 #completed-counter {
   font-size: 0.9rem;
   justify-self: flex-end;
@@ -187,6 +181,7 @@ button.undone {
   background-color: var(--color-warning);
 }
 
+
 .button-delete {
   background-color: var(--color-danger);
 }
@@ -195,7 +190,7 @@ button.undone {
   background-color: #c62828;
 }
 
-
+/* ===== Remove button ===== */
 .remove-button {
   width: 30px;
   height: 30px;
@@ -236,21 +231,9 @@ button.remove-button.small:hover {
   transform: scale(0.52) !important;
 }
 
-/*
-button.remove-button.small {
-  transform: scale(0.6);
-  transform-origin: center;
-}
-
-button.remove-button.small:hover {
-  transform: scale(0.52) !important;      
-}
-*/
 
 
-
-/* DropDown */
-
+/* ===== DropDown ===== */
 .dropdown {
   animation: dropdownFade 0.15s ease-out;
   transform-origin: top;

@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { useClickOutside, useDropdownPosition } from "@/utils";
+import { useClickOutside, useDropdownPosition, stopAnd } from "@/utils";
 
 function CustomDropdown({ options, value, onChange, customPanel, customTitle }) {
+  
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -52,3 +53,4 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle }) 
 }
 
 export default CustomDropdown;
+

@@ -1,12 +1,22 @@
 import { useState, useRef } from "react";
 
+import { INPUT_LENGTH, useClickOutside } from "../utils.js";
+
 import ItemPicker from "../modal/ItemPicker.jsx";
 import ConfirmModal from "../modal/ConfirmModal.jsx";
 
-import { INPUT_LENGTH, useClickOutside } from "../utils.js";
 
 
-function SettingsPanel({ projects, activeProjectId, onSelectProject, deleteProject, addProject, isOpen, setIsOpen }) {
+function SettingsPanel({ 
+  projects,
+  activeProjectId,
+  onSelectProject,
+  deleteProject, 
+  addProject, 
+  isOpen, 
+  setIsOpen 
+}) {
+  
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState(null);
 

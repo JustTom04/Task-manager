@@ -1,8 +1,8 @@
 import React, { forwardRef } from "react";
 import { createPortal } from "react-dom";
+
 import Label from "./Label";
 
-import { stopAnd } from "@/utils";
 
 const LabelsPanel = forwardRef(({
   // ===== Required / core data =====

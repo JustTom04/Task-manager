@@ -5,7 +5,7 @@ export function useTaskFilterState({ actualTasksList }) {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
 
-  
+// ===== Filtered tasks =====  
   const filteredTasks = useMemo(() => {
     return actualTasksList.filter((task) => {
       const statusMatch =

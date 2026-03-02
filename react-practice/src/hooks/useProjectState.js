@@ -118,13 +118,13 @@ export function useProjectState() {
       if (prevProjects[0].id === projectId) {
         return prevProjects;
       }
-
+      
       const newProjects = prevProjects.filter((p) => p.id !== projectId);
 
       setActiveProjectId((prevActiveId) => {
         const stillExists = newProjects.find(p => p.id === prevActiveId);
         if (stillExists) return prevActiveId;        
-        return newProjects.length > 0 ? newProjects[0].id : null; 
+        return newProjects[0].id; 
       });
 
       return newProjects;
@@ -140,7 +140,7 @@ export function useProjectState() {
     localStorage.setItem("activeProjectId", activeProjectId);
   }, [activeProjectId]);
 
- ===== Task State Hook =====
+// ===== Task State Hook =====
   const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects });
 
   // ===== Label State Hook =====

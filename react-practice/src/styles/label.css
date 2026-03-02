@@ -1,12 +1,19 @@
 
+/* ===== Label ===== */
 .label {
   display: inline-block;
   padding: 4px 8px;
   border-radius: 8px;
+  
   font-size: 0.75rem;
   font-weight: 500;
   color: black;
   user-select: none;
+}
+
+.label-item {
+  display: flex;
+  align-items: center;
 }
 
 
@@ -19,18 +26,6 @@
   background-color: var(--color-accent);
   color: #fff;
 }
-
-
-.filter-labels-button {
-  background-color: var(--color-container);
-  color: var(--color-text);
-
-  font-weight: normal;
-  height: 100%;
-  width: 100%;
-}
-
-
 
 
 
@@ -60,9 +55,17 @@
   justify-content: flex-start; 
 }
 
+.labels-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;           
+  min-width: 0;       
+}
+
+/* ===== Labels checkbox ===== */
 .label-checkbox {
-  width: 15px;
-  height: 15px;
+  width: 1rem;
+  height: 1rem;
   margin: 0;
   flex-shrink: 0;
 
@@ -77,31 +80,12 @@
   box-shadow: none;
 }
 
-.labels-main {
-  display: flex;
-  align-items: center;
-  gap: 6px;           
-  min-width: 0;       
-}
-
-.label-item {
-  display: flex;
-  align-items: center;
-  gap: 0px;
-  margin-right: 0px;
-
-}
-
 .labels-item:last-child {
   margin-bottom: 0;
 }
 
-.label-item {
-  display: flex;
-  align-items: center;
-}
 
-
+/* ===== LabelsPanel footer ===== */
 .labels-footer {
   display: flex;
   justify-content: center;

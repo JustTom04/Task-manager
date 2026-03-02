@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Task from "./components/Task.jsx"
-import LabelsPanel from "./components/LabelsPanel.jsx";
-import ItemPicker from "./modal/ItemPicker.jsx";
-
-import ConfirmModal from "./modal/ConfirmModal.jsx";
-import SettingsPanel from "./components/SettingsPanel.jsx";
-import TopSection from "./components/TopSection.jsx";
+import { useState, useEffect, useRef } from "react";
 
 import { useClickOutside, INPUT_LENGTH } from "./utils.js";
 import { useProjectState } from "./hooks/useProjectState.js";
+
+import Task from "./components/Task.jsx"
+import ItemPicker from "./modal/ItemPicker.jsx";
+import ConfirmModal from "./modal/ConfirmModal.jsx";
+import SettingsPanel from "./components/SettingsPanel.jsx";
+import TopSection from "./components/TopSection.jsx";
 
 import "./styles/topSection.css"
 import "./styles/general.css";
@@ -21,6 +20,7 @@ import "./styles/task.css";
 
 
 function App() {
+
   // ===== Mobile =====
   const breakpoint = 668;
   const [isMobile, setIsMobile] = useState(window.innerWidth <= breakpoint);
@@ -34,20 +34,18 @@ function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+
   // ===== States =====
   const [labelsOpen, setLabelsOpen] = useState(false);
   const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
-
   const [showLabelModal, setShowLabelModal] = useState(false);
-  const [confirmConfig, setConfirmConfig] = useState(null);
-
   const [settingsOpen, setSettingsOpen] = useState(false);
 
+  const [confirmConfig, setConfirmConfig] = useState(null);
 
   // ===== Ref =====
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
-
 
   // ===== Project State =====
   const {
@@ -68,26 +66,17 @@ function App() {
 
   // ===== Components States =====
   const {
-    newTitle, setNewTitle,
-    newPriority, setNewPriority,
-    selectedLabels, setSelectedLabels,
-    newTitleRef,
     lastTaskRef,
-    addTask,
     toggleTask,
     deleteTask,
     deleteTaskLabel,
     toggleLabelOnTask,
     updateTask,
-    deleteAllTasks
   } = taskState;
 
   const { addLabelToProject } = labelState;
 
   const { 
-    labelsFilter, setLabelsFilter,
-    statusFilter, setStatusFilter,
-    priorityFilter, setPriorityFilter,
     filteredTasks,
   } = taskFilterState;
 
