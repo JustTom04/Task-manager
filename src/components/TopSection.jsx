@@ -88,7 +88,6 @@ function TopSection({
                     ? prev.filter(l => l !== id)
                     : [...prev, id]
                 )}
-                showDelete={true}
                 deleteLabel={deleteLabel}
                 position={position}
                 ref={ref}
@@ -263,7 +262,6 @@ function TopSection({
                     ? prev.filter(l => l !== id)
                     : [...prev, id]
                 )}
-                showDelete={true}
                 deleteLabel={deleteLabel}
                 position={position}
                 ref={ref}
