@@ -1,84 +1,81 @@
-# Task Manager React Alkalmazás
+# Task Manager React Application
 
-Ez a projekt egy egyszerű **Task Manager** alkalmazás, amely React és modern JavaScript (ES6+) technológiákat használ. 
+This project is a simple **Task Manager** application built using React and modern JavaScript (ES6+) technologies.
 
 ![alt text](/src/assets/screenshot.png)
 
-## Mappa szerkezet
-- `assets` → statikus fájlok, például képek, ikonok, SVG-k  
-- `component` → újrahasználható React komponensek  
-- `hooks` → egyedi React hook-ok, állapotkezeléshez és logikához  
-- `modal` → felugró ablakok és modális elemek  
-- `styles` → globális és komponensspecifikus stílusok
+## Folder Structure
+- assets → static files such as images, icons, SVGs  
+- component → reusable React components  
+- hooks → custom React hooks for state management and logic  
+- modal → popup windows and modal elements  
+- styles → global and component-specific styles  
 
+## Main Features
 
-## Főbb funkciók
+- **Project management**
+  - Create and delete multiple projects.
+  - Select an active project.
 
-- **Projektek kezelése**
-  - Több projekt létrehozása és törlése.
-  - Aktív projekt kiválasztása.
+- **Labels**
+  - Each new project has unique labels.
+  - Add labels to tasks.
+  - Delete labels individually or remove all labels from a project.
 
+- **Task management**
+  - Add new tasks to projects.
+  - Edit, delete, and update task status (done / in progress).
+  - Track time spent on tasks and automatically save it in **localStorage**.
 
-- **Címkék (labels)**
-  - Minden új projekthez egyedi címkék.
-  - Címkék hozzáadása feladatokhoz.
-  - Címkék törlése egyesével vagy az összes törlése a projektből.
+- **Filtering and sorting**
+  - Filter tasks by status, labels, and priority (**high**, **medium**, **low**).
+  - Display task list based on the current filters.
 
-- **Feladatok kezelése**
-  - Új feladat hozzáadása projektekhez.
-  - Létrehozzot feladatok szerkesztése, törlése, állapotának módosítása (kész / folyamatban).
-  - Feladatokhoz eltöltött idő mérése és automatikus mentése **localStorage**-ban.
-
-- **Szűrés és rendezés**
-  - Szűrés állapot, címkék és prioritás (**high**, **mid**, **low**) szerint.
-  - Az aktuális szűrők alapján megjelenített feladatlista.
-
-- **Felhasználói felület és állapotmentés**
-  - Reszponzív kialakítás mobil és desktop nézetekhez.
-  - Modal komponensek, felugró dropdown-ok és címke panelek a könnyű kezelhetőségért.
-  - Projektek és feladatok állapotának mentése **localStorage**-ban az oldal frissítése után is.
+- **User interface and state persistence**
+  - Responsive design for mobile and desktop views.
+  - Modal components, dropdowns, and label panels for easier usability.
+  - Projects and tasks are saved in **localStorage**, so data persists after page refresh.
 
 
 
-## Használat
+## Usage
 
 ### Top-section
 
+* Initially, you have a default project called "General". You can create a new one using the **"Add project"** button in the top-right corner.
+* You can filter tasks using the **Filter** dropdown menu to display only the tasks you need.
+* You can delete a task using the **"x"** button on the right side of the task. You can also mark it as complete using the **"Mark complete"** checkbox on the left side, but the task will still remain in the list.
+* Click on an existing task to edit its title, priority, or labels.
 
-* Kezdésképpen van egy "General" nevű projekted. A jobb oldalon felül az **"Add project"** gomb segítségével hozhatsz létre újat.
-* A **Filter** legördülő menüvel szűrhetsz, hogy csak a kívánt feladatokat lásd.
-* Egy feladatot kitörölhetsz a feladat jobb oldalán található **"x"** gombbal. A bal oldalán lévő **"Mark complete"** jelölőnégyzettel kipipálhatod, de a feladat ekkor is megmarad.
-* Kattints egy már meglévő feladatra a cím, prioritás vagy címkék szerkesztéséhez.
+## State persistence
 
-## Állapotok mentése
+* All projects, tasks, and labels are stored in `localStorage`.
+* Time tracking for tasks is also stored individually in `localStorage`.
+* The active project remains saved even after refreshing the page.
 
-* Minden projekt, feladat és címke a `localStorage`-ban tárolódik.
-* A feladatok időmérése egyenként a `localStorage`-ban tárolódik.
-* Az aktív projekt a lap újratöltése után is megmarad.
+## Styling
 
-## Stílus
-
-* A CSS fájlok tartalmazzák a reszponzív elrendezéseket és az egyedi stílusokat a feladatokhoz, címkékhez, modalokhoz és gombokhoz.
-* Mobil és desktop nézetekhez külön kezeljük a felhasználói élményt.
+* The CSS files include responsive layouts and custom styles for tasks, labels, modals, and buttons.
+* The user experience is handled separately for mobile and desktop views.
 
 ## Dependencies
 
 * React
 * react-dom
-```
 
-## Futtatás
+## Run the project
 
-1. Telepítsd a dependecies:
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Indítsd el a fejlesztői szervert:
+2. Start the development server:
 
    ```bash
    npm run dev
+   ```
 
 
 

@@ -2,8 +2,8 @@ import { useState, useRef } from "react";
 
 import { INPUT_LENGTH, useClickOutside } from "../utils.js";
 
-import ItemPicker from "../modal/ItemPicker.jsx";
-import ConfirmModal from "../modal/ConfirmModal.jsx";
+import ItemPicker from "../modals/ItemPicker.jsx";
+import ConfirmModal from "../modals/ConfirmModal.jsx";
 
 
 

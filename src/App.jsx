@@ -4,8 +4,8 @@ import { useClickOutside, INPUT_LENGTH } from "./utils.js";
 import { useProjectState } from "./hooks/useProjectState.js";
 
 import Task from "./components/Task.jsx"
-import ItemPicker from "./modal/ItemPicker.jsx";
-import ConfirmModal from "./modal/ConfirmModal.jsx";
+import ItemPicker from "./modals/ItemPicker.jsx";
+import ConfirmModal from "./modals/ConfirmModal.jsx";
 import SettingsPanel from "./components/SettingsPanel.jsx";
 import TopSection from "./components/TopSection.jsx";
 
