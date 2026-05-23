@@ -1,14 +1,14 @@
 # Task Manager React Application
 
-This project is a simple **Task Manager** application built using React and modern JavaScript (ES6+) technologies.
+This project is a **Task Manager** application built using React and modern JavaScript (ES6+) technologies.
 
 ![alt text](/src/assets/screenshot.png)
 
 ## Folder Structure
 - assets → static files such as images, icons, SVGs  
-- component → reusable React components  
+- components → reusable React components  
 - hooks → custom React hooks for state management and logic  
-- modal → popup windows and modal elements  
+- modals → popup windows and modal elements  
 - styles → global and component-specific styles  
 
 ## Main Features
