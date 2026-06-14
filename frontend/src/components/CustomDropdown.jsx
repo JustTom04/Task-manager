@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useClickOutside, useDropdownPosition, stopAnd } from "@/utils";
 
 function CustomDropdown({ options, value, onChange, customPanel, customTitle }) {
