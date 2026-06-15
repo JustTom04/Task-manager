@@ -1,9 +1,23 @@
 // In-memory array for global labels
 let labels = [
-    { id: 1, name: "Work", color: "#f28b82" },
-    { id: 2, name: "Personal", color: "#fbbc04" },
-    { id: 3, name: "Urgent", color: "#34a853" }
+    { id: 1, name: "Work", color: "#f28b82", projectIds: ["default-project"] },
+    { id: 2, name: "Personal", color: "#fbbc04", projectIds: ["default-project"] },
+    { id: 3, name: "Urgent", color: "#34a853", projectIds: ["default-project"] }
 ];
+
+const getLabelsByProjectId = (projectId) => {
+    return labels.filter(label => label.projectIds && label.projectIds.includes(projectId.toString()));
+};
+
+const addProjectToLabel = (labelId, projectId) => {
+    const label = labels.find(l => l.id.toString() === labelId.toString());
+    if (label) {
+        if (!label.projectIds) label.projectIds = [];
+        if (!label.projectIds.includes(projectId.toString())) {
+            label.projectIds.push(projectId.toString());
+        }
+    }
+};
 
 // @desc    Get all labels
 // @route   GET /api/labels
@@ -51,5 +65,7 @@ module.exports = {
     getLabels,
     createLabel,
     deleteLabel,
-    deleteAllLabels
+    deleteAllLabels,
+    getLabelsByProjectId,
+    addProjectToLabel
 };

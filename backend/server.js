@@ -13,10 +13,12 @@ app.use(express.json());
 // Import routes
 const taskRoutes = require('./routes/tasks');
 const labelRoutes = require('./routes/labels');
+const projectRoutes = require('./routes/projects');
 
 // Use routes
 app.use('/api/tasks', taskRoutes);
 app.use('/api/labels', labelRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Base route for API health check
 app.get('/', (req, res) => {

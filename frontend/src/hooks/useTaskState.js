@@ -21,22 +21,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     }
   }, [actualTasksList]);
 
-  // --- BACKEND MIRRORING (GET) ---
-  // Load tasks from Backend on mount or when activeProjectId changes
-  useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(tasksFromBackend => {
-        console.log("📥 Tasks loaded from Backend:", tasksFromBackend);
-        setProjects(prev => prev.map(p => 
-          p.id === activeProjectId 
-            ? { ...p, tasks: tasksFromBackend }
-            : p
-        ));
-      })
-      .catch(err => console.error("❌ Backend Error (GET):", err));
-  }, [activeProjectId, setProjects]);
-  // -------------------------------
+  // GET fetch eltávolítva, mert a useProjectState hozza le a teljes fát egyben!
 
 
   
@@ -53,6 +38,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       done: false,
       priority: newPriority,
       labels: selectedLabels,
+      projectIds: [activeProjectId],
     };
 
     // --- BACKEND MIRRORING ---

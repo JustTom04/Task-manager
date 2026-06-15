@@ -13,6 +13,9 @@ export function useLabelState({ actualLabelsList, activeProjectId, setProjects }
       
       if (trimmedName.length > INPUT_LENGTH.LABEL_NAME) return;
       
+      // Inject the many-to-many relationship mapping
+      newLabel.projectIds = [activeProjectId];
+
       // --- BACKEND MIRRORING ---
       fetch(API_URL, {
         method: "POST",
@@ -37,4 +40,3 @@ export function useLabelState({ actualLabelsList, activeProjectId, setProjects }
 
   return {addLabelToProject};
 }
-

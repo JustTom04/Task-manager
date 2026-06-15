@@ -5,9 +5,14 @@ let tasks = [
         title: "Learn Express Routes",
         done: false,
         priority: "high",
-        labels: []
+        labels: [],
+        projectIds: ["default-project"] // Many-to-Many kapcsolat
     }
 ];
+
+const getTasksByProjectId = (projectId) => {
+    return tasks.filter(task => task.projectIds && task.projectIds.includes(projectId.toString()));
+};
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
@@ -82,5 +87,6 @@ module.exports = {
     createTask,
     updateTask,
     deleteTask,
-    deleteAllTasks
+    deleteAllTasks,
+    getTasksByProjectId
 };

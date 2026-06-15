@@ -3,7 +3,7 @@ import { useTaskState } from "./useTaskState";
 import { useLabelState } from "./useLabelState";
 import { useTaskFilterState } from "./useTaskFilterState";
 
-import { INPUT_LENGTH } from "../utils.js"; 
+import { INPUT_LENGTH } from "../utils.js";
 
 const LABELS_API_URL = "http://localhost:3000/api/labels";
 
@@ -32,7 +32,7 @@ export function useProjectState() {
     ];
   };
 
-  
+
   const [projects, setProjects] = useState(initialProjects());
   const savedProjectId = localStorage.getItem("activeProjectId");
   const [activeProjectId, setActiveProjectId] = useState(
@@ -57,23 +57,27 @@ export function useProjectState() {
   const taskFilterState = useTaskFilterState({ actualTasksList });
   const { labelsFilter, setLabelsFilter } = taskFilterState;
 
-  // --- BACKEND MIRRORING (GET LABELS) ---
+  // --- BACKEND MIRRORING (GET AGGREGATED PROJECTS TREE) ---
   useEffect(() => {
-    fetch(LABELS_API_URL)
+    fetch("http://localhost:3000/api/projects")
       .then(res => res.json())
-      .then(labelsFromBackend => {
-        console.log("📥 Labels loaded from Backend:", labelsFromBackend);
-        setProjects(prev => prev.map(p => 
-          p.id === activeProjectId 
-            ? { ...p, labels: labelsFromBackend }
-            : p
-        ));
+      .then(projectsTree => {
+        console.log("📥 Full Projects Tree loaded from Backend:", projectsTree);
+        if (projectsTree.length > 0) {
+          setProjects(projectsTree);
+
+          // Ensure the activeProjectId from LocalStorage still exists in backend data
+          const stillExists = projectsTree.find(p => p.id === activeProjectId);
+          if (!stillExists) {
+            setActiveProjectId(projectsTree[0].id);
+          }
+        }
       })
-      .catch(err => console.error("❌ Backend Error (GET Labels):", err));
-  }, [activeProjectId]);
+      .catch(err => console.error("❌ Backend Error (GET Projects):", err));
+  }, []); // Run only once on component mount
   // --------------------------------------
 
-// ===== Delete label functions =====
+  // ===== Delete label functions =====
   const deleteLabel = useCallback(
     (id) => {
       // --- BACKEND MIRRORING ---
@@ -87,20 +91,20 @@ export function useProjectState() {
         prev.map((p) =>
           p.id === activeProjectId
             ? {
-                ...p,
-                labels: p.labels.filter((label) => label.id !== id),
-                tasks: p.tasks.map((task) => ({
-                  ...task,
-                  labels: task.labels.filter((lid) => lid !== id),
-                })),
-              }
+              ...p,
+              labels: p.labels.filter((label) => label.id !== id),
+              tasks: p.tasks.map((task) => ({
+                ...task,
+                labels: task.labels.filter((lid) => lid !== id),
+              })),
+            }
             : p
         )
       );
 
       setLabelsFilter((prev) => prev.filter((lid) => lid !== id));
     },
-    [activeProjectId, setLabelsFilter] 
+    [activeProjectId, setLabelsFilter]
   );
 
   const deleteAllLabels = useCallback(() => {
@@ -123,7 +127,7 @@ export function useProjectState() {
   }, [activeProjectId, setLabelsFilter]);
 
 
-// ===== Project functions
+  // ===== Project functions
   const addProject = useCallback((name) => {
     const trimmedName = name?.trim();
     if (!trimmedName) return;
@@ -139,23 +143,41 @@ export function useProjectState() {
       labels: generalLabels.map((l) => ({ ...l })),
     };
 
+    // --- BACKEND MIRRORING ---
+    fetch("http://localhost:3000/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newProject),
+    })
+      .then(res => res.json())
+      .then(data => console.log("✅ Project created on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) => [...prev, newProject]);
     setActiveProjectId(newProject.id);
   }, [projects]);
 
 
   const deleteProject = useCallback((projectId) => {
+    // --- BACKEND MIRRORING ---
+    fetch(`http://localhost:3000/api/projects/${projectId}`, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => console.log("🗑️ Project deleted on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prevProjects) => {
       if (prevProjects[0].id === projectId) {
         return prevProjects;
       }
-      
+
       const newProjects = prevProjects.filter((p) => p.id !== projectId);
 
       setActiveProjectId((prevActiveId) => {
         const stillExists = newProjects.find(p => p.id === prevActiveId);
-        if (stillExists) return prevActiveId;        
-        return newProjects[0].id; 
+        if (stillExists) return prevActiveId;
+        return newProjects[0].id;
       });
 
       return newProjects;
@@ -171,11 +193,11 @@ export function useProjectState() {
     localStorage.setItem("activeProjectId", activeProjectId);
   }, [activeProjectId]);
 
-// ===== Task State Hook =====
+  // ===== Task State Hook =====
   const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects });
 
   // ===== Label State Hook =====
-  const labelState = useLabelState( {actualLabelsList, activeProjectId, setProjects})
+  const labelState = useLabelState({ actualLabelsList, activeProjectId, setProjects })
 
   return {
     projects, setProjects,
