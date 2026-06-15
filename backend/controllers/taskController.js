@@ -3,16 +3,16 @@ let tasks = [
     {
         id: "test-id-1",
         title: "Learn Express Routes",
-        description: "Understand how routing works in Node.js",
-        status: "To Do",
         done: false,
-        labelIds: []
+        priority: "high",
+        labels: []
     }
 ];
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
 const getTasks = (req, res) => {
+    console.log(`[GET] Fetched all tasks. Total count: ${tasks.length}`);
     res.status(200).json(tasks);
 };
 
@@ -28,6 +28,7 @@ const createTask = (req, res) => {
     }
     
     tasks.push(newTask);
+    console.log(`[POST] Created new task: "${newTask.title}"`);
     res.status(201).json(newTask);
 };
 
@@ -47,6 +48,7 @@ const updateTask = (req, res) => {
     // Update the task by merging existing data with new data
     tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTaskData };
     
+    console.log(`[PUT] Updated task ID: ${taskId}`);
     res.status(200).json(tasks[taskIndex]);
 };
 
@@ -63,6 +65,7 @@ const deleteTask = (req, res) => {
     // Filter out the deleted task
     tasks = tasks.filter(task => task.id !== taskId);
     
+    console.log(`[DELETE] Removed task ID: ${taskId}`);
     res.status(200).json({ message: "Task removed successfully", id: taskId });
 };
 

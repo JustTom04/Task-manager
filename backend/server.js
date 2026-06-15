@@ -4,23 +4,24 @@ const cors = require('cors');
 const app = express();
 const PORT = 3000;
 
-// Middleware (Ezek kötelezőek)
-app.use(cors()); // Engedélyezi, hogy a Vite (React) szervere szóba álljon ezzel a szerverrel
-app.use(express.json()); // Engedélyezi, hogy az Express megértse a React által küldött JSON adatokat
+// Middleware configuration
+// cors() allows cross-origin requests from the React frontend
+app.use(cors()); 
+// express.json() parses incoming JSON payloads
+app.use(express.json()); 
 
-// Alap "Hello World" végpont a teszteléshez
 // Import routes
 const taskRoutes = require('./routes/tasks');
 
 // Use routes
 app.use('/api/tasks', taskRoutes);
 
-// Base route for testing
+// Base route for API health check
 app.get('/', (req, res) => {
     res.send('Task Manager API is running...');
 });
 
-// Start the server
+// Start the Express server
 app.listen(PORT, () => {
     console.log(`\n========================================================`);
     console.log(`🚀 Server is running successfully!`);

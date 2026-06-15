@@ -1,6 +1,8 @@
 import { INPUT_LENGTH } from "@/utils";
 import { useState,  useEffect, useRef, useCallback } from "react";
 
+const API_URL = "http://localhost:3000/api/tasks";
+
 export function useTaskState({ actualTasksList, activeProjectId, setProjects }) {
   // ===== States =====
   const [newTitle, setNewTitle] = useState("");
@@ -19,6 +21,24 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     }
   }, [actualTasksList]);
 
+  // --- BACKEND MIRRORING (GET) ---
+  // Load tasks from Backend on mount or when activeProjectId changes
+  useEffect(() => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(tasksFromBackend => {
+        console.log("📥 Tasks loaded from Backend:", tasksFromBackend);
+        setProjects(prev => prev.map(p => 
+          p.id === activeProjectId 
+            ? { ...p, tasks: tasksFromBackend }
+            : p
+        ));
+      })
+      .catch(err => console.error("❌ Backend Error (GET):", err));
+  }, [activeProjectId, setProjects]);
+  // -------------------------------
+
+
   
   // ===== Task functions =====
   const addTask = useCallback((e) => {
@@ -35,6 +55,17 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       labels: selectedLabels,
     };
 
+    // --- BACKEND MIRRORING ---
+    fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTask),
+    })
+      .then(res => res.json())
+      .then(data => console.log("✅ Task created on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
@@ -49,6 +80,20 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
 
   const toggleTask = useCallback((id) => {
+    const taskToToggle = actualTasksList.find(t => t.id === id);
+    if (taskToToggle) {
+      // --- BACKEND MIRRORING ---
+      fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ done: !taskToToggle.done }),
+      })
+        .then(res => res.json())
+        .then(data => console.log("🔄 Task toggled on Backend:", data))
+        .catch(err => console.error("❌ Backend Error:", err));
+      // -------------------------
+    }
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
@@ -65,6 +110,13 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
 
   const deleteTask = useCallback((id) => {
+    // --- BACKEND MIRRORING ---
+    fetch(`${API_URL}/${id}`, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => console.log("🗑️ Task deleted on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
@@ -129,6 +181,17 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
 
   const updateTask = useCallback((id, updatedTask) => {
+    // --- BACKEND MIRRORING ---
+    fetch(`${API_URL}/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedTask),
+    })
+      .then(res => res.json())
+      .then(data => console.log("✏️ Task updated on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
