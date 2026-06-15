@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  // Many-to-Many with Tasks
+  tasks     Task[]
+  
+  // One-to-Many with Labels (A project owns its labels)
+  labels    Label[]
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  title     String
+  done      Boolean  @default(false)
+  priority  String   @default("low")
+  createdAt DateTime @default(now())
+
+  // Belongs to ONE Project
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Many-to-Many with Labels
+  labels    Label[]
+}
+
+model Label {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("#ccc")
+  createdAt DateTime @default(now())
+
+  // Belongs to ONE Project
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Many-to-Many with Tasks
+  tasks     Task[]
+}

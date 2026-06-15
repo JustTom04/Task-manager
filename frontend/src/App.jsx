@@ -40,6 +40,7 @@ function App() {
   const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showLoading, setShowLoading] = useState(false);
 
   const [confirmConfig, setConfirmConfig] = useState(null);
 
@@ -87,8 +88,20 @@ function App() {
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
 
-  // If projects are still loading from the backend, show a loading screen
+  // Delayed loading screen (150ms) to prevent flicker on fast connections
+  useEffect(() => {
+    let timer;
+    if (!actualProject) {
+      timer = setTimeout(() => setShowLoading(true), 150);
+    } else {
+      setShowLoading(false);
+    }
+    return () => clearTimeout(timer);
+  }, [actualProject]);
+
+  // If projects are still loading from the backend, show a loading screen (only after delay)
   if (!actualProject) {
+    if (!showLoading) return null; // Render nothing for the first 150ms
     return (
       <div className="app-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
         <h1 style={{ color: "white" }}>Loading data from server...</h1>

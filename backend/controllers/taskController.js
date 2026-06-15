@@ -1,85 +1,125 @@
-// In-memory array to store tasks (Database simulation)
-let tasks = [
-    {
-        id: "test-id-1",
-        title: "Learn Express Routes",
-        done: false,
-        priority: "high",
-        labels: [],
-        projectIds: ["default-project"] // Many-to-Many kapcsolat
-    }
-];
-
-const getTasksByProjectId = (projectId) => {
-    return tasks.filter(task => task.projectIds && task.projectIds.includes(projectId.toString()));
-};
+const prisma = require('../prismaClient');
 
 // @desc    Get all tasks
 // @route   GET /api/tasks
-const getTasks = (req, res) => {
-    console.log(`[GET] Fetched all tasks. Total count: ${tasks.length}`);
-    res.status(200).json(tasks);
+const getTasks = async (req, res) => {
+    try {
+        const tasks = await prisma.task.findMany({
+            include: { labels: true, projects: true }
+        });
+        console.log(`[GET] Fetched all tasks. Total count: ${tasks.length}`);
+        res.status(200).json(tasks);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch tasks" });
+    }
 };
 
 // @desc    Create a new task
 // @route   POST /api/tasks
-const createTask = (req, res) => {
-    const newTask = req.body;
-    
-    // In a real DB, ID is generated automatically. 
-    // Here we use the one sent from frontend or generate a fallback.
-    if (!newTask.id) {
-        newTask.id = Date.now().toString();
+const createTask = async (req, res) => {
+    try {
+        const { id, title, done, priority, labels, projectId, projectIds } = req.body;
+        
+        // Handle both old frontend (projectIds array) and new frontend (projectId string)
+        const activeProjectId = projectId || (projectIds && projectIds.length > 0 ? projectIds[0] : null);
+
+        if (!activeProjectId) {
+            return res.status(400).json({ error: "Task must belong to a project" });
+        }
+            
+        const connectLabels = labels && Array.isArray(labels) 
+            ? labels.map(lid => ({ id: lid })) 
+            : [];
+
+        const newTask = await prisma.task.create({
+            data: {
+                id: id || undefined,
+                title,
+                done,
+                priority,
+                projectId: activeProjectId,
+                labels: { connect: connectLabels }
+            }
+        });
+        
+        console.log(`[POST] Created new task: "${newTask.title}" (Prisma)`);
+        res.status(201).json(newTask);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to create task" });
     }
-    
-    tasks.push(newTask);
-    console.log(`[POST] Created new task: "${newTask.title}"`);
-    res.status(201).json(newTask);
 };
 
 // @desc    Update an existing task
 // @route   PUT /api/tasks/:id
-const updateTask = (req, res) => {
-    const taskId = req.params.id;
-    const updatedTaskData = req.body;
-    
-    // Find the index of the task we want to update
-    const taskIndex = tasks.findIndex(task => task.id === taskId);
-    
-    if (taskIndex === -1) {
-        return res.status(404).json({ message: "Task not found" });
+const updateTask = async (req, res) => {
+    try {
+        const taskId = req.params.id;
+        const updatedTaskData = req.body;
+        
+        // Prisma expects relation updates via connect/set/disconnect
+        let prismaUpdateData = { ...updatedTaskData };
+        
+        if (updatedTaskData.labels) {
+            prismaUpdateData.labels = { 
+                set: updatedTaskData.labels.map(lid => ({ id: lid })) 
+            };
+        }
+        
+        // Clean up projectIds if it was sent by frontend (we don't allow changing projects via PUT easily, but if so, it's projectId)
+        if (updatedTaskData.projectIds) {
+            delete prismaUpdateData.projectIds;
+        }
+
+        const updatedTask = await prisma.task.update({
+            where: { id: taskId },
+            data: prismaUpdateData
+        });
+        
+        console.log(`[PUT] Updated task ID: ${taskId} (Prisma)`);
+        res.status(200).json(updatedTask);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update task" });
     }
-    
-    // Update the task by merging existing data with new data
-    tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTaskData };
-    
-    console.log(`[PUT] Updated task ID: ${taskId}`);
-    res.status(200).json(tasks[taskIndex]);
 };
 
 // @desc    Delete a task
 // @route   DELETE /api/tasks/:id
-const deleteTask = (req, res) => {
-    const taskId = req.params.id;
-    
-    const taskExists = tasks.some(task => task.id === taskId);
-    if (!taskExists) {
-        return res.status(404).json({ message: "Task not found" });
+const deleteTask = async (req, res) => {
+    try {
+        const taskId = req.params.id;
+        
+        await prisma.task.delete({
+            where: { id: taskId }
+        });
+        
+        console.log(`[DELETE] Removed task ID: ${taskId} (Prisma)`);
+        res.status(200).json({ message: "Task removed successfully", id: taskId });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete task" });
     }
-    
-    // Filter out the deleted task
-    tasks = tasks.filter(task => task.id !== taskId);
-    
-    console.log(`[DELETE] Removed task ID: ${taskId}`);
-    res.status(200).json({ message: "Task removed successfully", id: taskId });
 };
 
 // @desc    Delete ALL tasks
 // @route   DELETE /api/tasks
-const deleteAllTasks = (req, res) => {
-    tasks = [];
-    console.log(`[DELETE] Removed ALL tasks.`);
-    res.status(200).json({ message: "All tasks removed successfully" });
+const deleteAllTasks = async (req, res) => {
+    try {
+        const projectId = req.query.projectId;
+        if (!projectId) {
+            return res.status(400).json({ error: "projectId is required to delete all tasks" });
+        }
+        await prisma.task.deleteMany({
+            where: { projectId: projectId }
+        });
+        console.log(`[DELETE] Removed ALL tasks for project ${projectId} (Prisma).`);
+        res.status(200).json({ message: "All tasks removed successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete all tasks" });
+    }
 };
 
 module.exports = {
@@ -87,6 +127,5 @@ module.exports = {
     createTask,
     updateTask,
     deleteTask,
-    deleteAllTasks,
-    getTasksByProjectId
+    deleteAllTasks
 };

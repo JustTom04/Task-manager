@@ -87,9 +87,9 @@ export function useProjectState() {
 
   const deleteAllLabels = useCallback(() => {
     // --- BACKEND MIRRORING ---
-    fetch(LABELS_API_URL, { method: "DELETE" })
+    fetch(`${LABELS_API_URL}?projectId=${activeProjectId}`, { method: "DELETE" })
       .then(res => res.json())
-      .then(data => console.log("🗑️ ALL Labels deleted on Backend:", data))
+      .then(data => console.log("🗑️ ALL Labels deleted on Backend for project:", data))
       .catch(err => console.error("❌ Backend Error:", err));
     // -------------------------
 

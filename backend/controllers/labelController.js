@@ -1,71 +1,91 @@
-// In-memory array for global labels
-let labels = [
-    { id: 1, name: "Work", color: "#f28b82", projectIds: ["default-project"] },
-    { id: 2, name: "Personal", color: "#fbbc04", projectIds: ["default-project"] },
-    { id: 3, name: "Urgent", color: "#34a853", projectIds: ["default-project"] }
-];
-
-const getLabelsByProjectId = (projectId) => {
-    return labels.filter(label => label.projectIds && label.projectIds.includes(projectId.toString()));
-};
-
-const addProjectToLabel = (labelId, projectId) => {
-    const label = labels.find(l => l.id.toString() === labelId.toString());
-    if (label) {
-        if (!label.projectIds) label.projectIds = [];
-        if (!label.projectIds.includes(projectId.toString())) {
-            label.projectIds.push(projectId.toString());
-        }
-    }
-};
+const prisma = require('../prismaClient');
 
 // @desc    Get all labels
 // @route   GET /api/labels
-const getLabels = (req, res) => {
-    console.log(`[GET] Fetched all labels. Total count: ${labels.length}`);
-    res.status(200).json(labels);
+const getLabels = async (req, res) => {
+    try {
+        const labels = await prisma.label.findMany({
+            include: { projects: true }
+        });
+        console.log(`[GET] Fetched all labels. Total count: ${labels.length}`);
+        res.status(200).json(labels);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch labels" });
+    }
 };
 
 // @desc    Create a new label
 // @route   POST /api/labels
-const createLabel = (req, res) => {
-    const newLabel = req.body;
-    
-    // Safety check if frontend didn't provide ID
-    if (!newLabel.id) {
-        newLabel.id = Date.now().toString();
+const createLabel = async (req, res) => {
+    try {
+        const { id, name, color, projectIds } = req.body;
+        
+        // Frontend sends projectIds: [activeProjectId]. For One-to-Many, we take the first one.
+        const projectId = projectIds && projectIds.length > 0 ? projectIds[0] : null;
+
+        if (!projectId) {
+            return res.status(400).json({ error: "Label must belong to a project" });
+        }
+
+        const newLabel = await prisma.label.create({
+            data: {
+                id: id || undefined,
+                name,
+                color,
+                projectId: projectId
+            }
+        });
+        
+        console.log(`[POST] Created new label: "${newLabel.name}" (Prisma)`);
+        res.status(201).json(newLabel);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to create label" });
     }
-    
-    labels.push(newLabel);
-    console.log(`[POST] Created new label: "${newLabel.name}"`);
-    res.status(201).json(newLabel);
 };
 
 // @desc    Delete a label
 // @route   DELETE /api/labels/:id
-const deleteLabel = (req, res) => {
-    // Note: req.params.id might be a string. We use toString() for safe comparison.
-    const labelId = req.params.id;
-    
-    labels = labels.filter(label => label.id.toString() !== labelId.toString());
-    
-    console.log(`[DELETE] Removed label ID: ${labelId}`);
-    res.status(200).json({ message: "Label removed successfully", id: labelId });
+const deleteLabel = async (req, res) => {
+    try {
+        const labelId = req.params.id;
+        
+        await prisma.label.delete({
+            where: { id: labelId }
+        });
+        
+        console.log(`[DELETE] Removed label ID: ${labelId} (Prisma)`);
+        res.status(200).json({ message: "Label removed successfully", id: labelId });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete label" });
+    }
 };
 
 // @desc    Delete ALL labels
 // @route   DELETE /api/labels
-const deleteAllLabels = (req, res) => {
-    labels = [];
-    console.log(`[DELETE] Removed ALL labels.`);
-    res.status(200).json({ message: "All labels removed successfully" });
+const deleteAllLabels = async (req, res) => {
+    try {
+        const projectId = req.query.projectId;
+        if (!projectId) {
+            return res.status(400).json({ error: "projectId is required to delete labels" });
+        }
+        
+        await prisma.label.deleteMany({
+            where: { projectId: projectId }
+        });
+        console.log(`[DELETE] Removed ALL labels for project ${projectId} (Prisma).`);
+        res.status(200).json({ message: "All labels removed successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to delete all labels" });
+    }
 };
 
 module.exports = {
     getLabels,
     createLabel,
     deleteLabel,
-    deleteAllLabels,
-    getLabelsByProjectId,
-    addProjectToLabel
+    deleteAllLabels
 };

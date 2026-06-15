@@ -116,9 +116,9 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
   
   const deleteAllTasks = useCallback(() => {
     // --- BACKEND MIRRORING ---
-    fetch(API_URL, { method: "DELETE" })
+    fetch(`${API_URL}?projectId=${activeProjectId}`, { method: "DELETE" })
       .then(res => res.json())
-      .then(data => console.log("🗑️ ALL Tasks deleted on Backend:", data))
+      .then(data => console.log("🗑️ ALL Tasks deleted on Backend for project:", data))
       .catch(err => console.error("❌ Backend Error:", err));
     // -------------------------
 
