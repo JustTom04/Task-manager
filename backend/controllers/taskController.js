@@ -69,9 +69,18 @@ const deleteTask = (req, res) => {
     res.status(200).json({ message: "Task removed successfully", id: taskId });
 };
 
+// @desc    Delete ALL tasks
+// @route   DELETE /api/tasks
+const deleteAllTasks = (req, res) => {
+    tasks = [];
+    console.log(`[DELETE] Removed ALL tasks.`);
+    res.status(200).json({ message: "All tasks removed successfully" });
+};
+
 module.exports = {
     getTasks,
     createTask,
     updateTask,
-    deleteTask
+    deleteTask,
+    deleteAllTasks
 };

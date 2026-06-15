@@ -106,7 +106,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects]);
 
 
   const deleteTask = useCallback((id) => {
@@ -129,6 +129,13 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
   
   const deleteAllTasks = useCallback(() => {
+    // --- BACKEND MIRRORING ---
+    fetch(API_URL, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => console.log("🗑️ ALL Tasks deleted on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: [] } : p
@@ -138,6 +145,21 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
 
   const deleteTaskLabel = useCallback((taskId, labelId) => {
+    const taskToUpdate = actualTasksList.find(t => t.id === taskId);
+    if (taskToUpdate) {
+      const newLabels = taskToUpdate.labels.filter(id => id !== labelId);
+      // --- BACKEND MIRRORING ---
+      fetch(`${API_URL}/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ labels: newLabels }),
+      })
+        .then(res => res.json())
+        .then(data => console.log("🏷️ Label removed from task on Backend:", data))
+        .catch(err => console.error("❌ Backend Error:", err));
+      // -------------------------
+    }
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
@@ -152,10 +174,26 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects]);
 
 
   const toggleLabelOnTask = useCallback((taskId, labelId) => {
+    const taskToUpdate = actualTasksList.find(t => t.id === taskId);
+    if (taskToUpdate) {
+      const hasLabel = taskToUpdate.labels.includes(labelId);
+      const newLabels = hasLabel ? taskToUpdate.labels.filter(id => id !== labelId) : [...taskToUpdate.labels, labelId];
+      // --- BACKEND MIRRORING ---
+      fetch(`${API_URL}/${taskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ labels: newLabels }),
+      })
+        .then(res => res.json())
+        .then(data => console.log("🏷️ Label toggled on task on Backend:", data))
+        .catch(err => console.error("❌ Backend Error:", err));
+      // -------------------------
+    }
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
@@ -177,7 +215,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects]);
 
 
   const updateTask = useCallback((id, updatedTask) => {
