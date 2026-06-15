@@ -5,6 +5,8 @@ import { useTaskFilterState } from "./useTaskFilterState";
 
 import { INPUT_LENGTH } from "../utils.js"; 
 
+const LABELS_API_URL = "http://localhost:3000/api/labels";
+
 export function useProjectState() {
 
   // ===== Initial Projects =====
@@ -55,10 +57,32 @@ export function useProjectState() {
   const taskFilterState = useTaskFilterState({ actualTasksList });
   const { labelsFilter, setLabelsFilter } = taskFilterState;
 
+  // --- BACKEND MIRRORING (GET LABELS) ---
+  useEffect(() => {
+    fetch(LABELS_API_URL)
+      .then(res => res.json())
+      .then(labelsFromBackend => {
+        console.log("📥 Labels loaded from Backend:", labelsFromBackend);
+        setProjects(prev => prev.map(p => 
+          p.id === activeProjectId 
+            ? { ...p, labels: labelsFromBackend }
+            : p
+        ));
+      })
+      .catch(err => console.error("❌ Backend Error (GET Labels):", err));
+  }, [activeProjectId]);
+  // --------------------------------------
 
 // ===== Delete label functions =====
   const deleteLabel = useCallback(
     (id) => {
+      // --- BACKEND MIRRORING ---
+      fetch(`${LABELS_API_URL}/${id}`, { method: "DELETE" })
+        .then(res => res.json())
+        .then(data => console.log("🗑️ Label deleted on Backend:", data))
+        .catch(err => console.error("❌ Backend Error:", err));
+      // -------------------------
+
       setProjects((prev) =>
         prev.map((p) =>
           p.id === activeProjectId
@@ -80,6 +104,13 @@ export function useProjectState() {
   );
 
   const deleteAllLabels = useCallback(() => {
+    // --- BACKEND MIRRORING ---
+    fetch(LABELS_API_URL, { method: "DELETE" })
+      .then(res => res.json())
+      .then(data => console.log("🗑️ ALL Labels deleted on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+    // -------------------------
+
     setProjects((prev) =>
       prev.map((p) =>
         p.id === activeProjectId
