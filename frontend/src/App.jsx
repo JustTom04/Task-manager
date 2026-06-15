@@ -87,6 +87,14 @@ function App() {
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
 
+  // If projects are still loading from the backend, show a loading screen
+  if (!actualProject) {
+    return (
+      <div className="app-container" style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <h1 style={{ color: "white" }}>Loading data from server...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

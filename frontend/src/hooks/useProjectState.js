@@ -10,34 +10,12 @@ const LABELS_API_URL = "http://localhost:3000/api/labels";
 export function useProjectState() {
 
   // ===== Initial Projects =====
-  const initialProjects = () => {
-    const saved = localStorage.getItem("projects");
-    if (saved) return JSON.parse(saved);
-
-    return [
-      {
-        id: crypto.randomUUID(),
-        name: "General",
-        tasks: [
-          { id: 1, title: "Programming", done: false, priority: "high", labels: [1, 2] },
-          { id: 2, title: "Work out", done: false, priority: "mid", labels: [1, 2], },
-          { id: 3, title: "Learning English", done: false, priority: "low", labels: [1, 2], },
-        ],
-        labels: [
-          { id: 1, name: "Work", color: "#f28b82" },
-          { id: 2, name: "Personal", color: "#fbbc04" },
-          { id: 3, name: "Urgent", color: "#34a853" },
-        ],
-      },
-    ];
-  };
-
-
-  const [projects, setProjects] = useState(initialProjects());
+  // Projects are now fully loaded from the Backend API, no more LocalStorage defaults!
+  const [projects, setProjects] = useState([]);
+  
+  // We keep activeProjectId in LocalStorage purely for UI/UX memory
   const savedProjectId = localStorage.getItem("activeProjectId");
-  const [activeProjectId, setActiveProjectId] = useState(
-    savedProjectId || projects[0].id
-  );
+  const [activeProjectId, setActiveProjectId] = useState(savedProjectId || null);
 
   /* ===== Actual items ===== */
   const actualProject = useMemo(() => {
@@ -184,13 +162,12 @@ export function useProjectState() {
     });
   }, [setProjects, setActiveProjectId]);
 
-  // ===== LocalStorage Sync =====
+  // ===== UI State Sync =====
+  // We only save the active project ID to remember the user's last viewed tab
   useEffect(() => {
-    localStorage.setItem("projects", JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem("activeProjectId", activeProjectId);
+    if (activeProjectId) {
+      localStorage.setItem("activeProjectId", activeProjectId);
+    }
   }, [activeProjectId]);
 
   // ===== Task State Hook =====
