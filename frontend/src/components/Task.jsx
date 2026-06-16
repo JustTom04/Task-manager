@@ -17,6 +17,7 @@ const Task = forwardRef(({
   // ===== States =====
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedPriority, setEditedPriority] = useState(task.priority);
 
@@ -71,10 +72,17 @@ const Task = forwardRef(({
   const colorMap = { high: "red", mid: "orange", low: "green" };
   const color = colorMap[task.priority] || "green";
 
+  const handleDelete = () => {
+    setIsDeleting(true);
+    setTimeout(() => {
+      deleteTask();
+    }, 380); // Wait for CSS animation
+  };
+
   // ===== Return JSX =====
   return (
     <div
-    className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""}`}
+    className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""}`}
     ref={(node) => {
       localRef.current = node;
       if (ref) ref.current = node; 
@@ -185,7 +193,7 @@ const Task = forwardRef(({
         <div className="task-actions">
           <button
             className="remove-button medium"
-            onClick={stopAnd(deleteTask)}
+            onClick={stopAnd(handleDelete)}
           >
             ❌
           </button>

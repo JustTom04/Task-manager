@@ -142,24 +142,35 @@ function App() {
 
       {/* ===== Tasks list ===== */}
       <div className="task-list-container">
-        {filteredTasks.map((task, index) => {
-          const isLast = index === filteredTasks.length - 1;
-          return (
-            <Task
-              key={task.id}
-              task={task}
-              toggleTask={() => toggleTask(task.id)}
-              deleteTask={() => deleteTask(task.id)}
-              updateTask={(updatedTask) =>
-                updateTask(task.id, updatedTask)
-              }
-              deleteTaskLabel={deleteTaskLabel}
-              toggleLabelOnTask={toggleLabelOnTask} 
-              allLabels={actualLabelsList}
-              ref={isLast ? lastTaskRef : null}
-            />
-          );
-        })}
+        {actualTasksList.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-state-icon">🎉</span>
+            <p className="empty-state-text">You currently have no tasks. Sit back and relax, or create a new one!</p>
+          </div>
+        ) : filteredTasks.length === 0 ? (
+          <div className="empty-state">
+            <p className="empty-state-text">No tasks match your current filters.</p>
+          </div>
+        ) : (
+          filteredTasks.map((task, index) => {
+            const isLast = index === filteredTasks.length - 1;
+            return (
+              <Task
+                key={task.id}
+                task={task}
+                toggleTask={() => toggleTask(task.id)}
+                deleteTask={() => deleteTask(task.id)}
+                updateTask={(updatedTask) =>
+                  updateTask(task.id, updatedTask)
+                }
+                deleteTaskLabel={deleteTaskLabel}
+                toggleLabelOnTask={toggleLabelOnTask} 
+                allLabels={actualLabelsList}
+                ref={isLast ? lastTaskRef : null}
+              />
+            );
+          })
+        )}
       </div>
 
       {showLabelModal && (
