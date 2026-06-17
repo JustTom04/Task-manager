@@ -2,7 +2,7 @@
 
 This project is a **Task Manager** application built using React and modern JavaScript (ES6+) technologies.
 
-![alt text](/src/assets/screenshot.png)
+![alt text](assets/screenshot.png)
 
 ## Folder Structure
 - assets → static files such as images, icons, SVGs  
