@@ -16,25 +16,35 @@ This project is a **Task Manager** application built using React and modern Java
 - **Project management**
   - Create and delete multiple projects.
   - Select an active project.
+  
+  ![Projects](assets/projects.png)
 
 - **Labels**
   - Each new project has unique labels.
   - Add labels to tasks.
   - Delete labels individually or remove all labels from a project.
+  
+  ![Labels](assets/labels.png)
 
 - **Task management**
   - Add new tasks to projects.
   - Edit, delete, and update task status (done / in progress).
   - Track time spent on tasks and automatically save it in **localStorage**.
+  
+  ![Task Edit](assets/edit_task.png)
 
 - **Filtering and sorting**
   - Filter tasks by status, labels, and priority (**high**, **medium**, **low**).
   - Display task list based on the current filters.
+  
+  ![Filters](assets/filters.png)
 
 - **User interface and state persistence**
   - Responsive design for mobile and desktop views.
   - Modal components, dropdowns, and label panels for easier usability.
   - Projects and tasks are saved in **localStorage**, so data persists after page refresh.
+  
+  ![Mobile View](assets/phone.png)
 
 
 

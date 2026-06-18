@@ -36,6 +36,19 @@ const Task = forwardRef(({
     setIsEditing(false);
   });
 
+  useEffect(() => {
+    if (!isEditing) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setEditedTitle(task.title);
+        setEditedPriority(task.priority);
+        setIsEditing(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isEditing, task.title, task.priority]);
+
 
   // ===== Handle timer =====
   useEffect(() => {

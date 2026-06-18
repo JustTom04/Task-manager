@@ -150,6 +150,11 @@ select:focus, input:focus, .select-wrapper.open {
   box-shadow: var(--shadow-focus);
 }
 
+option {
+  background-color: var(--color-dropdown-bg);
+  color: var(--color-text);
+}
+
 input::placeholder {
   opacity: 0.7;
   color: rgb(70, 70, 70)
