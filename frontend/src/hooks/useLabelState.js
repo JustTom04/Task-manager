@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 
 import { INPUT_LENGTH } from "../utils.js";
 
-const API_URL = "http://localhost:3000/api/labels";
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/labels` : "http://localhost:3000/api/labels";
 
 export function useLabelState({ actualLabelsList, activeProjectId, setProjects }) {
 

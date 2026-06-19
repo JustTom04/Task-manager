@@ -1,7 +1,7 @@
 import { INPUT_LENGTH } from "@/utils";
 import { useState,  useEffect, useRef, useCallback } from "react";
 
-const API_URL = "http://localhost:3000/api/tasks";
+const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/tasks` : "http://localhost:3000/api/tasks";
 
 export function useTaskState({ actualTasksList, activeProjectId, setProjects }) {
   // ===== States =====

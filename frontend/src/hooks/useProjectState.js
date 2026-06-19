@@ -5,7 +5,8 @@ import { useTaskFilterState } from "./useTaskFilterState";
 
 import { INPUT_LENGTH } from "../utils.js";
 
-const LABELS_API_URL = "http://localhost:3000/api/labels";
+const LABELS_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/labels` : "http://localhost:3000/api/labels";
+const PROJECTS_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/projects` : "http://localhost:3000/api/projects";
 
 export function useProjectState() {
 
@@ -37,7 +38,7 @@ export function useProjectState() {
 
   // --- BACKEND MIRRORING (GET AGGREGATED PROJECTS TREE) ---
   useEffect(() => {
-    fetch("http://localhost:3000/api/projects")
+    fetch(PROJECTS_API_URL)
       .then(res => res.json())
       .then(projectsTree => {
         console.log("📥 Full Projects Tree loaded from Backend:", projectsTree);
@@ -122,7 +123,7 @@ export function useProjectState() {
     };
 
     // --- BACKEND MIRRORING ---
-    fetch("http://localhost:3000/api/projects", {
+    fetch(PROJECTS_API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newProject),
@@ -139,7 +140,7 @@ export function useProjectState() {
 
   const deleteProject = useCallback((projectId) => {
     // --- BACKEND MIRRORING ---
-    fetch(`http://localhost:3000/api/projects/${projectId}`, { method: "DELETE" })
+    fetch(`${PROJECTS_API_URL}/${projectId}`, { method: "DELETE" })
       .then(res => res.json())
       .then(data => console.log("🗑️ Project deleted on Backend:", data))
       .catch(err => console.error("❌ Backend Error:", err));
