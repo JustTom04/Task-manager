@@ -105,8 +105,9 @@ function SettingsPanel({
             <div style={{ display: "flex", gap: "5px" }}>
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
-                  onClick={(e) => {
+                  onMouseDown={(e) => {
                     e.stopPropagation();
+                    e.preventDefault(); // Prevents input from losing focus if we want, or just let it fire before blur
                     if (editingProjectId === p.id) {
                       handleEditSubmit(p.id, p.name);
                     } else {
@@ -119,8 +120,9 @@ function SettingsPanel({
                 </button>
               )}
               <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
-                onClick={(e) => {
+                onMouseDown={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
                   if (editingProjectId === p.id) {
                     setEditingProjectId(null);
                   } else {
