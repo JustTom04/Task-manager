@@ -124,24 +124,10 @@
   transition: color 0.3s ease, opacity 0.3s ease;
 }
 
-.task-title::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0;
-  height: 2px;
-  background-color: var(--color-muted);
-  transition: width 0.3s ease;
-}
-
 .task-title.finished {
   opacity: 0.6;
   color: var(--color-muted);
-}
-
-.task-title.finished::after {
-  width: 100%;
+  text-decoration: line-through;
 }
 
 

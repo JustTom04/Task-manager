@@ -127,7 +127,7 @@ export function useProjectState() {
       id: crypto.randomUUID(),
       name: trimmedName,
       tasks: [],
-      labels: generalLabels.map((l) => ({ ...l })),
+      labels: generalLabels.map((l) => ({ ...l, id: crypto.randomUUID() })),
     };
 
     // --- BACKEND MIRRORING ---

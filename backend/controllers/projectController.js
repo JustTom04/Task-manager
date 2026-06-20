@@ -38,18 +38,26 @@ const getProjects = async (req, res) => {
 // @route   POST /api/projects
 const createProject = async (req, res) => {
     try {
-        const { id, name } = req.body;
+        const { id, name, labels } = req.body;
         
-        // Fetch 'General' project to clone its labels for the new project
-        const generalProject = await prisma.project.findFirst({
-            where: { name: "General", userId: req.userId },
-            include: { labels: true }
-        });
-        
-        const cloneLabels = generalProject?.labels.map(l => ({
+        let labelsToCreate = labels ? labels.map(l => ({
+            id: l.id,
             name: l.name,
             color: l.color
-        })) || [];
+        })) : [];
+
+        // Fallback: If no labels provided, clone from General project
+        if (labelsToCreate.length === 0) {
+            const generalProject = await prisma.project.findFirst({
+                where: { name: "General", userId: req.userId },
+                include: { labels: true }
+            });
+            
+            labelsToCreate = generalProject?.labels.map(l => ({
+                name: l.name,
+                color: l.color
+            })) || [];
+        }
 
         const newProject = await prisma.project.create({
             data: {
@@ -57,7 +65,7 @@ const createProject = async (req, res) => {
                 name: name,
                 userId: req.userId,
                 labels: {
-                    create: cloneLabels // Create new specific labels for this project
+                    create: labelsToCreate
                 }
             },
             include: {

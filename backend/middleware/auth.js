@@ -1,4 +1,5 @@
 const prisma = require('../prismaClient');
+const { getDefaultProjectsData } = require('../utils/defaultData');
 
 const authenticateUser = async (req, res, next) => {
     const userId = req.headers['x-user-id'];
@@ -17,20 +18,7 @@ const authenticateUser = async (req, res, next) => {
             user = await prisma.user.create({
                 data: {
                     id: userId,
-                    projects: {
-                        create: [
-                            {
-                                name: 'General',
-                                labels: {
-                                    create: [
-                                        { name: 'Work', color: '#f28b82' },
-                                        { name: 'Personal', color: '#fbbc04' },
-                                        { name: 'Urgent', color: '#34a853' }
-                                    ]
-                                }
-                            }
-                        ]
-                    }
+                    projects: getDefaultProjectsData()
                 }
             });
             console.log(`[AUTH] Created new anonymous user: ${userId} with default data.`);
