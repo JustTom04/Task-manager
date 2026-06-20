@@ -177,6 +177,29 @@ export function useProjectState() {
     });
   }, [setProjects, setActiveProjectId]);
 
+  const renameProject = useCallback((projectId, newName) => {
+    const trimmedName = newName?.trim();
+    if (!trimmedName || trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return;
+
+    // Local optimistic update
+    setProjects(prev => prev.map(p => 
+      p.id === projectId ? { ...p, name: trimmedName } : p
+    ));
+
+    // Backend update
+    fetch(`${PROJECTS_API_URL}/${projectId}`, {
+      method: "PATCH",
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-ID": getUserId() 
+      },
+      body: JSON.stringify({ name: trimmedName })
+    })
+      .then(res => res.json())
+      .then(data => console.log("✅ Project renamed on Backend:", data))
+      .catch(err => console.error("❌ Backend Error:", err));
+  }, [setProjects]);
+
   // ===== UI State Sync =====
   // We only save the active project ID to remember the user's last viewed tab
   useEffect(() => {
@@ -196,6 +219,7 @@ export function useProjectState() {
     activeProjectId, setActiveProjectId,
     addProject,
     deleteProject,
+    renameProject,
     actualProject,
     actualTasksList,
     actualLabelsList,

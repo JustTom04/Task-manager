@@ -106,8 +106,42 @@ const deleteProject = async (req, res) => {
     }
 };
 
+// @desc    Update a project (e.g. rename)
+// @route   PATCH /api/projects/:id
+const updateProject = async (req, res) => {
+    try {
+        const projectId = req.params.id;
+        const { name } = req.body;
+        
+        // Validation: Ensure name is provided and not empty
+        if (!name || typeof name !== 'string' || name.trim() === '') {
+            return res.status(400).json({ error: "Project name is required and cannot be empty." });
+        }
+        
+        const trimmedName = name.trim();
+        
+        // Prevent renaming the General project
+        const projectToUpdate = await prisma.project.findUnique({ where: { id: projectId } });
+        if (projectToUpdate && projectToUpdate.name === "General") {
+            return res.status(403).json({ error: "The General project cannot be modified." });
+        }
+
+        const updatedProject = await prisma.project.update({
+            where: { id: projectId },
+            data: { name: trimmedName }
+        });
+        
+        console.log(`[PATCH] Updated project ID: ${projectId} (Prisma)`);
+        res.status(200).json(updatedProject);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Failed to update project" });
+    }
+};
+
 module.exports = {
     getProjects,
     createProject,
-    deleteProject
+    deleteProject,
+    updateProject
 };

@@ -54,6 +54,7 @@ function App() {
     activeProjectId, setActiveProjectId,
     addProject,
     deleteProject,
+    renameProject,
     actualProject,
     actualTasksList,
     actualLabelsList,
@@ -206,6 +207,7 @@ function App() {
         activeProjectId={activeProjectId}
         onSelectProject={setActiveProjectId}
         deleteProject={deleteProject}
+        renameProject={renameProject}
         addProject={addProject}
         isOpen={settingsOpen}
         setIsOpen={setSettingsOpen}

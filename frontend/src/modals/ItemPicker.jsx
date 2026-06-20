@@ -2,9 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { INPUT_LENGTH } from "@/utils";
 
-function ItemPicker({ onClose, title, inputMaxLength, includeColor = false }) {
+function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, initialName = "" }) {
   
-  const [name, setName] = useState("");
+  const [name, setName] = useState(initialName);
   const [color, setColor] = useState("#34a853");
   const inputRef = useRef(null);
 
