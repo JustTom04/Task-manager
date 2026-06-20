@@ -5,7 +5,12 @@ const prisma = require('../prismaClient');
 const getTasks = async (req, res) => {
     try {
         const tasks = await prisma.task.findMany({
-            include: { labels: true, projects: true }
+            where: {
+                project: {
+                    userId: req.userId
+                }
+            },
+            include: { labels: true, project: true }
         });
         console.log(`[GET] Fetched all tasks. Total count: ${tasks.length}`);
         res.status(200).json(tasks);

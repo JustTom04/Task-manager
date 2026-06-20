@@ -1,4 +1,4 @@
-import { INPUT_LENGTH } from "@/utils";
+import { INPUT_LENGTH, getUserId } from "@/utils";
 import { useState,  useEffect, useRef, useCallback } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/tasks` : "http://localhost:3000/api/tasks";
@@ -44,7 +44,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     // --- BACKEND MIRRORING ---
     fetch(API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-ID": getUserId()
+      },
       body: JSON.stringify(newTask),
     })
       .then(res => res.json())
@@ -71,7 +74,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       // --- BACKEND MIRRORING ---
       fetch(`${API_URL}/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-ID": getUserId()
+        },
         body: JSON.stringify({ done: !taskToToggle.done }),
       })
         .then(res => res.json())
@@ -97,7 +103,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
 
   const deleteTask = useCallback((id) => {
     // --- BACKEND MIRRORING ---
-    fetch(`${API_URL}/${id}`, { method: "DELETE" })
+    fetch(`${API_URL}/${id}`, { 
+      method: "DELETE",
+      headers: { "X-User-ID": getUserId() }
+    })
       .then(res => res.json())
       .then(data => console.log("🗑️ Task deleted on Backend:", data))
       .catch(err => console.error("❌ Backend Error:", err));
@@ -116,7 +125,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
   
   const deleteAllTasks = useCallback(() => {
     // --- BACKEND MIRRORING ---
-    fetch(`${API_URL}?projectId=${activeProjectId}`, { method: "DELETE" })
+    fetch(`${API_URL}?projectId=${activeProjectId}`, { 
+      method: "DELETE",
+      headers: { "X-User-ID": getUserId() }
+    })
       .then(res => res.json())
       .then(data => console.log("🗑️ ALL Tasks deleted on Backend for project:", data))
       .catch(err => console.error("❌ Backend Error:", err));
@@ -137,7 +149,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       // --- BACKEND MIRRORING ---
       fetch(`${API_URL}/${taskId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-ID": getUserId()
+        },
         body: JSON.stringify({ labels: newLabels }),
       })
         .then(res => res.json())
@@ -171,7 +186,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       // --- BACKEND MIRRORING ---
       fetch(`${API_URL}/${taskId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-ID": getUserId()
+        },
         body: JSON.stringify({ labels: newLabels }),
       })
         .then(res => res.json())
@@ -208,7 +226,10 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     // --- BACKEND MIRRORING ---
     fetch(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-ID": getUserId()
+      },
       body: JSON.stringify(updatedTask),
     })
       .then(res => res.json())

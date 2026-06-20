@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 
-import { INPUT_LENGTH } from "../utils.js";
+import { INPUT_LENGTH, getUserId } from "../utils.js";
 
 const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/labels` : "http://localhost:3000/api/labels";
 
@@ -19,7 +19,10 @@ export function useLabelState({ actualLabelsList, activeProjectId, setProjects }
       // --- BACKEND MIRRORING ---
       fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "X-User-ID": getUserId()
+        },
         body: JSON.stringify(newLabel),
       })
         .then(res => res.json())

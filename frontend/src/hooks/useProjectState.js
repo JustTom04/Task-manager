@@ -3,7 +3,7 @@ import { useTaskState } from "./useTaskState";
 import { useLabelState } from "./useLabelState";
 import { useTaskFilterState } from "./useTaskFilterState";
 
-import { INPUT_LENGTH } from "../utils.js";
+import { INPUT_LENGTH, getUserId } from "../utils.js";
 
 const LABELS_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/labels` : "http://localhost:3000/api/labels";
 const PROJECTS_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/projects` : "http://localhost:3000/api/projects";
@@ -38,7 +38,9 @@ export function useProjectState() {
 
   // --- BACKEND MIRRORING (GET AGGREGATED PROJECTS TREE) ---
   useEffect(() => {
-    fetch(PROJECTS_API_URL)
+    fetch(PROJECTS_API_URL, {
+      headers: { "X-User-ID": getUserId() }
+    })
       .then(res => res.json())
       .then(projectsTree => {
         console.log("📥 Full Projects Tree loaded from Backend:", projectsTree);
@@ -60,7 +62,10 @@ export function useProjectState() {
   const deleteLabel = useCallback(
     (id) => {
       // --- BACKEND MIRRORING ---
-      fetch(`${LABELS_API_URL}/${id}`, { method: "DELETE" })
+      fetch(`${LABELS_API_URL}/${id}`, { 
+        method: "DELETE",
+        headers: { "X-User-ID": getUserId() }
+      })
         .then(res => res.json())
         .then(data => console.log("🗑️ Label deleted on Backend:", data))
         .catch(err => console.error("❌ Backend Error:", err));
@@ -88,7 +93,10 @@ export function useProjectState() {
 
   const deleteAllLabels = useCallback(() => {
     // --- BACKEND MIRRORING ---
-    fetch(`${LABELS_API_URL}?projectId=${activeProjectId}`, { method: "DELETE" })
+    fetch(`${LABELS_API_URL}?projectId=${activeProjectId}`, { 
+      method: "DELETE",
+      headers: { "X-User-ID": getUserId() }
+    })
       .then(res => res.json())
       .then(data => console.log("🗑️ ALL Labels deleted on Backend for project:", data))
       .catch(err => console.error("❌ Backend Error:", err));
@@ -125,7 +133,10 @@ export function useProjectState() {
     // --- BACKEND MIRRORING ---
     fetch(PROJECTS_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "X-User-ID": getUserId()
+      },
       body: JSON.stringify(newProject),
     })
       .then(res => res.json())
@@ -140,7 +151,10 @@ export function useProjectState() {
 
   const deleteProject = useCallback((projectId) => {
     // --- BACKEND MIRRORING ---
-    fetch(`${PROJECTS_API_URL}/${projectId}`, { method: "DELETE" })
+    fetch(`${PROJECTS_API_URL}/${projectId}`, { 
+      method: "DELETE",
+      headers: { "X-User-ID": getUserId() }
+    })
       .then(res => res.json())
       .then(data => console.log("🗑️ Project deleted on Backend:", data))
       .catch(err => console.error("❌ Backend Error:", err));

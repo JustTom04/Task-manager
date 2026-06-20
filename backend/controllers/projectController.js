@@ -5,6 +5,7 @@ const prisma = require('../prismaClient');
 const getProjects = async (req, res) => {
     try {
         let projects = await prisma.project.findMany({
+            where: { userId: req.userId },
             include: {
                 tasks: {
                     include: {
@@ -14,31 +15,6 @@ const getProjects = async (req, res) => {
                 labels: true
             }
         });
-        
-        // Ha teljesen üres az adatbázis, hozzunk létre egy alapértelmezett projektet
-        if (projects.length === 0) {
-            const defaultProject = await prisma.project.create({
-                data: {
-                    name: "General",
-                    labels: {
-                        create: [
-                            { name: "Work", color: "#f28b82" },
-                            { name: "Personal", color: "#fbbc04" },
-                            { name: "Urgent", color: "#34a853" }
-                        ]
-                    }
-                },
-                include: {
-                    tasks: {
-                        include: {
-                            labels: true
-                        }
-                    },
-                    labels: true
-                }
-            });
-            projects.push(defaultProject);
-        }
         
         // React expects 'labels' inside tasks to only contain an array of IDs,
         // while the 'labels' inside projects should be full objects.
@@ -66,7 +42,7 @@ const createProject = async (req, res) => {
         
         // Fetch 'General' project to clone its labels for the new project
         const generalProject = await prisma.project.findFirst({
-            where: { name: "General" },
+            where: { name: "General", userId: req.userId },
             include: { labels: true }
         });
         
@@ -79,6 +55,7 @@ const createProject = async (req, res) => {
             data: {
                 id: id || undefined,
                 name: name,
+                userId: req.userId,
                 labels: {
                     create: cloneLabels // Create new specific labels for this project
                 }

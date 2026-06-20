@@ -8,6 +8,15 @@ export const stopAnd = (fn) => (e) => {
 };
 
 
+export function getUserId() {
+  let userId = localStorage.getItem('taskManager_userId');
+  if (!userId) {
+    userId = crypto.randomUUID();
+    localStorage.setItem('taskManager_userId', userId);
+  }
+  return userId;
+}
+
 export function secondsToReadable(seconds) {
   const units = [
     { value: 86400, unit: "d" },
