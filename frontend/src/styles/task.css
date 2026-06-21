@@ -28,6 +28,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  width: 100%;
 }
 
 .task-item {
@@ -140,24 +141,80 @@
 
 
 /* ===== Editing in task ===== */
-.edit-panel {
+
+.edit-panel-desktop {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 10px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 100%;
 }
 
-.edit-top-row,
-.edit-bottom-row {
+.desktop-left-group,
+.desktop-right-group {
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
-.edit-top-row input,
-.edit-top-row select {
+.desktop-left-group {
+  min-width: 0;
+}
+
+.desktop-right-group {
+  flex-shrink: 0;
+}
+
+.desktop-left-group input,
+.desktop-right-group select {
   border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.desktop-left-group input {
+  min-width: 170px;
+  max-width: 100%;
+  flex-shrink: 1;
+}
+
+.edit-panel-desktop .labels-button,
+.edit-panel-mobile .labels-button {
+  padding: 5px 10px;
+}
+
+.labels-button,
+.desktop-right-group select {
+  flex-shrink: 0;
+}
+
+/* Mobile Edit Layout */
+.edit-panel-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.mobile-top-row,
+.mobile-bottom-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.mobile-top-row input,
+.mobile-top-row select,
+.mobile-bottom-row select {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.mobile-top-row input {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-bottom-row button {
+  flex: 1;
 }
 
 .task-edit-buttons {

@@ -24,7 +24,7 @@
     flex: 1 1 0;
   }
 
-  .task-button.done {
+  .top-section .task-button.done {
     flex: 2 1 0;
   }
 

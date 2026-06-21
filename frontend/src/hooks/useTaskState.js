@@ -14,12 +14,15 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
   const lastTaskRef = useRef(null);
 
 
+  const [shouldScroll, setShouldScroll] = useState(false);
+
   // ===== Scroll to last task =====
   useEffect(() => {
-    if (lastTaskRef.current) {
+    if (shouldScroll && lastTaskRef.current) {
       lastTaskRef.current.scrollIntoView({ behavior: "smooth" });
+      setShouldScroll(false);
     }
-  }, [actualTasksList]);
+  }, [actualTasksList, shouldScroll]);
 
   // GET fetch eltávolítva, mert a useProjectState hozza le a teljes fát egyben!
 
@@ -64,6 +67,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     );
 
     setNewTitle("");
+    setShouldScroll(true);
     newTitleRef.current.focus();
   }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects]);
 

@@ -20,6 +20,7 @@ const Task = forwardRef(({
   const [isDeleting, setIsDeleting] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedPriority, setEditedPriority] = useState(task.priority);
+  const [isMobileEdit, setIsMobileEdit] = useState(window.innerWidth <= 450);
 
 
   // ===== Handle labels ===== 
@@ -46,7 +47,14 @@ const Task = forwardRef(({
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+
+    const handleResize = () => setIsMobileEdit(window.innerWidth <= 450);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("resize", handleResize);
+    }
   }, [isEditing, task.title, task.priority]);
 
 
@@ -105,60 +113,104 @@ const Task = forwardRef(({
       <div className="task-left-container">
         <div>
           {isEditing ? (
-            <div className="edit-panel">
-              <div className="edit-top-row">
-                <div className="labels-select">
-                  <button
-                    ref={labelButtonRef}
-                    type="button"
-                    className="labels-button"
-                    onClick={stopAnd(() => setLabelsOpen(prev => !prev)) }
-                  >
-                    Add label
-                  </button>
-
-                  {labelsOpen && (
-                    <LabelsPanel
-                      labels={allLabels}
-                      selectedIds={task.labels}
-                      onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)}
-                      position={dropdownPos}
-                      ref={labelsRef}
-                    />
-                  )}
+            isMobileEdit ? (
+              (task.title.length > Math.floor((window.innerWidth - 240) / 8)) ? (
+                /* Mobile Edit Panel - Long Name */
+                <div className="edit-panel-mobile">
+                  <div className="mobile-top-row">
+                    <div className="labels-select">
+                      <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev)) }>
+                        Add label
+                      </button>
+                      {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)} position={dropdownPos} ref={labelsRef} />}
+                    </div>
+                    <input type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+                  </div>
+                  
+                  <div className="mobile-bottom-row">
+                    <select value={editedPriority} onChange={(e) => setEditedPriority(e.target.value)}>
+                      <option value="high">High</option>
+                      <option value="mid">Mid</option>
+                      <option value="low">Low</option>
+                    </select>
+                    <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
+                    <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
+                  </div>
                 </div>
+              ) : (
+                /* Mobile Edit Panel - Short Name */
+                <div className="edit-panel-mobile">
+                  <div className="mobile-top-row">
+                    <div className="labels-select">
+                      <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev)) }>
+                        Add label
+                      </button>
+                      {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)} position={dropdownPos} ref={labelsRef} />}
+                    </div>
+                    <input type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+                    <select value={editedPriority} onChange={(e) => setEditedPriority(e.target.value)}>
+                      <option value="high">High</option>
+                      <option value="mid">Mid</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                  
+                  <div className="mobile-bottom-row">
+                    <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
+                    <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
+                  </div>
+                </div>
+              )
+            ) : (
+              /* Desktop Edit Panel */
+              <div className="edit-panel-desktop">
+                <div className="desktop-left-group">
+                  <div className="labels-select">
+                    <button
+                      ref={labelButtonRef}
+                      type="button"
+                      className="labels-button"
+                      onClick={stopAnd(() => setLabelsOpen(prev => !prev)) }
+                    >
+                      Add label
+                    </button>
+                    {labelsOpen && (
+                      <LabelsPanel
+                        labels={allLabels}
+                        selectedIds={task.labels}
+                        onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)}
+                        position={dropdownPos}
+                        ref={labelsRef}
+                      />
+                    )}
+                  </div>
 
-                <input
-                  type="text"
-                  maxLength={INPUT_LENGTH.TASK_TITLE}
-                  value={editedTitle}
-                  onChange={(e) => setEditedTitle(e.target.value)}
-                />
-                <select
-                  value={editedPriority}
-                  onChange={(e) => setEditedPriority(e.target.value)}
-                >
-                  <option value="high">High</option>
-                  <option value="mid">Mid</option>
-                  <option value="low">Low</option>
-                </select>
+                  <input
+                    type="text"
+                    maxLength={INPUT_LENGTH.TASK_TITLE}
+                    value={editedTitle}
+                    onChange={(e) => setEditedTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveEdit();
+                    }}
+                    style={{ width: `${Math.max(20, task.title.length + 2)}ch`, maxWidth: '100%' }}
+                  />
+                </div>
+                
+                <div className="desktop-right-group">
+                  <select
+                    value={editedPriority}
+                    onChange={(e) => setEditedPriority(e.target.value)}
+                  >
+                    <option value="high">High</option>
+                    <option value="mid">Mid</option>
+                    <option value="low">Low</option>
+                  </select>
+                  <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
+                  <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
+                </div>
               </div>
-              
-              <div className="edit-bottom-row">
-                <button
-                  className="task-button done"
-                  onClick={stopAnd(saveEdit)}
-                >
-                  Save
-                </button>
-                <button
-                  className="task-button undone"
-                  onClick={stopAnd(cancelEdit)}
-                >
-                  Cancel
-              </button>
-              </div>
-            </div>
+            )
           ) : (
             <>
               <button
