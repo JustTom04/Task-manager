@@ -167,23 +167,27 @@
 }
 
 .desktop-left-group input,
-.desktop-right-group select {
+.desktop-right-group select,
+.desktop-right-group .select-wrapper {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .desktop-left-group input {
-  min-width: 170px;
+  min-width: 0;
   max-width: 100%;
   flex-shrink: 1;
 }
 
 .edit-panel-desktop .labels-button,
-.edit-panel-mobile .labels-button {
+.edit-panel-mobile .labels-button,
+.edit-panel-desktop .task-button,
+.edit-panel-mobile .task-button {
   padding: 5px 10px;
 }
 
 .labels-button,
-.desktop-right-group select {
+.desktop-right-group select,
+.desktop-right-group .select-wrapper {
   flex-shrink: 0;
 }
 
@@ -204,7 +208,9 @@
 
 .mobile-top-row input,
 .mobile-top-row select,
-.mobile-bottom-row select {
+.mobile-bottom-row select,
+.mobile-top-row .select-wrapper,
+.mobile-bottom-row .select-wrapper {
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 

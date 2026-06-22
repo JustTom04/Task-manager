@@ -77,36 +77,39 @@ function TopSection({
           {/* ===== Filters ===== */}
           <div className="section">
             <CustomDropdown
-            value={null}
-            options={[]}
-            customPanel={({ close, position, ref }) => (
-              <LabelsPanel
-                labels={actualLabelsList}
-                selectedIds={labelsFilter}
-                onToggle={(id) => setLabelsFilter(prev =>
-                  prev.includes(id)
-                    ? prev.filter(l => l !== id)
-                    : [...prev, id]
-                )}
-                deleteLabel={deleteLabel}
-                position={position}
-                ref={ref}
-              />
-            )}
-            customTitle={"Select labels"}
-          />
+              icon="filter-icon"
+              value={null}
+              options={[]}
+              customPanel={({ close, position, ref }) => (
+                <LabelsPanel
+                  labels={actualLabelsList}
+                  selectedIds={labelsFilter}
+                  onToggle={(id) => setLabelsFilter(prev =>
+                    prev.includes(id)
+                      ? prev.filter(l => l !== id)
+                      : [...prev, id]
+                  )}
+                  deleteLabel={deleteLabel}
+                  position={position}
+                  ref={ref}
+                />
+              )}
+              customTitle={"Select labels"}
+            />
 
-          <CustomDropdown
-            options={options.status}
-            value={statusFilter}
-            onChange={setStatusFilter}
-          />
+            <CustomDropdown
+              icon="filter-icon"
+              options={options.status}
+              value={statusFilter}
+              onChange={setStatusFilter}
+            />
 
-          <CustomDropdown
-            options={options.priority}
-            value={priorityFilter}
-            onChange={setPriorityFilter}
-          /> 
+            <CustomDropdown
+              icon="filter-icon"
+              options={options.priority}
+              value={priorityFilter}
+              onChange={setPriorityFilter}
+            />
 
           </div>
 
@@ -205,9 +208,8 @@ function TopSection({
                         });
                         setDeleteLabelsOpen(false);
                       }}
-                      className={`button-delete ${
-                        actualLabelsList.length === 0 ? "inactive" : ""
-                      }`}
+                      className={`button-delete ${actualLabelsList.length === 0 ? "inactive" : ""
+                        }`}
                       disabled={actualLabelsList.length === 0}
                     >
                       Delete All labels
@@ -226,9 +228,8 @@ function TopSection({
                     "All tasks in this project will be permanently deleted.",
                 })
               }
-              className={`button-delete ${
-                actualTasksList.length === 0 ? "inactive" : ""
-              }`}
+              className={`button-delete ${actualTasksList.length === 0 ? "inactive" : ""
+                }`}
               disabled={actualTasksList.length === 0}
             >
               Delete all tasks
@@ -246,11 +247,11 @@ function TopSection({
   return (
     <div className="top-section">
       <div className="section-group">
-            
-            {/* ===== Filters ===== */}
+
+        {/* ===== Filters ===== */}
         <div className="section">
-          
-         <CustomDropdown
+
+          <CustomDropdown
             value={null}
             options={[]}
             customPanel={({ close, position, ref }) => (
@@ -271,16 +272,18 @@ function TopSection({
           />
 
           <CustomDropdown
+            icon="filter-icon"
             options={options.status}
             value={statusFilter}
             onChange={setStatusFilter}
           />
 
           <CustomDropdown
+            icon="filter-icon"
             options={options.priority}
             value={priorityFilter}
             onChange={setPriorityFilter}
-          /> 
+          />
         </div>
 
         <div className="section buttons">
@@ -291,60 +294,61 @@ function TopSection({
             ➕ Create label
           </button>
         </div>
-        
+
       </div>
 
       <div className="section-group">
-      {/* ===== Add new task ===== */}
+        {/* ===== Add new task ===== */}
         <form onSubmit={addTask} className="section form-container">
-            <div className="labels-select">
-              <button
-                type="button"
-                ref={labelsButtonRef}
-                className="labels-button"
-                onClick={() => setLabelsOpen((prev) => !prev)}
-              >
-                Add labels
-              </button>
-
-              {labelsOpen && (
-                  <LabelsPanel
-                    labels={actualLabelsList}
-                    selectedIds={selectedLabels}
-                    onToggle={(id) => setSelectedLabels(prev =>
-                      prev.includes(id)
-                        ? prev.filter(l => l !== id)
-                        : [...prev, id]
-                    )}
-                    showDelete={false}
-                    position={dropdownPos}
-                    ref={labelsRef}
-                  /> 
-              )}
-            </div>
-
-            <input
-              type="text"
-              maxLength={INPUT_LENGTH.TASK_TITLE}
-              placeholder="Task title"
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              ref={newTitleRef}
-            />
-
-            <select
-              value={newPriority}
-              className="add-task-selection"
-              onChange={(e) => setNewPriority(e.target.value)}
+          <div className="labels-select">
+            <button
+              type="button"
+              ref={labelsButtonRef}
+              className="labels-button"
+              onClick={() => setLabelsOpen((prev) => !prev)}
             >
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
-          
-            <button type="submit" className="task-button done">
-              Add task
+              Add labels
             </button>
+
+            {labelsOpen && (
+              <LabelsPanel
+                labels={actualLabelsList}
+                selectedIds={selectedLabels}
+                onToggle={(id) => setSelectedLabels(prev =>
+                  prev.includes(id)
+                    ? prev.filter(l => l !== id)
+                    : [...prev, id]
+                )}
+                showDelete={false}
+                position={dropdownPos}
+                ref={labelsRef}
+              />
+            )}
+          </div>
+
+          <input
+            type="text"
+            maxLength={INPUT_LENGTH.TASK_TITLE}
+            placeholder="Task title"
+            value={newTitle}
+            onChange={(e) => setNewTitle(e.target.value)}
+            ref={newTitleRef}
+          />
+
+          <CustomDropdown
+            value={newPriority}
+            wrapperClass="priority-dropdown"
+            onChange={setNewPriority}
+            options={[
+              { value: "high", label: "High" },
+              { value: "mid", label: "Mid" },
+              { value: "low", label: "Low" }
+            ]}
+          />
+
+          <button type="submit" className="task-button done">
+            Add task
+          </button>
         </form>
 
         <div className="section buttons">
@@ -380,9 +384,8 @@ function TopSection({
                       });
                       setDeleteLabelsOpen(false);
                     }}
-                    className={`button-delete ${
-                      actualLabelsList.length === 0 ? "inactive" : ""
-                    }`}
+                    className={`button-delete ${actualLabelsList.length === 0 ? "inactive" : ""
+                      }`}
                     disabled={actualLabelsList.length === 0}
                   >
                     Delete All labels
@@ -401,9 +404,8 @@ function TopSection({
                   "All tasks in this project will be permanently deleted.",
               })
             }
-            className={`button-delete ${
-              actualTasksList.length === 0 ? "inactive" : ""
-            }`}
+            className={`button-delete ${actualTasksList.length === 0 ? "inactive" : ""
+              }`}
             disabled={actualTasksList.length === 0}
           >
             Delete all tasks

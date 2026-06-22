@@ -139,7 +139,7 @@ select {
 
 
 
-select, input, button {
+select, input, button, .select-wrapper {
   padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
   font-size: 0.9rem;
 }

@@ -3,6 +3,7 @@ import { useState, useEffect, forwardRef, useRef } from "react";
 import { secondsToReadable, useClickOutside, useDropdownPosition, stopAnd, INPUT_LENGTH } from "@/utils.js"
 import Label from "./Label.jsx";
 import LabelsPanel from "./LabelsPanel.jsx";
+import CustomDropdown from "./CustomDropdown.jsx";
 
 const Task = forwardRef(({ 
   task,
@@ -128,11 +129,16 @@ const Task = forwardRef(({
                   </div>
                   
                   <div className="mobile-bottom-row">
-                    <select value={editedPriority} onChange={(e) => setEditedPriority(e.target.value)}>
-                      <option value="high">High</option>
-                      <option value="mid">Mid</option>
-                      <option value="low">Low</option>
-                    </select>
+                    <CustomDropdown
+                      value={editedPriority}
+                      wrapperClass="priority-dropdown"
+                      onChange={setEditedPriority}
+                      options={[
+                        { value: "high", label: "High" },
+                        { value: "mid", label: "Mid" },
+                        { value: "low", label: "Low" }
+                      ]}
+                    />
                     <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
                     <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
                   </div>
@@ -148,11 +154,16 @@ const Task = forwardRef(({
                       {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={(labelId) => toggleLabelOnTask(task.id, labelId)} position={dropdownPos} ref={labelsRef} />}
                     </div>
                     <input type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
-                    <select value={editedPriority} onChange={(e) => setEditedPriority(e.target.value)}>
-                      <option value="high">High</option>
-                      <option value="mid">Mid</option>
-                      <option value="low">Low</option>
-                    </select>
+                    <CustomDropdown
+                      value={editedPriority}
+                      wrapperClass="priority-dropdown"
+                      onChange={setEditedPriority}
+                      options={[
+                        { value: "high", label: "High" },
+                        { value: "mid", label: "Mid" },
+                        { value: "low", label: "Low" }
+                      ]}
+                    />
                   </div>
                   
                   <div className="mobile-bottom-row">
@@ -198,14 +209,16 @@ const Task = forwardRef(({
                 </div>
                 
                 <div className="desktop-right-group">
-                  <select
+                  <CustomDropdown
                     value={editedPriority}
-                    onChange={(e) => setEditedPriority(e.target.value)}
-                  >
-                    <option value="high">High</option>
-                    <option value="mid">Mid</option>
-                    <option value="low">Low</option>
-                  </select>
+                    wrapperClass="priority-dropdown"
+                    onChange={setEditedPriority}
+                    options={[
+                      { value: "high", label: "High" },
+                      { value: "mid", label: "Mid" },
+                      { value: "low", label: "Low" }
+                    ]}
+                  />
                   <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
                   <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
                 </div>

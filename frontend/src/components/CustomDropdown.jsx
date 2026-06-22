@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
 import { useClickOutside, useDropdownPosition, stopAnd } from "@/utils";
+import "../styles/customDropdown.css";
 
-function CustomDropdown({ options, value, onChange, customPanel, customTitle }) {
+function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass }) {
   
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -17,12 +18,12 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle }) 
 
   return (
     <div
-      className={`select-wrapper ${open ? "open" : ""}`}
+      className={`select-wrapper ${open ? "open" : ""} ${icon ? "has-icon" : ""} ${wrapperClass || ""}`}
       ref={wrapperRef}
       onClick={(e) =>  setOpen(prev => !prev)}
     >
       <div className="filter-select">
-        <span className="filter-icon"></span>
+        {icon && <span className={icon}></span>}
 
         <span className="selected-text">
           {displayTitle}
