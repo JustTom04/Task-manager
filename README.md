@@ -1,28 +1,42 @@
-# Task Manager React Application
+# Full-Stack Task Manager (Next.js 16 Architecture)
 
-This project is a full-stack **Task Manager** application built using **React** on the frontend, and **Node.js, Express, Prisma, and PostgreSQL** on the backend.
+This project is a modern full-stack **Task Manager** application built with a monolithic **Next.js 16 (App Router)** architecture, leveraging **React 19**, **Server Actions**, **Prisma ORM**, and a **PostgreSQL** database.
 
 ![alt text](assets/screenshot.png)
 
+## Architecture & Tech Stack
+
+This repository demonstrates a unified monolithic structure where front-end UI and backend database interactions reside within a single codebase, eliminating traditional REST API overhead and multi-port CORS barriers.
+
+### Tech Stack
+* **Core Framework:** Next.js 16 (App Router & Turbopack)
+* **UI & Client Components:** React 19 with optimistic state management
+* **Styling:** Custom Vanilla CSS with highly responsive layouts
+* **Database:** PostgreSQL
+* **ORM & Data Queries:** Prisma ORM integrated via Next.js Server Actions (`"use server";`)
+
+---
+
 ## Folder Structure
 
-The project is divided into two main parts: the `frontend` (React client) and the `backend` (Node.js API).
+The project incorporates a clean separation of presentation, state management, and direct backend actions:
 
-### Frontend (Client-side)
-*Structure of the `src` directory:*
-- **`assets/`** → Static files such as images, icons, SVGs
-- **`components/`** → Reusable React components
-- **`hooks/`** → Custom React hooks for state management and logic
-- **`modals/`** → Popup windows and modal elements
-- **`styles/`** → Global and component-specific styles
+### Frontend (Client Components & State)
+- **`app/`** → Next.js App Router root layout (`layout.js`) and main application dashboard (`page.js`)
+- **`frontend/components/`** → Reusable interactive React components
+- **`frontend/hooks/`** → Modular custom React hooks (`useProjectState`, `useTaskState`, `useLabelState`) with optimistic UI updating
+- **`frontend/modals/`** → Popup dialogues and interactive item pickers
+- **`frontend/styles/`** → Modular custom CSS stylesheets
+- **`frontend/utils.js`** → UI event propagation helpers, timestamp conversion, and user UUID management
+- **`public/assets/`** → Static media, icons, and interface SVGs
 
-### Backend (Server-side)
-*Core logic and configurations:*
-- **`controllers/`** → Business logic and request handling
-- **`routes/`** → API endpoint definitions
-- **`prisma/`** → Database schema (`schema.prisma`)
-- **`prismaClient.js`** → Prisma ORM database connection initialization
-- **`server.js`** → Server entry point and Express setup
+### Backend (Server Actions & ORM)
+- **`backend/actions/`** → Next.js Server Actions (`projectActions.js`, `taskActions.js`, `labelActions.js`) for direct database mutations
+- **`backend/lib/prisma.js`** → Cached global Prisma Client portal designed for efficient connection pooling during development
+- **`backend/utils/`** → Seeding structures and initial defaults for brand-new users (`defaultData.js`)
+- **`prisma/`** → Database architecture definitions (`schema.prisma`)
+
+---
 
 ## Main Features
 
@@ -70,69 +84,55 @@ The project is divided into two main parts: the `frontend` (React client) and th
 * You can delete a task using the **"x"** button on the right side of the task. You can also mark it as complete using the **"Mark complete"** checkbox on the left side, but the task will still remain in the list.
 * Click on an existing task to edit its title, priority, or labels.
 
+---
+
 ## Data Storage & API
 
 * All projects, tasks, and labels are securely stored in a **PostgreSQL database**.
-* The frontend communicates with a **Node.js/Express** backend via REST API.
+* The frontend communicates directly with the database using **Next.js Server Actions** and **Prisma ORM**, eliminating the need for external REST API endpoints.
 * The active project state remains saved even after refreshing the page.
 
-## Styling
+---
 
-* The CSS files include responsive layouts and custom styles for tasks, labels, modals, and buttons.
-* The user experience is handled separately for mobile and desktop views.
+## Run the Project Locally
 
-## Tech Stack
+Because the front-end UI and back-end database queries are compiled into a unified Next.js application, running the complete development suite requires just **a single terminal window**:
 
-**Frontend:**
-* React (with Vite)
-* Custom CSS
-
-**Backend & Database:**
-* Node.js & Express.js
-* PostgreSQL
-* Prisma ORM
-
-## Run the project
-
-### 1. Backend Setup
-1. Navigate to the backend directory:
+### 1. Installation & Environment
+1. Clone the repository and navigate into the project directory:
    ```bash
-   cd backend
+   git clone https://github.com/JustTom04/Task-manager.git
+   cd Task-manager
    ```
-2. Install dependencies:
+2. Install project dependencies:
    ```bash
    npm install
    ```
-3. Create a `.env` file and set your PostgreSQL connection string:
+3. Create a `.env` file in the root directory and input your PostgreSQL connection string:
    ```env
-   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE"
+   DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
    ```
-4. Push the schema to the database:
+
+### 2. Database Compilation & Launch
+1. Generate the type-safe Prisma JavaScript client:
+   ```bash
+   npx prisma generate
+   ```
+2. Synchronize your tables with the database schema:
    ```bash
    npx prisma db push
    ```
-5. Start the backend server:
+3. Boot up the local Next.js full-stack development server:
    ```bash
    npm run dev
    ```
+4. Open your web browser and navigate to **`http://localhost:4000`** to interact with the application live!
 
-### 2. Frontend Setup
-1. Open a new terminal and navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
+---
 
 ## Database Schema (ERD)
 
-The application uses a relational database design with the following entity relationships:
+The application utilizes a robust relational architecture mapped directly via Prisma:
 
 ```mermaid
 classDiagram
