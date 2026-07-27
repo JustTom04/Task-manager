@@ -3,6 +3,14 @@
 Notes/
 Js_Notes/
 cheatsheets/
+New_notes/
+New_React_notes/
+prep_for_interview/
+
+# Next.js & Environment
+.env
+.next/
+.next
 
 # Logs
 logs
