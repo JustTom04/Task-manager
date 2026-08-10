@@ -9,6 +9,10 @@ export const stopAnd = (fn) => (e) => {
 
 
 export function getUserId() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  
   let userId = localStorage.getItem('taskManager_userId');
   if (!userId) {
     userId = crypto.randomUUID();

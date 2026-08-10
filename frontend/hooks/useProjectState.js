@@ -15,7 +15,7 @@ export function useProjectState() {
   const [projects, setProjects] = useState([]);
   
   // We keep activeProjectId in LocalStorage purely for UI/UX memory
-  const savedProjectId = localStorage.getItem("activeProjectId");
+  const savedProjectId = typeof window !== 'undefined' ? localStorage.getItem("activeProjectId") : null;
   const [activeProjectId, setActiveProjectId] = useState(savedProjectId || null);
 
   /* ===== Actual items ===== */

@@ -1,4 +1,4 @@
-# Full-Stack Task Manager (Next.js 16 Architecture)
+# Task Manager 
 
 This project is a modern full-stack **Task Manager** application built with a monolithic **Next.js 16 (App Router)** architecture, leveraging **React 19**, **Server Actions**, **Prisma ORM**, and a **PostgreSQL** database.
 
