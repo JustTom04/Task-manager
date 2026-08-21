@@ -7,6 +7,8 @@ import ConfirmModal from "../modals/ConfirmModal.jsx";
 
 
 
+import AuthHeader from "./AuthHeader.jsx";
+
 function SettingsPanel({
   projects,
   activeProjectId,
@@ -51,6 +53,7 @@ function SettingsPanel({
 
   return (
     <div className={`settings-panel ${isOpen ? "open" : ""}`} ref={settingsRef} >
+      <AuthHeader />
       <h2 className="settings-title">Projects</h2>
       <div className="projects-list">
         <button

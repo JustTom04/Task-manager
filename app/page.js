@@ -11,13 +11,13 @@ import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import SettingsPanel from "@/frontend/components/SettingsPanel";
 import TopSection from "@/frontend/components/TopSection";
 
-import "@/frontend/styles/topSection.css";
-import "@/frontend/styles/general.css";
-import "@/frontend/styles/responsive.css";
-import "@/frontend/styles/modal.css";
-import "@/frontend/styles/label.css";
-import "@/frontend/styles/settingsPanel.css";
-import "@/frontend/styles/task.css";
+import "@/frontend/styles/components/topSection.css";
+import "@/frontend/styles/base/general.css";
+import "@/frontend/styles/base/responsive.css";
+import "@/frontend/styles/modals/modal.css";
+import "@/frontend/styles/modals/label.css";
+import "@/frontend/styles/components/settingsPanel.css";
+import "@/frontend/styles/components/task.css";
 
 export default function Home() {
   // ===== Mobile breakpoint =====

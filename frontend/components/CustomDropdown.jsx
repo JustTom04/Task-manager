@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useClickOutside, useDropdownPosition, stopAnd } from "@/frontend/utils";
-import "../styles/customDropdown.css";
+import "../styles/components/customDropdown.css";
 
 function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass }) {
   
