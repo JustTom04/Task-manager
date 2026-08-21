@@ -66,4 +66,20 @@ function getDefaultProjectsData() {
     };
 }
 
-module.exports = { getDefaultProjectsData };
+function getEmptyGeneralProjectData() {
+    return {
+        create: [
+            {
+                name: 'General',
+                labels: {
+                    create: []
+                },
+                tasks: {
+                    create: [] // Completely empty tasks!
+                }
+            }
+        ]
+    };
+}
+
+module.exports = { getDefaultProjectsData, getEmptyGeneralProjectData };

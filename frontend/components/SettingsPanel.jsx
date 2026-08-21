@@ -7,7 +7,7 @@ import ConfirmModal from "../modals/ConfirmModal.jsx";
 
 
 
-import AuthHeader from "./AuthHeader.jsx";
+import AuthHeader from "./authentication/AuthHeader.jsx";
 
 function SettingsPanel({
   projects,
@@ -122,24 +122,26 @@ function SettingsPanel({
                   {editingProjectId === p.id ? "💾" : "✏️"}
                 </button>
               )}
-              <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
-                onMouseDown={(e) => {
-                  e.stopPropagation();
-                  e.preventDefault();
-                  if (editingProjectId === p.id) {
-                    setEditingProjectId(null);
-                  } else {
-                    setConfirmConfig({
-                      title: "Delete project?",
-                      message: `Project "${p.name}" will be permanently deleted.`,
-                      action: () => deleteProject(p.id),
-                    });
-                  }
-                }}
-                title={editingProjectId === p.id ? "Cancel" : "Delete"}
-              >
-                {editingProjectId === p.id ? "✖️" : "❌"}
-              </button>
+              {p.name !== "General" && (
+                <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (editingProjectId === p.id) {
+                      setEditingProjectId(null);
+                    } else {
+                      setConfirmConfig({
+                        title: "Delete project?",
+                        message: `Project "${p.name}" will be permanently deleted.`,
+                        action: () => deleteProject(p.id),
+                      });
+                    }
+                  }}
+                  title={editingProjectId === p.id ? "Cancel" : "Delete"}
+                >
+                  {editingProjectId === p.id ? "✖️" : "❌"}
+                </button>
+              )}
             </div>
           </div>
         ))}
@@ -165,7 +167,10 @@ function SettingsPanel({
         <ConfirmModal
           title={confirmConfig.title}
           message={confirmConfig.message}
-          onConfirm={confirmConfig.action}
+          onConfirm={() => {
+            confirmConfig.action();
+            setConfirmConfig(null);
+          }}
           onCancel={() => setConfirmConfig(null)}
         />
       )}

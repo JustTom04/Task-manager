@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { useTaskState } from "./useTaskState";
 import { useLabelState } from "./useLabelState";
 import { useTaskFilterState } from "./useTaskFilterState";
@@ -10,6 +11,8 @@ import { getProjects, createProject, deleteProject as deleteProjectAction, updat
 import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAction } from "@/backend/actions/labelActions";
 
 export function useProjectState() {
+  const { data: session, status } = useSession();
+
   // ===== Initial Projects =====
   // Projects are fully loaded directly from PostgreSQL via Next.js Server Actions!
   const [projects, setProjects] = useState([]);
@@ -37,7 +40,9 @@ export function useProjectState() {
 
   // --- SERVER ACTION MIRRORING (GET AGGREGATED PROJECTS TREE) ---
   useEffect(() => {
-    const userId = getUserId();
+    if (status === "loading") return;
+
+    const userId = session?.user?.id || getUserId();
     if (!userId) return;
 
     getProjects(userId)
@@ -54,7 +59,8 @@ export function useProjectState() {
         }
       })
       .catch(err => console.error("❌ Server Action Error (getProjects):", err));
-  }, []); // Run only once on component mount
+  }, [session, status]); // Run when session changes
+
   // --------------------------------------
 
   // ===== Delete label functions =====
@@ -120,15 +126,17 @@ export function useProjectState() {
       labels: generalLabels.map((l) => ({ ...l, id: crypto.randomUUID() })),
     };
 
+    const activeUserId = session?.user?.id || getUserId();
+
     // --- SERVER ACTION MIRRORING ---
-    createProject({ ...newProject, userId: getUserId() })
+    createProject({ ...newProject, userId: activeUserId })
       .then(data => console.log("✅ Project created via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
 
     setProjects((prev) => [...prev, newProject]);
     setActiveProjectId(newProject.id);
-  }, [projects]);
+  }, [projects, session]);
 
   const deleteProject = useCallback((projectId) => {
     // --- SERVER ACTION MIRRORING ---

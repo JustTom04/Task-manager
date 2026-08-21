@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/backend/lib/prisma";
-import { getDefaultProjectsData } from "@/backend/utils/defaultData";
+import { getDefaultProjectsData, getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
 
 /**
  * Get all projects with their nested tasks and labels for a specific user.
@@ -23,7 +23,7 @@ export async function getProjects(userId) {
       console.log(`[AUTH] Created new anonymous user: ${userId} with default data.`);
     }
 
-    const projects = await prisma.project.findMany({
+    let projects = await prisma.project.findMany({
       where: { userId },
       include: {
         tasks: {
@@ -32,6 +32,28 @@ export async function getProjects(userId) {
         labels: true,
       },
     });
+
+    // Failsafe: If the user exists but has absolutely 0 projects, seed default projects
+    if (projects.length === 0) {
+      console.log(`[AUTH] Seeding default projects for existing user with 0 projects: ${userId}`);
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          projects: getEmptyGeneralProjectData(),
+        },
+      });
+
+      // Fetch again after seeding
+      projects = await prisma.project.findMany({
+        where: { userId },
+        include: {
+          tasks: {
+            include: { labels: true },
+          },
+          labels: true,
+        },
+      });
+    }
 
     // Format tasks so their 'labels' property is just an array of IDs, exactly as React expects
     const formattedProjects = projects.map((p) => ({

@@ -1,29 +1,36 @@
 "use client";
 
-import React from "react";
-import { useSession } from "next-auth/react";
+import React, { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import "@/frontend/styles/components/authentication.css";
+import AuthModal from "./AuthModal";
 
 export default function AuthHeader() {
   const { data: session } = useSession();
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div className="auth-header-container">
       {session ? (
         <button
           className="auth-button logout"
-          onClick={() => alert("Logout will be implemented in Phase 2")}
+          onClick={async () => {
+            await signOut({ redirect: false });
+            window.location.reload();
+          }}
         >
           Log Out
         </button>
       ) : (
         <button
           className="auth-button"
-          onClick={() => alert("Login Modal will be implemented in Phase 2")}
+          onClick={() => setShowModal(true)}
         >
           Log In
         </button>
       )}
+      
+      {showModal && <AuthModal onClose={() => setShowModal(false)} />}
     </div>
   );
 }
