@@ -1,15 +1,18 @@
 "use server";
 
 import prisma from "@/backend/lib/prisma";
+import { verifyUserAccess } from "@/backend/lib/authHelper";
 
 /**
  * Get all tasks for a given user
  */
 export async function getTasks(userId) {
   try {
+    const actorId = await verifyUserAccess(userId);
+
     const tasks = await prisma.task.findMany({
       where: {
-        project: { userId },
+        project: { userId: actorId },
       },
       include: { labels: true, project: true },
     });
@@ -24,11 +27,19 @@ export async function getTasks(userId) {
 /**
  * Create a new task and link any attached labels
  */
-export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }) {
+export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }, userId) {
   try {
+    const actorId = await verifyUserAccess(userId);
+
     const activeProjectId = projectId || (projectIds && projectIds.length > 0 ? projectIds[0] : null);
     if (!activeProjectId) {
       throw new Error("Task must belong to a project");
+    }
+
+    // Verify project ownership
+    const project = await prisma.project.findUnique({ where: { id: activeProjectId } });
+    if (!project || project.userId !== actorId) {
+      throw new Error("Unauthorized to add tasks to this project");
     }
 
     const connectLabels = Array.isArray(labels)
@@ -61,8 +72,19 @@ export async function createTask({ id, title, done = false, priority, labels = [
 /**
  * Update an existing task (title, done status, priority, or attached labels)
  */
-export async function updateTask(taskId, updatedData) {
+export async function updateTask(taskId, updatedData, userId) {
   try {
+    const actorId = await verifyUserAccess(userId);
+
+    // Verify task ownership via project
+    const task = await prisma.task.findUnique({ 
+      where: { id: taskId }, 
+      include: { project: true } 
+    });
+    if (!task || task.project.userId !== actorId) {
+      throw new Error("Unauthorized to update this task");
+    }
+
     const prismaUpdateData = { ...updatedData };
 
     // Delete projectIds if present so Prisma does not complain
@@ -97,8 +119,19 @@ export async function updateTask(taskId, updatedData) {
 /**
  * Delete a specific task by ID
  */
-export async function deleteTask(taskId) {
+export async function deleteTask(taskId, userId) {
   try {
+    const actorId = await verifyUserAccess(userId);
+
+    // Verify task ownership via project
+    const task = await prisma.task.findUnique({ 
+      where: { id: taskId }, 
+      include: { project: true } 
+    });
+    if (!task || task.project.userId !== actorId) {
+      throw new Error("Unauthorized to delete this task");
+    }
+
     await prisma.task.delete({ where: { id: taskId } });
     console.log(`[SERVER ACTION] Removed task ID: ${taskId}`);
     return { success: true, id: taskId };
@@ -111,10 +144,18 @@ export async function deleteTask(taskId) {
 /**
  * Delete all tasks inside a project
  */
-export async function deleteAllTasks(projectId) {
+export async function deleteAllTasks(projectId, userId) {
   if (!projectId) throw new Error("projectId is required to delete all tasks");
 
   try {
+    const actorId = await verifyUserAccess(userId);
+
+    // Verify project ownership
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project || project.userId !== actorId) {
+      throw new Error("Unauthorized to delete tasks in this project");
+    }
+
     await prisma.task.deleteMany({ where: { projectId } });
     console.log(`[SERVER ACTION] Removed ALL tasks for project: ${projectId}`);
     return { success: true };

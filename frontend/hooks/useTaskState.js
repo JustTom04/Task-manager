@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 // --- NEXT.JS SERVER ACTIONS IMPORT ---
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
-export function useTaskState({ actualTasksList, activeProjectId, setProjects }) {
+export function useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId }) {
   // ===== States =====
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("mid");
@@ -42,7 +42,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     };
 
     // --- SERVER ACTION MIRRORING ---
-    createTask(newTask)
+    createTask(newTask, activeUserId)
       .then(data => console.log("✅ Task created via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -60,13 +60,13 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
     if (newTitleRef.current) {
       newTitleRef.current.focus();
     }
-  }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects]);
+  }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects, activeUserId]);
 
   const toggleTask = useCallback((id) => {
     const taskToToggle = actualTasksList.find(t => t.id === id);
     if (taskToToggle) {
       // --- SERVER ACTION MIRRORING ---
-      updateTaskAction(id, { done: !taskToToggle.done })
+      updateTaskAction(id, { done: !taskToToggle.done }, activeUserId)
         .then(data => console.log("🔄 Task toggled via Server Action:", data))
         .catch(err => console.error("❌ Server Action Error:", err));
       // -------------------------
@@ -84,11 +84,11 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [actualTasksList, activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects, activeUserId]);
 
   const deleteTask = useCallback((id) => {
     // --- SERVER ACTION MIRRORING ---
-    deleteTaskAction(id)
+    deleteTaskAction(id, activeUserId)
       .then(data => console.log("🗑️ Task deleted via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -101,11 +101,11 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       )
     );
     localStorage.removeItem(`task-${id}-seconds`);
-  }, [activeProjectId, setProjects]);
+  }, [activeProjectId, setProjects, activeUserId]);
 
   const deleteAllTasks = useCallback(() => {
     // --- SERVER ACTION MIRRORING ---
-    deleteAllTasksAction(activeProjectId)
+    deleteAllTasksAction(activeProjectId, activeUserId)
       .then(data => console.log("🗑️ ALL Tasks deleted via Server Action for project:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -115,14 +115,14 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
         p.id === activeProjectId ? { ...p, tasks: [] } : p
       )
     );
-  }, [activeProjectId, setProjects]);
+  }, [activeProjectId, setProjects, activeUserId]);
 
   const deleteTaskLabel = useCallback((taskId, labelId) => {
     const taskToUpdate = actualTasksList.find(t => t.id === taskId);
     if (taskToUpdate) {
       const newLabels = taskToUpdate.labels.filter(id => id !== labelId);
       // --- SERVER ACTION MIRRORING ---
-      updateTaskAction(taskId, { labels: newLabels })
+      updateTaskAction(taskId, { labels: newLabels }, activeUserId)
         .then(data => console.log("🏷️ Label removed from task via Server Action:", data))
         .catch(err => console.error("❌ Server Action Error:", err));
       // -------------------------
@@ -142,7 +142,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [actualTasksList, activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects, activeUserId]);
 
   const toggleLabelOnTask = useCallback((taskId, labelId) => {
     const taskToUpdate = actualTasksList.find(t => t.id === taskId);
@@ -150,7 +150,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
       const hasLabel = taskToUpdate.labels.includes(labelId);
       const newLabels = hasLabel ? taskToUpdate.labels.filter(id => id !== labelId) : [...taskToUpdate.labels, labelId];
       // --- SERVER ACTION MIRRORING ---
-      updateTaskAction(taskId, { labels: newLabels })
+      updateTaskAction(taskId, { labels: newLabels }, activeUserId)
         .then(data => console.log("🏷️ Label toggled on task via Server Action:", data))
         .catch(err => console.error("❌ Server Action Error:", err));
       // -------------------------
@@ -177,11 +177,11 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [actualTasksList, activeProjectId, setProjects]);
+  }, [actualTasksList, activeProjectId, setProjects, activeUserId]);
 
   const updateTask = useCallback((id, updatedTask) => {
     // --- SERVER ACTION MIRRORING ---
-    updateTaskAction(id, updatedTask)
+    updateTaskAction(id, updatedTask, activeUserId)
       .then(data => console.log("✏️ Task updated via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -198,7 +198,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects }) 
           : p
       )
     );
-  }, [activeProjectId, setProjects]);
+  }, [activeProjectId, setProjects, activeUserId]);
 
   return {
     newTitle, setNewTitle,

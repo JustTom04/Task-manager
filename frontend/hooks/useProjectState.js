@@ -12,6 +12,7 @@ import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAct
 
 export function useProjectState() {
   const { data: session, status } = useSession();
+  const activeUserId = session?.user?.id || getUserId();
 
   // ===== Initial Projects =====
   // Projects are fully loaded directly from PostgreSQL via Next.js Server Actions!
@@ -38,14 +39,17 @@ export function useProjectState() {
   const taskFilterState = useTaskFilterState({ actualTasksList });
   const { labelsFilter, setLabelsFilter } = taskFilterState;
 
+  // ===== Hook initializations =====
+  const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId });
+  const labelState = useLabelState({ actualLabelsList, activeProjectId, setProjects, activeUserId });
+
   // --- SERVER ACTION MIRRORING (GET AGGREGATED PROJECTS TREE) ---
   useEffect(() => {
     if (status === "loading") return;
 
-    const userId = session?.user?.id || getUserId();
-    if (!userId) return;
+    if (!activeUserId) return;
 
-    getProjects(userId)
+    getProjects(activeUserId)
       .then(projectsTree => {
         console.log("📥 Full Projects Tree loaded from Server Action:", projectsTree);
         if (projectsTree && projectsTree.length > 0) {
@@ -59,7 +63,7 @@ export function useProjectState() {
         }
       })
       .catch(err => console.error("❌ Server Action Error (getProjects):", err));
-  }, [session, status]); // Run when session changes
+  }, [session, status, activeUserId]); // Run when session changes
 
   // --------------------------------------
 
@@ -67,7 +71,7 @@ export function useProjectState() {
   const deleteLabel = useCallback(
     (id) => {
       // --- SERVER ACTION MIRRORING ---
-      deleteLabelAction(id)
+      deleteLabelAction(id, activeUserId)
         .then(data => console.log("🗑️ Label deleted via Server Action:", data))
         .catch(err => console.error("❌ Server Action Error:", err));
       // -------------------------
@@ -89,12 +93,12 @@ export function useProjectState() {
 
       setLabelsFilter((prev) => prev.filter((lid) => lid !== id));
     },
-    [activeProjectId, setLabelsFilter]
+    [activeProjectId, setLabelsFilter, activeUserId]
   );
 
   const deleteAllLabels = useCallback(() => {
     // --- SERVER ACTION MIRRORING ---
-    deleteAllLabelsAction(activeProjectId)
+    deleteAllLabelsAction(activeProjectId, activeUserId)
       .then(data => console.log("🗑️ ALL Labels deleted via Server Action for project:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -108,7 +112,7 @@ export function useProjectState() {
     );
 
     setLabelsFilter([]);
-  }, [activeProjectId, setLabelsFilter]);
+  }, [activeProjectId, setLabelsFilter, activeUserId]);
 
   // ===== Project functions =====
   const addProject = useCallback((name) => {
@@ -126,8 +130,6 @@ export function useProjectState() {
       labels: generalLabels.map((l) => ({ ...l, id: crypto.randomUUID() })),
     };
 
-    const activeUserId = session?.user?.id || getUserId();
-
     // --- SERVER ACTION MIRRORING ---
     createProject({ ...newProject, userId: activeUserId })
       .then(data => console.log("✅ Project created via Server Action:", data))
@@ -136,11 +138,11 @@ export function useProjectState() {
 
     setProjects((prev) => [...prev, newProject]);
     setActiveProjectId(newProject.id);
-  }, [projects, session]);
+  }, [projects, activeUserId]);
 
   const deleteProject = useCallback((projectId) => {
     // --- SERVER ACTION MIRRORING ---
-    deleteProjectAction(projectId)
+    deleteProjectAction(projectId, activeUserId)
       .then(data => console.log("🗑️ Project deleted via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
@@ -160,7 +162,7 @@ export function useProjectState() {
 
       return newProjects;
     });
-  }, [setProjects, setActiveProjectId]);
+  }, [activeUserId]);
 
   const renameProject = useCallback((projectId, newName) => {
     const trimmedName = newName?.trim();
@@ -172,10 +174,10 @@ export function useProjectState() {
     ));
 
     // Server Action update
-    updateProjectAction({ id: projectId, name: trimmedName })
+    updateProjectAction({ id: projectId, name: trimmedName, userId: activeUserId })
       .then(data => console.log("✅ Project renamed via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
-  }, [setProjects]);
+  }, [setProjects, activeUserId]);
 
   // ===== UI State Sync =====
   useEffect(() => {
@@ -184,11 +186,6 @@ export function useProjectState() {
     }
   }, [activeProjectId]);
 
-  // ===== Task State Hook =====
-  const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects });
-
-  // ===== Label State Hook =====
-  const labelState = useLabelState({ actualLabelsList, activeProjectId, setProjects });
 
   return {
     projects, setProjects,

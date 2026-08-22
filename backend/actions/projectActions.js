@@ -2,29 +2,30 @@
 
 import prisma from "@/backend/lib/prisma";
 import { getDefaultProjectsData, getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
+import { verifyUserAccess } from "@/backend/lib/authHelper";
 
 /**
  * Get all projects with their nested tasks and labels for a specific user.
  * Automatically seeds default data if the user is new!
  */
 export async function getProjects(userId) {
-  if (!userId) throw new Error("userId is required");
-
   try {
+    const actorId = await verifyUserAccess(userId);
+
     // Check if user exists; if not, seed default projects!
-    let user = await prisma.user.findUnique({ where: { id: userId } });
+    let user = await prisma.user.findUnique({ where: { id: actorId } });
     if (!user) {
       user = await prisma.user.create({
         data: {
-          id: userId,
+          id: actorId,
           projects: getDefaultProjectsData(),
         },
       });
-      console.log(`[AUTH] Created new anonymous user: ${userId} with default data.`);
+      console.log(`[AUTH] Created new anonymous user: ${actorId} with default data.`);
     }
 
     let projects = await prisma.project.findMany({
-      where: { userId },
+      where: { userId: actorId },
       include: {
         tasks: {
           include: { labels: true },
@@ -35,9 +36,9 @@ export async function getProjects(userId) {
 
     // Failsafe: If the user exists but has absolutely 0 projects, seed default projects
     if (projects.length === 0) {
-      console.log(`[AUTH] Seeding default projects for existing user with 0 projects: ${userId}`);
+      console.log(`[AUTH] Seeding default projects for existing user with 0 projects: ${actorId}`);
       await prisma.user.update({
-        where: { id: userId },
+        where: { id: actorId },
         data: {
           projects: getEmptyGeneralProjectData(),
         },
@@ -45,7 +46,7 @@ export async function getProjects(userId) {
 
       // Fetch again after seeding
       projects = await prisma.project.findMany({
-        where: { userId },
+        where: { userId: actorId },
         include: {
           tasks: {
             include: { labels: true },
@@ -76,10 +77,10 @@ export async function getProjects(userId) {
  * Create a new project, cloning default labels from General project if none provided
  */
 export async function createProject({ id, name, labels, userId }) {
-  if (!userId) throw new Error("userId is required");
   if (!name || !name.trim()) throw new Error("Project name is required");
 
   try {
+    const actorId = await verifyUserAccess(userId);
     let labelsToCreate = labels
       ? labels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
       : [];
@@ -87,7 +88,7 @@ export async function createProject({ id, name, labels, userId }) {
     // Fallback: If no labels provided, clone from General project
     if (labelsToCreate.length === 0) {
       const generalProject = await prisma.project.findFirst({
-        where: { name: "General", userId },
+        where: { name: "General", userId: actorId },
         include: { labels: true },
       });
 
@@ -99,7 +100,7 @@ export async function createProject({ id, name, labels, userId }) {
       data: {
         id: id || undefined,
         name: name.trim(),
-        userId,
+        userId: actorId,
         labels: { create: labelsToCreate },
       },
       include: {
@@ -119,10 +120,21 @@ export async function createProject({ id, name, labels, userId }) {
 /**
  * Delete a project (protecting General from deletion)
  */
-export async function deleteProject(projectId) {
+export async function deleteProject(projectId, userId) {
   try {
+    const actorId = await verifyUserAccess(userId);
+
     const projectToDelete = await prisma.project.findUnique({ where: { id: projectId } });
-    if (projectToDelete && projectToDelete.name === "General") {
+    
+    if (!projectToDelete) {
+      throw new Error("Project not found");
+    }
+
+    if (projectToDelete.userId !== actorId) {
+      throw new Error("Unauthorized to delete this project");
+    }
+
+    if (projectToDelete.name === "General") {
       throw new Error("The General project cannot be deleted.");
     }
 
@@ -138,14 +150,25 @@ export async function deleteProject(projectId) {
 /**
  * Update a project (e.g., renaming)
  */
-export async function updateProject({ id, name }) {
+export async function updateProject({ id, name, userId }) {
   if (!name || typeof name !== "string" || !name.trim()) {
     throw new Error("Project name is required and cannot be empty.");
   }
 
   try {
+    const actorId = await verifyUserAccess(userId);
+
     const projectToUpdate = await prisma.project.findUnique({ where: { id } });
-    if (projectToUpdate && projectToUpdate.name === "General") {
+    
+    if (!projectToUpdate) {
+      throw new Error("Project not found");
+    }
+
+    if (projectToUpdate.userId !== actorId) {
+      throw new Error("Unauthorized to modify this project");
+    }
+
+    if (projectToUpdate.name === "General") {
       throw new Error("The General project cannot be modified.");
     }
 
