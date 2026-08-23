@@ -1,4 +1,8 @@
 /* ===== Settings panel ===== */
+:root {
+  --settings-toggle-size: clamp(32px, 6dvw, 40px);
+}
+
 .settings-panel {
   position: fixed;
   top: 0;
@@ -73,8 +77,8 @@
   user-select: none;
   display: none;
 
-  width: clamp(32px, 6dvw, 40px);
-  height: clamp(32px, 6dvw, 40px);
+  width: var(--settings-toggle-size);
+  height: var(--settings-toggle-size);
   background: url("/assets/bars-solid-full.svg") center / contain no-repeat;
 
   transition: transform 0.3s ease, background-color 0.2s ease;
