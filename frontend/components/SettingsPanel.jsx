@@ -38,6 +38,17 @@ function SettingsPanel({
 
   const handleEditSubmit = (projectId, oldName) => {
     const trimmed = editValue.trim();
+    
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = projects.some(p => 
+      p.id !== projectId && p.name.toLowerCase() === trimmed.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      setEditingProjectId(null);
+      return;
+    }
+
     if (trimmed && trimmed !== oldName) {
       renameProject(projectId, trimmed);
     }
@@ -154,6 +165,7 @@ function SettingsPanel({
           title="Create Project"
           inputMaxLength={INPUT_LENGTH.PROJECT_NAME}
           includeColor={false}
+          existingNames={projects.map(p => p.name)}
           onClose={(result) => {
             setShowProjectModal(false);
             if (result?.name) {

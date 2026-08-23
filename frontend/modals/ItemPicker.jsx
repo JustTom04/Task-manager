@@ -2,10 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { INPUT_LENGTH } from "@/frontend/utils";
 
-function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, initialName = "" }) {
+function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, initialName = "", existingNames = [] }) {
   
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState("#34a853");
+  const [error, setError] = useState("");
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -13,11 +14,21 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
   }, []);
 
   function handleSave() {
-    if (!name.trim()) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+
+    const lowerCaseName = trimmedName.toLowerCase();
+    const isDuplicate = existingNames.some(existing => existing.toLowerCase() === lowerCaseName);
+
+    if (isDuplicate) {
+      setError("This name is already taken.");
+      return;
+    }
+
     if (includeColor) {
-      onClose({ name, color });
+      onClose({ name: trimmedName, color });
     } else {
-      onClose({ name });
+      onClose({ name: trimmedName });
     }
   }
 
@@ -33,11 +44,21 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
           maxLength={inputMaxLength}
           value={name}
           ref={inputRef}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            setError("");
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();
           }}
         />
+
+        {error && (
+          <div className="auth-error-box" style={{ marginBottom: "15px" }}>
+            <span className="auth-error-icon">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         {includeColor && (
           <input

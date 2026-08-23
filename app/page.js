@@ -175,6 +175,7 @@ export default function Home() {
           title="Create Label"
           inputMaxLength={INPUT_LENGTH.LABEL_NAME}
           includeColor={true}
+          existingNames={actualLabelsList.map(l => l.name)}
           onClose={(result) => {
             setShowLabelModal(false);
             if (result) {

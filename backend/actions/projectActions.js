@@ -15,13 +15,24 @@ export async function getProjects(userId) {
     // Check if user exists; if not, seed default projects!
     let user = await prisma.user.findUnique({ where: { id: actorId } });
     if (!user) {
-      user = await prisma.user.create({
-        data: {
-          id: actorId,
-          projects: getDefaultProjectsData(),
-        },
-      });
-      console.log(`[AUTH] Created new anonymous user: ${actorId} with default data.`);
+      try {
+        user = await prisma.user.create({
+          data: {
+            id: actorId,
+            projects: getDefaultProjectsData(),
+          },
+        });
+        console.log(`[AUTH] Created new anonymous user: ${actorId} with default data.`);
+      } catch (e) {
+        // P2002: Unique constraint failed. This means another concurrent request 
+        // (e.g. from React StrictMode) already created the user just milliseconds ago.
+        if (e.code === 'P2002') {
+          console.log(`[AUTH] Concurrent user creation detected for ${actorId}, ignoring.`);
+          user = await prisma.user.findUnique({ where: { id: actorId } });
+        } else {
+          throw e;
+        }
+      }
     }
 
     let projects = await prisma.project.findMany({
@@ -34,27 +45,7 @@ export async function getProjects(userId) {
       },
     });
 
-    // Failsafe: If the user exists but has absolutely 0 projects, seed default projects
-    if (projects.length === 0) {
-      console.log(`[AUTH] Seeding default projects for existing user with 0 projects: ${actorId}`);
-      await prisma.user.update({
-        where: { id: actorId },
-        data: {
-          projects: getEmptyGeneralProjectData(),
-        },
-      });
 
-      // Fetch again after seeding
-      projects = await prisma.project.findMany({
-        where: { userId: actorId },
-        include: {
-          tasks: {
-            include: { labels: true },
-          },
-          labels: true,
-        },
-      });
-    }
 
     // Format tasks so their 'labels' property is just an array of IDs, exactly as React expects
     const formattedProjects = projects.map((p) => ({
@@ -81,6 +72,23 @@ export async function createProject({ id, name, labels, userId }) {
 
   try {
     const actorId = await verifyUserAccess(userId);
+    const trimmedName = name.trim();
+
+    // Prevent duplicate project names for this user
+    const existingProject = await prisma.project.findFirst({
+      where: {
+        userId: actorId,
+        name: {
+          equals: trimmedName,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (existingProject) {
+      throw new Error("A project with this name already exists.");
+    }
+
     let labelsToCreate = labels
       ? labels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
       : [];
@@ -172,9 +180,27 @@ export async function updateProject({ id, name, userId }) {
       throw new Error("The General project cannot be modified.");
     }
 
+    const trimmedName = name.trim();
+
+    // Prevent duplicate project names for this user (excluding itself)
+    const existingProject = await prisma.project.findFirst({
+      where: {
+        userId: actorId,
+        id: { not: id },
+        name: {
+          equals: trimmedName,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (existingProject) {
+      throw new Error("A project with this name already exists.");
+    }
+
     const updatedProject = await prisma.project.update({
       where: { id },
-      data: { name: name.trim() },
+      data: { name: trimmedName },
     });
 
     console.log(`[SERVER ACTION] Updated project ID: ${id}`);

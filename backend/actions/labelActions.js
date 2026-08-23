@@ -37,10 +37,27 @@ export async function createLabel({ id, name, color, projectIds }, userId) {
       throw new Error("Unauthorized to add labels to this project");
     }
 
+    const trimmedName = name.trim();
+
+    // Prevent duplicate label names within the same project
+    const existingLabel = await prisma.label.findFirst({
+      where: {
+        projectId,
+        name: {
+          equals: trimmedName,
+          mode: 'insensitive'
+        }
+      }
+    });
+
+    if (existingLabel) {
+      throw new Error("A label with this name already exists in the project.");
+    }
+
     const newLabel = await prisma.label.create({
       data: {
         id: id || undefined,
-        name,
+        name: trimmedName,
         color,
         projectId,
       },

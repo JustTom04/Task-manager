@@ -66,6 +66,13 @@ export default function AuthModal({ onClose }) {
       const guestUserId = getUserId();
       await registerUser(email, password, guestUserId, saveProjects);
       
+      // If the user migrated their projects, their guest account is consumed.
+      // Remove the old IDs so they start fresh if they ever log out.
+      if (saveProjects) {
+        localStorage.removeItem('taskManager_userId');
+        localStorage.removeItem('activeProjectId');
+      }
+
       // Auto login after successful registration
       const res = await signIn("credentials", {
         redirect: false,
