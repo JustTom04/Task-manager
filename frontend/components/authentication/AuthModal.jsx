@@ -24,7 +24,18 @@ export default function AuthModal({ onClose }) {
   const handleFirstStepSubmit = (e) => {
     e.preventDefault();
     setError("");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
     
+    if (!isLogin && password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
     if (isLogin) {
       handleLogin();
     } else {
@@ -96,10 +107,8 @@ export default function AuthModal({ onClose }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         
         <h2>{isLogin ? "Log In" : "Register"}</h2>
-        
-        {error && <p style={{ color: "#e74c3c", fontSize: "0.9rem", marginTop: "5px" }}>{error}</p>}
 
-        <form onSubmit={handleFirstStepSubmit} className="auth-form">
+        <form onSubmit={handleFirstStepSubmit} className="auth-form" noValidate>
           <input 
             type="email" 
             placeholder="Email" 
@@ -116,6 +125,13 @@ export default function AuthModal({ onClose }) {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          {error && (
+            <div className="auth-error-box">
+              <span className="auth-error-icon">⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
           <button type="submit" className="done auth-submit-btn" disabled={loading}>
             {loading ? "Please wait..." : (isLogin ? "Log In" : "Continue")}
           </button>

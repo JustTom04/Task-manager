@@ -176,3 +176,20 @@
 .auth-switch-text {
     color: #cfcfcf;
 }
+
+.auth-error-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: rgba(231, 76, 60, 0.15);
+    border: 1px solid #e74c3c;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: #ff6b6b;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.auth-error-icon {
+    font-size: 1.1rem;
+}
