@@ -1,34 +1,67 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
+import { getFilteredTasks } from "@/backend/actions/taskActions";
 
-export function useTaskFilterState({ actualTasksList }) {
+export function useTaskFilterState({ activeProjectId, activeUserId, setProjects }) {
   const [labelsFilter, setLabelsFilter] = useState([]);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [priorityFilter, setPriorityFilter] = useState("ALL");
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
 
-// ===== Filtered tasks =====  
-  const filteredTasks = useMemo(() => {
-    return actualTasksList.filter((task) => {
-      const statusMatch =
-        statusFilter === "ALL" ||
-        (statusFilter === "Finished" && task.done) ||
-        (statusFilter === "On working" && !task.done);
+  // Keep track of the latest request to prevent race conditions
+  const latestRequestId = useRef(0);
 
-      const priorityMatch =
-        priorityFilter === "ALL" ||
-        task.priority.toLowerCase() === priorityFilter.toLowerCase();
+  // Fetch filtered tasks from the backend whenever filters or active project changes
+  useEffect(() => {
+    if (!activeProjectId || !activeUserId) return;
 
-      const labelsMatch =
-        labelsFilter.length === 0 ||
-        task.labels.some((labelId) => labelsFilter.includes(labelId));
+    let isMounted = true;
+    setIsLoadingTasks(true);
 
-      return statusMatch && priorityMatch && labelsMatch;
-    });
-  }, [actualTasksList, statusFilter, priorityFilter, labelsFilter]);
+    const currentRequestId = ++latestRequestId.current;
+
+    const filters = {
+      status: statusFilter,
+      priority: priorityFilter,
+      labels: labelsFilter
+    };
+
+    getFilteredTasks(activeProjectId, filters, activeUserId)
+      .then((fetchedTasks) => {
+        if (!isMounted) return;
+        
+        // ONLY update if this response belongs to the most recently fired request
+        if (currentRequestId !== latestRequestId.current) {
+          console.log(`[NETWORK] Ignored stale response for request #${currentRequestId}`);
+          return;
+        }
+
+        // Update the global projects state with the freshly filtered tasks
+        setProjects((prev) =>
+          prev.map((p) =>
+            p.id === activeProjectId ? { ...p, tasks: fetchedTasks } : p
+          )
+        );
+      })
+      .catch((err) => {
+        if (currentRequestId === latestRequestId.current) {
+          console.error("❌ Error fetching filtered tasks:", err);
+        }
+      })
+      .finally(() => {
+        if (isMounted && currentRequestId === latestRequestId.current) {
+          setIsLoadingTasks(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeProjectId, activeUserId, statusFilter, priorityFilter, labelsFilter, setProjects]);
 
   return {
     labelsFilter, setLabelsFilter,
     statusFilter, setStatusFilter,
     priorityFilter, setPriorityFilter,
-    filteredTasks,
+    isLoadingTasks,
   };
 }

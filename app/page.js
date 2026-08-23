@@ -77,7 +77,7 @@ export default function Home() {
   } = taskState;
 
   const { addLabelToProject } = labelState;
-  const { filteredTasks } = taskFilterState;
+  const { isLoadingTasks } = taskFilterState;
 
   // ===== Completed tasks counter =====
   const completedCount = actualTasksList ? actualTasksList.filter((t) => t.done).length : 0;
@@ -138,21 +138,32 @@ export default function Home() {
 
       {/* ===== Tasks list ===== */}
       <div className="task-list-container">
-        {actualTasksList.length === 0 ? (
+        {actualTasksList.length === 0 && !isLoadingTasks && (taskFilterState.statusFilter === 'ALL' && taskFilterState.priorityFilter === 'ALL' && taskFilterState.labelsFilter.length === 0) ? (
           <div className="empty-state">
             <span className="empty-state-icon">🎉</span>
             <p className="empty-state-text">
               You currently have no tasks. Sit back and relax, or create a new one!
             </p>
           </div>
-        ) : filteredTasks && filteredTasks.length === 0 ? (
+        ) : isLoadingTasks ? (
+          <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <div className="loading-spinner" style={{
+              width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.1)',
+              borderTopColor: '#ff2c55', borderRadius: '50%', animation: 'spin 1s linear infinite'
+            }} />
+            <p className="empty-state-text" style={{ margin: 0 }}>Filtering tasks...</p>
+            <style>{`
+              @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            `}</style>
+          </div>
+        ) : actualTasksList && actualTasksList.length === 0 ? (
           <div className="empty-state">
             <p className="empty-state-text">No tasks match your current filters.</p>
           </div>
         ) : (
-          filteredTasks &&
-          filteredTasks.map((task, index) => {
-            const isLast = index === filteredTasks.length - 1;
+          actualTasksList &&
+          actualTasksList.map((task, index) => {
+            const isLast = index === actualTasksList.length - 1;
             return (
               <Task
                 key={task.id}

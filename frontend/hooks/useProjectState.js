@@ -36,11 +36,11 @@ export function useProjectState() {
   }, [projects, activeProjectId]);
 
   // ===== Filter State Hook =====
-  const taskFilterState = useTaskFilterState({ actualTasksList });
+  const taskFilterState = useTaskFilterState({ activeProjectId, activeUserId, setProjects });
   const { labelsFilter, setLabelsFilter } = taskFilterState;
 
   // ===== Hook initializations =====
-  const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId });
+  const taskState = useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId, taskFilterState });
   const labelState = useLabelState({ actualLabelsList, activeProjectId, setProjects, activeUserId });
 
   // --- SERVER ACTION MIRRORING (GET AGGREGATED PROJECTS TREE) ---

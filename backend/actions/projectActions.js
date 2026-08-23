@@ -38,22 +38,17 @@ export async function getProjects(userId) {
     let projects = await prisma.project.findMany({
       where: { userId: actorId },
       include: {
-        tasks: {
-          include: { labels: true },
-        },
         labels: true,
       },
     });
 
 
 
-    // Format tasks so their 'labels' property is just an array of IDs, exactly as React expects
+    // Format projects to ensure they have an empty tasks array initially
+    // React state expects tasks to exist as an array.
     const formattedProjects = projects.map((p) => ({
       ...p,
-      tasks: p.tasks.map((t) => ({
-        ...t,
-        labels: t.labels.map((l) => l.id),
-      })),
+      tasks: [], // Tasks will be loaded lazily by useTaskFilterState
     }));
 
     console.log(`[SERVER ACTION] Fetched all projects. Total count: ${formattedProjects.length}`);

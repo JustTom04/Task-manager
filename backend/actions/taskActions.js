@@ -25,6 +25,60 @@ export async function getTasks(userId) {
 }
 
 /**
+ * Get filtered tasks for a specific project
+ */
+export async function getFilteredTasks(projectId, filters, userId) {
+  try {
+    const actorId = await verifyUserAccess(userId);
+
+    // Build the Prisma "where" clause dynamically
+    const whereClause = {
+      projectId: projectId,
+      project: { userId: actorId },
+    };
+
+    if (filters) {
+      if (filters.status === "Finished") {
+        whereClause.done = true;
+      } else if (filters.status === "On working") {
+        whereClause.done = false;
+      }
+
+      if (filters.priority && filters.priority !== "ALL") {
+        whereClause.priority = filters.priority.toLowerCase();
+      }
+
+      if (filters.labels && filters.labels.length > 0) {
+        whereClause.labels = {
+          some: {
+            id: {
+              in: filters.labels,
+            },
+          },
+        };
+      }
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: whereClause,
+      include: { labels: true },
+      orderBy: { createdAt: 'asc' }, // Ensure consistent ordering
+    });
+
+    console.log(`[SERVER ACTION] Fetched filtered tasks for project ${projectId}. Count: ${tasks.length}`);
+
+    // Format tasks so their 'labels' property is just an array of IDs
+    return tasks.map((t) => ({
+      ...t,
+      labels: t.labels.map((l) => l.id),
+    }));
+  } catch (error) {
+    console.error("[SERVER ACTION ERROR: getFilteredTasks]", error);
+    throw new Error("Failed to fetch filtered tasks");
+  }
+}
+
+/**
  * Create a new task and link any attached labels
  */
 export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }, userId) {

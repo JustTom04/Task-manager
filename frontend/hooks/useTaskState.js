@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 // --- NEXT.JS SERVER ACTIONS IMPORT ---
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
-export function useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId }) {
+export function useTaskState({ actualTasksList, activeProjectId, setProjects, activeUserId, taskFilterState }) {
   // ===== States =====
   const [newTitle, setNewTitle] = useState("");
   const [newPriority, setNewPriority] = useState("mid");
@@ -47,12 +47,32 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects, ac
       .catch(err => console.error("❌ Server Action Error:", err));
     // -------------------------
 
+    // Check if the new task matches current filters before adding it to UI
+    const matchesFilter = () => {
+      if (taskFilterState?.statusFilter === "Finished" && !newTask.done) return false;
+      if (taskFilterState?.statusFilter === "On working" && newTask.done) return false;
+      
+      if (taskFilterState?.priorityFilter && taskFilterState.priorityFilter !== "ALL") {
+        if (newTask.priority.toLowerCase() !== taskFilterState.priorityFilter.toLowerCase()) return false;
+      }
+      
+      if (taskFilterState?.labelsFilter?.length > 0) {
+        const hasLabel = newTask.labels.some((lId) => taskFilterState.labelsFilter.includes(lId));
+        if (!hasLabel) return false;
+      }
+      
+      return true;
+    };
+
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? { ...p, tasks: [...p.tasks, newTask] }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== activeProjectId) return p;
+        
+        // Only append to the UI if it actually belongs in the currently filtered view
+        const updatedTasks = matchesFilter() ? [...p.tasks, newTask] : p.tasks;
+        
+        return { ...p, tasks: updatedTasks };
+      })
     );
 
     setNewTitle("");
@@ -60,7 +80,7 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects, ac
     if (newTitleRef.current) {
       newTitleRef.current.focus();
     }
-  }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects, activeUserId]);
+  }, [newTitle, newPriority, selectedLabels, activeProjectId, setProjects, activeUserId, taskFilterState]);
 
   const toggleTask = useCallback((id) => {
     const taskToToggle = actualTasksList.find(t => t.id === id);
@@ -73,18 +93,24 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects, ac
     }
 
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === id ? { ...t, done: !t.done } : t
-              ),
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== activeProjectId) return p;
+
+        let newTasks = p.tasks.map((t) =>
+          t.id === id ? { ...t, done: !t.done } : t
+        );
+
+        // Optimistically remove task if it no longer matches the current status filter
+        if (taskFilterState?.statusFilter === "Finished") {
+          newTasks = newTasks.filter((t) => t.done);
+        } else if (taskFilterState?.statusFilter === "On working") {
+          newTasks = newTasks.filter((t) => !t.done);
+        }
+
+        return { ...p, tasks: newTasks };
+      })
     );
-  }, [actualTasksList, activeProjectId, setProjects, activeUserId]);
+  }, [actualTasksList, activeProjectId, setProjects, activeUserId, taskFilterState]);
 
   const deleteTask = useCallback((id) => {
     // --- SERVER ACTION MIRRORING ---
@@ -129,20 +155,32 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects, ac
     }
 
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === taskId
-                  ? { ...t, labels: t.labels.filter((lId) => lId !== labelId) }
-                  : t
-              ),
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== activeProjectId) return p;
+        
+        let newTasks = p.tasks.map((t) =>
+          t.id === taskId
+            ? { ...t, labels: t.labels.filter((lId) => lId !== labelId) }
+            : t
+        );
+
+        // Optimistically remove if it no longer matches the label filter
+        if (taskFilterState?.labelsFilter?.length > 0) {
+          newTasks = newTasks.filter((t) =>
+            taskFilterState.labelsFilter.every((filterLabel) =>
+              t.labels.includes(filterLabel)
+            ) || t.labels.some((lId) => taskFilterState.labelsFilter.includes(lId)) // Depending on AND/OR logic
+          );
+          // Actually, our backend filter uses 'some' (OR logic).
+          newTasks = newTasks.filter((t) => 
+            t.labels.some((lId) => taskFilterState.labelsFilter.includes(lId))
+          );
+        }
+
+        return { ...p, tasks: newTasks };
+      })
     );
-  }, [actualTasksList, activeProjectId, setProjects, activeUserId]);
+  }, [actualTasksList, activeProjectId, setProjects, activeUserId, taskFilterState]);
 
   const toggleLabelOnTask = useCallback((taskId, labelId) => {
     const taskToUpdate = actualTasksList.find(t => t.id === taskId);
@@ -187,18 +225,30 @@ export function useTaskState({ actualTasksList, activeProjectId, setProjects, ac
     // -------------------------
 
     setProjects((prev) =>
-      prev.map((p) =>
-        p.id === activeProjectId
-          ? {
-              ...p,
-              tasks: p.tasks.map((t) =>
-                t.id === id ? { ...t, ...updatedTask } : t
-              ),
-            }
-          : p
-      )
+      prev.map((p) => {
+        if (p.id !== activeProjectId) return p;
+
+        let newTasks = p.tasks.map((t) =>
+          t.id === id ? { ...t, ...updatedTask } : t
+        );
+
+        // Optimistically remove if it no longer matches priority or status filter
+        if (taskFilterState?.statusFilter === "Finished") {
+          newTasks = newTasks.filter((t) => t.done);
+        } else if (taskFilterState?.statusFilter === "On working") {
+          newTasks = newTasks.filter((t) => !t.done);
+        }
+
+        if (taskFilterState?.priorityFilter && taskFilterState.priorityFilter !== "ALL") {
+          newTasks = newTasks.filter(
+            (t) => t.priority.toLowerCase() === taskFilterState.priorityFilter.toLowerCase()
+          );
+        }
+
+        return { ...p, tasks: newTasks };
+      })
     );
-  }, [activeProjectId, setProjects, activeUserId]);
+  }, [activeProjectId, setProjects, activeUserId, taskFilterState]);
 
   return {
     newTitle, setNewTitle,
