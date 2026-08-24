@@ -10,7 +10,7 @@ export async function registerUser(email, password, guestUserId, saveProjects) {
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new Error("User with this email already exists.");
+      return { error: "User with this email already exists." };
     }
 
     // Hash password
@@ -101,11 +101,13 @@ export async function registerUser(email, password, guestUserId, saveProjects) {
           where: { userId: guestUserId }
         });
       }
+    }, {
+      timeout: 15000 // Increase transaction timeout to 15 seconds to prevent Vercel crashes
     });
 
     return { success: true, userId: newUserId };
   } catch (error) {
     console.error("[AUTH] Registration error:", error);
-    throw new Error(error.message || "Failed to register user");
+    return { error: "Failed to register user. Please try again." };
   }
 }

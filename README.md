@@ -118,10 +118,10 @@ Because the front-end UI and back-end database queries are compiled into a unifi
    ```bash
    npm install
    ```
-3. Create a `.env` file in the root directory and input your PostgreSQL connection string and JWT secret:
+3. Create a `.env` file in the root directory and input your PostgreSQL connection string and Auth.js secret:
    ```env
    DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
-   JWT_SECRET="your_secret_key_here"
+   AUTH_SECRET="your_secret_key_here"
    ```
 
 ### 2. Database Compilation & Launch

@@ -64,8 +64,15 @@ export default function AuthModal({ onClose }) {
     setError("");
     try {
       const guestUserId = getUserId();
-      await registerUser(email, password, guestUserId, saveProjects);
+      const registerRes = await registerUser(email, password, guestUserId, saveProjects);
       
+      if (registerRes?.error) {
+        setError(registerRes.error);
+        setStep(1);
+        setLoading(false);
+        return;
+      }
+
       // If the user migrated their projects, their guest account is consumed.
       // Remove the old IDs so they start fresh if they ever log out.
       if (saveProjects) {
