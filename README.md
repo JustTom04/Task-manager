@@ -40,6 +40,13 @@ The project incorporates a clean separation of presentation, state management, a
 
 ## Main Features
 
+- **Authentication & Multi-User System**
+  - Full JWT-based credential authentication (Login/Registration).
+  - Secure HTTP-only cookie session management.
+  - Complete data isolation (users can only see and modify their own projects and tasks).
+
+   ![Registration](assets/authentication.png)
+
 - **Project management**
   - Create and delete multiple projects.
   - Select an active project.
@@ -62,7 +69,7 @@ The project incorporates a clean separation of presentation, state management, a
 
 - **Filtering and sorting**
   - Filter tasks by status, labels, and priority (**high**, **medium**, **low**).
-  - Display task list based on the current filters.
+  - Powered by **Server-Side Filtering** (SQL-level) via Prisma for massive scalability, performance, and memory optimization.
   
   ![Filters](assets/filters.png)
 
@@ -86,11 +93,14 @@ The project incorporates a clean separation of presentation, state management, a
 
 ---
 
-## Data Storage & API
+## Data Storage, API & Architecture
 
 * All projects, tasks, and labels are securely stored in a **PostgreSQL database**.
 * The frontend communicates directly with the database using **Next.js Server Actions** and **Prisma ORM**, eliminating the need for external REST API endpoints.
-* The active project state remains saved even after refreshing the page.
+* **Security:** Persistence is multi-user and securely managed by **JWT-based sessions**, meaning you can log in from any device and safely access your isolated, personal dashboard.
+* **ACID Transactions & Data Migration:** Failsafe database transactions ensure total data safety. When a user registers and opts to migrate their guest data, the transaction guarantees that if the complex transfer of projects and tasks fails midway, the registration safely rolls back without deleting the original guest account. 
+* **Optimized Data Loading:** Implemented lazy loading so tasks are only fetched when viewing a specific project, massively reducing initial load times and memory footprint.
+* **Optimistic UI:** Robust client-side optimistic updates combined with network race-condition protections ensure a seamless UX.
 
 ---
 
@@ -108,9 +118,10 @@ Because the front-end UI and back-end database queries are compiled into a unifi
    ```bash
    npm install
    ```
-3. Create a `.env` file in the root directory and input your PostgreSQL connection string:
+3. Create a `.env` file in the root directory and input your PostgreSQL connection string and JWT secret:
    ```env
    DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?sslmode=require"
+   JWT_SECRET="your_secret_key_here"
    ```
 
 ### 2. Database Compilation & Launch
@@ -138,9 +149,17 @@ The application utilizes a robust relational architecture mapped directly via Pr
 classDiagram
     direction LR
 
+    class User {
+        String id [PK]
+        String email
+        String password
+        DateTime createdAt
+    }
+
     class Project {
         String id [PK]
         String name
+        String userId [FK]
         DateTime createdAt
     }
     
@@ -161,6 +180,7 @@ classDiagram
         DateTime createdAt
     }
 
+    User "1" --> "*" Project : owns
     Project "1" --> "*" Task : contains
     Project "1" --> "*" Label : owns
     Task "*" -- "*" Label : has
