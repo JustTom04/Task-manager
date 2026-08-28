@@ -5,15 +5,25 @@ import Label from "./Label.jsx";
 import LabelsPanel from "./LabelsPanel.jsx";
 import CustomDropdown from "./CustomDropdown.jsx";
 
-const Task = forwardRef(({ 
-  task,
-  toggleTask, 
-  deleteTask, 
-  updateTask, 
-  allLabels, 
-  deleteTaskLabel, 
-  toggleLabelOnTask 
-}, ref) => {
+import useStore from "@/frontend/store/useStore";
+
+const Task = forwardRef(({ task, activeUserId }, ref) => {
+  const _toggleTask = useStore(s => s.toggleTask);
+  const _deleteTask = useStore(s => s.deleteTask);
+  const _updateTask = useStore(s => s.updateTask);
+  const _deleteTaskLabel = useStore(s => s.deleteTaskLabel);
+  const _toggleLabelOnTask = useStore(s => s.toggleLabelOnTask);
+  
+  const toggleTask = () => _toggleTask(task.id, activeUserId);
+  const deleteTask = () => _deleteTask(task.id, activeUserId);
+  const updateTask = (updated) => _updateTask(task.id, updated, activeUserId);
+  const deleteTaskLabel = (taskId, labelId) => _deleteTaskLabel(taskId, labelId, activeUserId);
+  const toggleLabelOnTask = (taskId, labelId) => _toggleLabelOnTask(taskId, labelId, activeUserId);
+
+  const projects = useStore(s => s.projects);
+  const activeProjectId = useStore(s => s.activeProjectId);
+  const actualProject = projects.find(p => p.id === activeProjectId);
+  const allLabels = actualProject?.labels || [];
 
   // ===== States =====
   const [seconds, setSeconds] = useState(0);

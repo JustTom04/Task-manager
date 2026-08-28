@@ -8,17 +8,20 @@ import ConfirmModal from "../modals/ConfirmModal.jsx";
 
 
 import AuthHeader from "./authentication/AuthHeader.jsx";
+import useStore from "@/frontend/store/useStore";
 
-function SettingsPanel({
-  projects,
-  activeProjectId,
-  onSelectProject,
-  deleteProject,
-  renameProject,
-  addProject,
-  isOpen,
-  setIsOpen
-}) {
+function SettingsPanel({ isOpen, setIsOpen, activeUserId }) {
+  const projects = useStore((state) => state.projects);
+  const activeProjectId = useStore((state) => state.activeProjectId);
+  const onSelectProject = useStore((state) => state.setActiveProjectId);
+  
+  const _addProject = useStore((state) => state.addProject);
+  const _deleteProject = useStore((state) => state.deleteProject);
+  const _renameProject = useStore((state) => state.renameProject);
+
+  const addProject = (name) => _addProject(name, activeUserId);
+  const deleteProject = (id) => _deleteProject(id, activeUserId);
+  const renameProject = (id, newName) => _renameProject(id, newName, activeUserId);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [editValue, setEditValue] = useState("");

@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 
-import { useClickOutside, INPUT_LENGTH } from "@/frontend/utils";
-import { useProjectState } from "@/frontend/hooks/useProjectState";
+import { useClickOutside, INPUT_LENGTH, getUserId } from "@/frontend/utils";
+import useStore from "@/frontend/store/useStore";
+import { useSession } from "next-auth/react";
 
 import Task from "@/frontend/components/Task";
 import ItemPicker from "@/frontend/modals/ItemPicker";
@@ -20,6 +21,9 @@ import "@/frontend/styles/components/settingsPanel.css";
 import "@/frontend/styles/components/task.css";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const activeUserId = session?.user?.id || getUserId();
+
   // ===== Mobile breakpoint =====
   const breakpoint = 668;
   const [isMobile, setIsMobile] = useState(false);
@@ -46,38 +50,41 @@ export default function Home() {
   // ===== Ref =====
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
+  const lastTaskRef = useRef(null);
 
-  // ===== Project State Hook =====
-  const {
-    projects,
-    setProjects,
-    activeProjectId,
-    setActiveProjectId,
-    addProject,
-    deleteProject,
-    renameProject,
-    actualProject,
-    actualTasksList,
-    actualLabelsList,
-    taskState,
-    labelState,
-    taskFilterState,
-    deleteLabel,
-    deleteAllLabels,
-  } = useProjectState();
+  const fetchProjects = useStore((state) => state.fetchProjects);
+  const projects = useStore((state) => state.projects);
+  const statusFilter = useStore((state) => state.statusFilter);
+  const priorityFilter = useStore((state) => state.priorityFilter);
+  const labelsFilter = useStore((state) => state.labelsFilter);
 
-  // ===== Component States =====
-  const {
-    lastTaskRef,
-    toggleTask,
-    deleteTask,
-    deleteTaskLabel,
-    toggleLabelOnTask,
-    updateTask,
-  } = taskState;
+  const activeProjectId = useStore((state) => state.activeProjectId);
+  const actualProject = projects.find(p => p.id === activeProjectId);
+  const rawTasksList = actualProject?.tasks || [];
+  
+  const actualTasksList = rawTasksList.filter(task => {
+    if (statusFilter === "Finished" && !task.done) return false;
+    if (statusFilter === "On working" && task.done) return false;
+    if (priorityFilter && priorityFilter !== "ALL" && task.priority.toLowerCase() !== priorityFilter.toLowerCase()) return false;
+    if (labelsFilter && labelsFilter.length > 0) {
+      if (!task.labels.some(lId => labelsFilter.includes(lId))) return false;
+    }
+    return true;
+  });
 
-  const { addLabelToProject } = labelState;
-  const { isLoadingTasks } = taskFilterState;
+  const actualLabelsList = actualProject?.labels || [];
+  
+  const _addLabelToProject = useStore((state) => state.addLabelToProject);
+  const addLabelToProject = (label) => _addLabelToProject(label, activeUserId);
+
+  const isLoadingTasks = useStore((state) => state.isLoadingTasks);
+
+  // Fetch initial projects from Server
+  useEffect(() => {
+    if (status !== "loading") {
+      fetchProjects(activeUserId);
+    }
+  }, [status, activeUserId, fetchProjects]);
 
   // ===== Completed tasks counter =====
   const completedCount = actualTasksList ? actualTasksList.filter((t) => t.done).length : 0;
@@ -120,25 +127,17 @@ export default function Home() {
       {/* ===== Top section ===== */}
       <TopSection
         isMobile={isMobile}
-        taskState={taskState}
-        filterState={taskFilterState}
-        projectData={{
-          actualLabelsList,
-          actualTasksList,
-          deleteLabel,
-          deleteAllLabels,
-        }}
         setConfirmConfig={setConfirmConfig}
         setShowLabelModal={setShowLabelModal}
+        activeUserId={activeUserId}
       />
 
       <span id="completed-counter">
         Completed: {completedCount}/{actualTasksList.length}
       </span>
 
-      {/* ===== Tasks list ===== */}
       <div className="task-list-container">
-        {actualTasksList.length === 0 && !isLoadingTasks && (taskFilterState.statusFilter === 'ALL' && taskFilterState.priorityFilter === 'ALL' && taskFilterState.labelsFilter.length === 0) ? (
+        {actualTasksList.length === 0 && !isLoadingTasks && (statusFilter === 'ALL' && priorityFilter === 'ALL' && labelsFilter.length === 0) ? (
           <div className="empty-state">
             <span className="empty-state-icon">🎉</span>
             <p className="empty-state-text">
@@ -168,12 +167,7 @@ export default function Home() {
               <Task
                 key={task.id}
                 task={task}
-                toggleTask={() => toggleTask(task.id)}
-                deleteTask={() => deleteTask(task.id)}
-                updateTask={(updatedTask) => updateTask(task.id, updatedTask)}
-                deleteTaskLabel={deleteTaskLabel}
-                toggleLabelOnTask={toggleLabelOnTask}
-                allLabels={actualLabelsList}
+                activeUserId={activeUserId}
                 ref={isLast ? lastTaskRef : null}
               />
             );
@@ -209,16 +203,11 @@ export default function Home() {
         />
       )}
 
-      <SettingsPanel
-        projects={projects}
-        activeProjectId={activeProjectId}
-        onSelectProject={setActiveProjectId}
-        deleteProject={deleteProject}
-        renameProject={renameProject}
-        addProject={addProject}
-        isOpen={settingsOpen}
-        setIsOpen={setSettingsOpen}
-      />
+        <SettingsPanel
+          isOpen={settingsOpen}
+          setIsOpen={setSettingsOpen}
+          activeUserId={activeUserId}
+        />
     </div>
   );
 }

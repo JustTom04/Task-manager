@@ -2,14 +2,13 @@ import { useState, useRef } from "react";
 import LabelsPanel from "./LabelsPanel";
 import CustomDropdown from "./CustomDropdown";
 import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/frontend/utils.js";
+import useStore from "@/frontend/store/useStore";
 
 function TopSection({
   isMobile,
-  taskState,
-  filterState,
-  projectData,
   setConfirmConfig,
   setShowLabelModal,
+  activeUserId,
 }) {
 
   // ===== Labels =====
@@ -28,29 +27,39 @@ function TopSection({
   useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
   const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen);
 
-  // ===== Destructure =====
-  const {
-    newTitle,
-    setNewTitle,
-    newPriority,
-    setNewPriority,
-    selectedLabels,
-    setSelectedLabels,
-    newTitleRef,
-    addTask,
-    deleteAllTasks,
-  } = taskState;
+  const newTitleRef = useRef(null);
+  const newTitle = useStore(s => s.newTitle);
+  const setNewTitle = useStore(s => s.setNewTitle);
+  const newPriority = useStore(s => s.newPriority);
+  const setNewPriority = useStore(s => s.setNewPriority);
+  const selectedLabels = useStore(s => s.selectedLabels);
+  const setSelectedLabels = useStore(s => s.setSelectedLabels);
+  const _addTask = useStore(s => s.addTask);
+  const _deleteAllTasks = useStore(s => s.deleteAllTasks);
+  
+  const addTask = (e) => {
+    e.preventDefault();
+    _addTask(newTitle, newPriority, selectedLabels, activeUserId);
+  };
+  const deleteAllTasks = () => _deleteAllTasks(activeUserId);
 
-  const {
-    labelsFilter,
-    setLabelsFilter,
-    statusFilter,
-    setStatusFilter,
-    priorityFilter,
-    setPriorityFilter,
-  } = filterState;
+  const labelsFilter = useStore(s => s.labelsFilter);
+  const setLabelsFilter = useStore(s => s.setLabelsFilter);
+  const statusFilter = useStore(s => s.statusFilter);
+  const setStatusFilter = useStore(s => s.setStatusFilter);
+  const priorityFilter = useStore(s => s.priorityFilter);
+  const setPriorityFilter = useStore(s => s.setPriorityFilter);
 
-  const { actualLabelsList, actualTasksList, deleteLabel, deleteAllLabels } = projectData;
+  const projects = useStore(s => s.projects);
+  const activeProjectId = useStore(s => s.activeProjectId);
+  const actualProject = projects.find(p => p.id === activeProjectId);
+  const actualTasksList = actualProject?.tasks || [];
+  const actualLabelsList = actualProject?.labels || [];
+
+  const _deleteLabel = useStore(s => s.deleteLabel);
+  const _deleteAllLabels = useStore(s => s.deleteAllLabels);
+  const deleteLabel = (id) => _deleteLabel(id, activeUserId);
+  const deleteAllLabels = () => _deleteAllLabels(activeUserId);
 
   const options = {
     status: [

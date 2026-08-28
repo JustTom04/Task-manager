@@ -39,16 +39,21 @@ export async function getProjects(userId) {
       where: { userId: actorId },
       include: {
         labels: true,
+        tasks: {
+          include: { labels: true },
+          orderBy: { createdAt: 'asc' }
+        }
       },
     });
 
-
-
-    // Format projects to ensure they have an empty tasks array initially
-    // React state expects tasks to exist as an array.
+    // Format projects and their tasks
+    // The frontend expects task.labels to be an array of IDs, not full objects
     const formattedProjects = projects.map((p) => ({
       ...p,
-      tasks: [], // Tasks will be loaded lazily by useTaskFilterState
+      tasks: p.tasks.map(t => ({
+        ...t,
+        labels: t.labels.map(l => l.id)
+      })),
     }));
 
     console.log(`[SERVER ACTION] Fetched all projects. Total count: ${formattedProjects.length}`);
