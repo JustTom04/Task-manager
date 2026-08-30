@@ -7,25 +7,12 @@ import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAct
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
 const useStore = create((set, get) => ({
-  // ===== State Variables =====
+
+  // ==========================================
+  // PROJECT SLICE
+  // ==========================================
   projects: [],
   activeProjectId: typeof window !== 'undefined' ? localStorage.getItem("activeProjectId") || null : null,
-  
-  // UI States (for adding task)
-  newTitle: "",
-  newPriority: "mid",
-  selectedLabels: [],
-
-  // Filter States
-  statusFilter: "ALL",
-  priorityFilter: "ALL",
-  labelsFilter: [],
-  isLoadingTasks: false,
-
-  // Setters for basic state
-  setNewTitle: (val) => set({ newTitle: typeof val === 'function' ? val(get().newTitle) : val }),
-  setNewPriority: (val) => set({ newPriority: typeof val === 'function' ? val(get().newPriority) : val }),
-  setSelectedLabels: (val) => set({ selectedLabels: typeof val === 'function' ? val(get().selectedLabels) : val }),
 
   setActiveProjectId: (id) => {
     if (typeof window !== 'undefined') {
@@ -33,12 +20,7 @@ const useStore = create((set, get) => ({
     }
     set({ activeProjectId: id });
   },
-  setStatusFilter: (filter) => set({ statusFilter: filter }),
-  setPriorityFilter: (filter) => set({ priorityFilter: filter }),
-  setLabelsFilter: (filter) => set({ labelsFilter: typeof filter === 'function' ? filter(get().labelsFilter) : filter }),
-  setIsLoadingTasks: (loading) => set({ isLoadingTasks: loading }),
 
-  // ===== Async Data Fetching =====
   fetchProjects: async (activeUserId) => {
     if (!activeUserId) return;
     try {
@@ -58,7 +40,6 @@ const useStore = create((set, get) => ({
     }
   },
 
-  // ===== Project Actions =====
   addProject: (name, activeUserId) => {
     const trimmedName = name?.trim();
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return;
@@ -93,7 +74,7 @@ const useStore = create((set, get) => ({
       if (prevProjects[0]?.id === projectId) return { projects: prevProjects };
 
       const newProjects = prevProjects.filter((p) => p.id !== projectId);
-      
+
       const stillExists = newProjects.find(p => p.id === state.activeProjectId);
       if (!stillExists && newProjects.length > 0) {
         if (typeof window !== 'undefined') localStorage.setItem("activeProjectId", newProjects[0].id);
@@ -116,11 +97,20 @@ const useStore = create((set, get) => ({
       .catch(err => console.error("❌ Server Action Error:", err));
   },
 
-  // ===== Label Actions =====
+
+  // ==========================================
+  // LABEL SLICE
+  // ==========================================
+  selectedLabels: [],
+  labelsFilter: [],
+
+  setSelectedLabels: (val) => set({ selectedLabels: typeof val === 'function' ? val(get().selectedLabels) : val }),
+  setLabelsFilter: (filter) => set({ labelsFilter: typeof filter === 'function' ? filter(get().labelsFilter) : filter }),
+
   addLabelToProject: (newLabel, activeUserId) => {
     const trimmedName = newLabel.name?.trim();
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.LABEL_NAME) return;
-    
+
     const { activeProjectId } = get();
     newLabel.projectIds = [activeProjectId];
 
@@ -147,13 +137,13 @@ const useStore = create((set, get) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId
           ? {
-              ...p,
-              labels: p.labels.filter((label) => label.id !== id),
-              tasks: p.tasks.map((task) => ({
-                ...task,
-                labels: task.labels.filter((lid) => lid !== id),
-              })),
-            }
+            ...p,
+            labels: p.labels.filter((label) => label.id !== id),
+            tasks: p.tasks.map((task) => ({
+              ...task,
+              labels: task.labels.filter((lid) => lid !== id),
+            })),
+          }
           : p
       ),
       labelsFilter: state.labelsFilter.filter((lid) => lid !== id)
@@ -176,7 +166,22 @@ const useStore = create((set, get) => ({
     }));
   },
 
-  // ===== Task Actions =====
+
+  // ==========================================
+  // TASK SLICE
+  // ==========================================
+  newTitle: "",
+  newPriority: "mid",
+  statusFilter: "ALL",
+  priorityFilter: "ALL",
+  isLoadingTasks: false,
+
+  setNewTitle: (val) => set({ newTitle: typeof val === 'function' ? val(get().newTitle) : val }),
+  setNewPriority: (val) => set({ newPriority: typeof val === 'function' ? val(get().newPriority) : val }),
+  setStatusFilter: (filter) => set({ statusFilter: filter }),
+  setPriorityFilter: (filter) => set({ priorityFilter: filter }),
+  setIsLoadingTasks: (loading) => set({ isLoadingTasks: loading }),
+
   addTask: (newTitle, newPriority, selectedLabels, activeUserId) => {
     if (!newTitle.trim() || newTitle.length > INPUT_LENGTH.TASK_TITLE) return;
 
@@ -197,7 +202,7 @@ const useStore = create((set, get) => ({
       .catch(err => console.error("❌ Server Action Error:", err));
 
     set((state) => ({
-      projects: state.projects.map((p) => 
+      projects: state.projects.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
       )
     }));
@@ -216,7 +221,7 @@ const useStore = create((set, get) => ({
     }
 
     set((state) => ({
-      projects: state.projects.map((p) => 
+      projects: state.projects.map((p) =>
         p.id === activeProjectId
           ? { ...p, tasks: p.tasks.map((t) => t.id === id ? { ...t, done: !t.done } : t) }
           : p
@@ -259,7 +264,7 @@ const useStore = create((set, get) => ({
     if (!task) return;
 
     const newLabels = task.labels.filter((l) => l !== labelId);
-    
+
     updateTaskAction(taskId, { labels: newLabels }, activeUserId)
       .then(data => console.log("✅ Task label deleted via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
@@ -300,19 +305,20 @@ const useStore = create((set, get) => ({
 
   updateTask: (id, updatedTask, activeUserId) => {
     const { activeProjectId } = get();
-    
+
     updateTaskAction(id, updatedTask, activeUserId)
       .then(data => console.log("✏️ Task updated via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
 
     set((state) => ({
-      projects: state.projects.map((p) => 
+      projects: state.projects.map((p) =>
         p.id === activeProjectId
           ? { ...p, tasks: p.tasks.map((t) => (t.id === id ? { ...t, ...updatedTask } : t)) }
           : p
       )
     }));
   }
+
 }));
 
 export default useStore;
