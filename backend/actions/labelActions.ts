@@ -19,10 +19,17 @@ export async function getLabels() {
   }
 }
 
+interface CreateLabelArgs {
+  id?: string;
+  name: string;
+  color: string;
+  projectIds?: string[];
+}
+
 /**
  * Create a new label tied to a project
  */
-export async function createLabel({ id, name, color, projectIds }, userId) {
+export async function createLabel({ id, name, color, projectIds }: CreateLabelArgs, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
@@ -31,7 +38,7 @@ export async function createLabel({ id, name, color, projectIds }, userId) {
       throw new Error("Label must belong to a project");
     }
 
-    // Verify project ownership
+    // Ensure actor has authorization to modify the project
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project || project.userId !== actorId) {
       throw new Error("Unauthorized to add labels to this project");
@@ -39,7 +46,7 @@ export async function createLabel({ id, name, color, projectIds }, userId) {
 
     const trimmedName = name.trim();
 
-    // Prevent duplicate label names within the same project
+    // Prevent duplicate label creation to maintain project data integrity
     const existingLabel = await prisma.label.findFirst({
       where: {
         projectId,
@@ -74,15 +81,17 @@ export async function createLabel({ id, name, color, projectIds }, userId) {
 /**
  * Delete a specific label by ID
  */
-export async function deleteLabel(labelId, userId) {
+export async function deleteLabel(labelId: string, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Verify label ownership via project
-    const label = await prisma.label.findUnique({ 
-      where: { id: labelId }, 
-      include: { project: true } 
+
+    const label = await prisma.label.findUnique({
+      where: { id: labelId },
+      include: { project: true }
     });
+
+    // Ensure actor has authorization to modify the parent project
     if (!label || label.project.userId !== actorId) {
       throw new Error("Unauthorized to delete this label");
     }
@@ -99,13 +108,13 @@ export async function deleteLabel(labelId, userId) {
 /**
  * Delete all labels for a specific project
  */
-export async function deleteAllLabels(projectId, userId) {
+export async function deleteAllLabels(projectId: string, userId: string) {
   if (!projectId) throw new Error("projectId is required to delete labels");
 
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Verify project ownership
+    // Ensure actor has authorization to modify the parent project
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project || project.userId !== actorId) {
       throw new Error("Unauthorized to delete labels in this project");

@@ -6,7 +6,7 @@ import { verifyUserAccess } from "@/backend/lib/authHelper";
 /**
  * Get all tasks for a given user
  */
-export async function getTasks(userId) {
+export async function getTasks(userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
@@ -24,15 +24,21 @@ export async function getTasks(userId) {
   }
 }
 
+interface FilterArgs {
+  status?: string;
+  priority?: string;
+  labels?: string[];
+}
+
 /**
  * Get filtered tasks for a specific project
  */
-export async function getFilteredTasks(projectId, filters, userId) {
+export async function getFilteredTasks(projectId: string, filters: FilterArgs, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Build the Prisma "where" clause dynamically
-    const whereClause = {
+    // Construct dynamic filter parameters based on frontend selections
+    const whereClause: any = {
       projectId: projectId,
       project: { userId: actorId },
     };
@@ -67,7 +73,7 @@ export async function getFilteredTasks(projectId, filters, userId) {
 
     console.log(`[SERVER ACTION] Fetched filtered tasks for project ${projectId}. Count: ${tasks.length}`);
 
-    // Format tasks so their 'labels' property is just an array of IDs
+    // Flatten label objects into ID arrays for Zustand store compatibility
     return tasks.map((t) => ({
       ...t,
       labels: t.labels.map((l) => l.id),
@@ -78,10 +84,20 @@ export async function getFilteredTasks(projectId, filters, userId) {
   }
 }
 
+interface CreateTaskArgs {
+  id?: string;
+  title: string;
+  done?: boolean;
+  priority?: string;
+  labels?: string[];
+  projectId?: string;
+  projectIds?: string[];
+}
+
 /**
  * Create a new task and link any attached labels
  */
-export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }, userId) {
+export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }: CreateTaskArgs, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
@@ -90,7 +106,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
       throw new Error("Task must belong to a project");
     }
 
-    // Verify project ownership
+    // Ensure actor has authorization to modify the parent project
     const project = await prisma.project.findUnique({ where: { id: activeProjectId } });
     if (!project || project.userId !== actorId) {
       throw new Error("Unauthorized to add tasks to this project");
@@ -105,7 +121,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
         id: id || undefined,
         title,
         done,
-        priority,
+        priority: priority || "low",
         projectId: activeProjectId,
         labels: { connect: connectLabels },
       },
@@ -126,11 +142,11 @@ export async function createTask({ id, title, done = false, priority, labels = [
 /**
  * Update an existing task (title, done status, priority, or attached labels)
  */
-export async function updateTask(taskId, updatedData, userId) {
+export async function updateTask(taskId: string, updatedData: any, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Verify task ownership via project
+    // Ensure actor has authorization to modify the parent project
     const task = await prisma.task.findUnique({ 
       where: { id: taskId }, 
       include: { project: true } 
@@ -141,12 +157,12 @@ export async function updateTask(taskId, updatedData, userId) {
 
     const prismaUpdateData = { ...updatedData };
 
-    // Delete projectIds if present so Prisma does not complain
+    // Remove virtual fields from update payload to prevent Prisma schema validation errors
     if (prismaUpdateData.projectIds) {
       delete prismaUpdateData.projectIds;
     }
 
-    // Format relation updates cleanly for Prisma
+    // Transform label ID arrays into Prisma relation mutation syntax
     if (updatedData.labels && Array.isArray(updatedData.labels)) {
       prismaUpdateData.labels = {
         set: updatedData.labels.map((lid) => ({ id: lid })),
@@ -173,7 +189,7 @@ export async function updateTask(taskId, updatedData, userId) {
 /**
  * Delete a specific task by ID
  */
-export async function deleteTask(taskId, userId) {
+export async function deleteTask(taskId: string, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
@@ -198,13 +214,13 @@ export async function deleteTask(taskId, userId) {
 /**
  * Delete all tasks inside a project
  */
-export async function deleteAllTasks(projectId, userId) {
+export async function deleteAllTasks(projectId: string, userId: string) {
   if (!projectId) throw new Error("projectId is required to delete all tasks");
 
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Verify project ownership
+    // Ensure actor has authorization to modify the parent project
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project || project.userId !== actorId) {
       throw new Error("Unauthorized to delete tasks in this project");

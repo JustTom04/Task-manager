@@ -6,24 +6,24 @@ import { verifyUserAccess } from "@/backend/lib/authHelper";
 
 /**
  * Get all projects with their nested tasks and labels for a specific user.
- * Automatically seeds default data if the user is new!
+ * Automatically seeds default data if the user is new
  */
-export async function getProjects(userId) {
+export async function getProjects(userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Check if user exists; if not, seed default projects!
+    // Seed default data for first-time users
     let user = await prisma.user.findUnique({ where: { id: actorId } });
     if (!user) {
       try {
         user = await prisma.user.create({
           data: {
             id: actorId,
-            projects: getDefaultProjectsData(),
+            projects: getDefaultProjectsData() as any,
           },
         });
         console.log(`[AUTH] Created new anonymous user: ${actorId} with default data.`);
-      } catch (e) {
+      } catch (e: any) {
         // P2002: Unique constraint failed. This means another concurrent request 
         // (e.g. from React StrictMode) already created the user just milliseconds ago.
         if (e.code === 'P2002') {
@@ -64,10 +64,17 @@ export async function getProjects(userId) {
   }
 }
 
+interface CreateProjectArgs {
+  id?: string;
+  name: string;
+  labels?: { id?: string; name: string; color: string }[];
+  userId: string;
+}
+
 /**
  * Create a new project, cloning default labels from General project if none provided
  */
-export async function createProject({ id, name, labels, userId }) {
+export async function createProject({ id, name, labels, userId }: CreateProjectArgs) {
   if (!name || !name.trim()) throw new Error("Project name is required");
 
   try {
@@ -89,7 +96,7 @@ export async function createProject({ id, name, labels, userId }) {
       throw new Error("A project with this name already exists.");
     }
 
-    let labelsToCreate = labels
+    let labelsToCreate: { id?: string; name: string; color: string }[] = labels
       ? labels.map((l) => ({ id: l.id, name: l.name, color: l.color }))
       : [];
 
@@ -128,12 +135,12 @@ export async function createProject({ id, name, labels, userId }) {
 /**
  * Delete a project (protecting General from deletion)
  */
-export async function deleteProject(projectId, userId) {
+export async function deleteProject(projectId: string, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
     const projectToDelete = await prisma.project.findUnique({ where: { id: projectId } });
-    
+
     if (!projectToDelete) {
       throw new Error("Project not found");
     }
@@ -149,16 +156,22 @@ export async function deleteProject(projectId, userId) {
     await prisma.project.delete({ where: { id: projectId } });
     console.log(`[SERVER ACTION] Removed project ID: ${projectId}`);
     return { success: true, id: projectId };
-  } catch (error) {
+  } catch (error: any) {
     console.error("[SERVER ACTION ERROR: deleteProject]", error);
     throw new Error(error.message || "Failed to delete project");
   }
 }
 
+interface UpdateProjectArgs {
+  id: string;
+  name: string;
+  userId: string;
+}
+
 /**
  * Update a project (e.g., renaming)
  */
-export async function updateProject({ id, name, userId }) {
+export async function updateProject({ id, name, userId }: UpdateProjectArgs) {
   if (!name || typeof name !== "string" || !name.trim()) {
     throw new Error("Project name is required and cannot be empty.");
   }
@@ -167,7 +180,7 @@ export async function updateProject({ id, name, userId }) {
     const actorId = await verifyUserAccess(userId);
 
     const projectToUpdate = await prisma.project.findUnique({ where: { id } });
-    
+
     if (!projectToUpdate) {
       throw new Error("Project not found");
     }
@@ -205,7 +218,7 @@ export async function updateProject({ id, name, userId }) {
 
     console.log(`[SERVER ACTION] Updated project ID: ${id}`);
     return updatedProject;
-  } catch (error) {
+  } catch (error: any) {
     console.error("[SERVER ACTION ERROR: updateProject]", error);
     throw new Error(error.message || "Failed to update project");
   }

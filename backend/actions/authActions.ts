@@ -5,22 +5,20 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
 
-export async function registerUser(email, password, guestUserId, saveProjects) {
+export async function registerUser(email: string, password: string, guestUserId: string, saveProjects: boolean) {
   try {
-    // Check if user already exists
+    // Prevent duplicate registrations by verifying email uniqueness
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return { error: "User with this email already exists." };
     }
 
-    // Hash password
+    // Securely hash credentials before persistence
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUserId = crypto.randomUUID();
 
-    // Determine what projects to create initially
-    // If we are NOT saving guest projects, we must seed the default projects 
-    // so the frontend doesn't crash from having 0 projects.
-    const createData = {
+    // Seed default data for new users to prevent empty UI state crashes if no guest data is being migrated
+    const createData: any = {
       id: newUserId,
       email,
       password: hashedPassword,
@@ -30,14 +28,14 @@ export async function registerUser(email, password, guestUserId, saveProjects) {
       createData.projects = getEmptyGeneralProjectData();
     }
 
-    // Start ACID Transaction
-    await prisma.$transaction(async (tx) => {
+    // Execute complex registration workflow atomically to prevent partial database states
+    await prisma.$transaction(async (tx: any) => {
       // Create new user
       const newUser = await tx.user.create({
         data: createData,
       });
 
-      // If user wants to save unlogin projects, we duplicate them
+      // Migrate guest user data to the new permanent account
       if (saveProjects && guestUserId) {
         const guestProjects = await tx.project.findMany({
           where: { userId: guestUserId },
@@ -58,7 +56,7 @@ export async function registerUser(email, password, guestUserId, saveProjects) {
             },
           });
 
-          // Map old label IDs to new label IDs
+          // Maintain referential integrity during label duplication
           const labelMap = new Map();
 
           // Duplicate labels
@@ -75,9 +73,9 @@ export async function registerUser(email, password, guestUserId, saveProjects) {
 
           // Duplicate tasks
           for (const oldTask of oldProject.tasks) {
-            const newLabels = oldTask.labels.map(l => ({
+            const newLabels = oldTask.labels.map((l: any) => ({
               id: labelMap.get(l.id)
-            })).filter(l => l.id !== undefined);
+            })).filter((l: any) => l.id !== undefined);
 
             await tx.task.create({
               data: {
