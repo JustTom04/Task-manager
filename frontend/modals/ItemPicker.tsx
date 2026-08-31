@@ -2,7 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { INPUT_LENGTH } from "@/frontend/utils";
 
-function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, initialName = "", existingNames = [] }) {
+export interface ItemPickerResult {
+  name: string;
+  color?: string;
+}
+
+interface ItemPickerProps {
+  onClose: (result: ItemPickerResult | null) => void;
+  title: string;
+  inputMaxLength: number;
+  includeColor?: boolean;
+  initialName?: string;
+  existingNames?: string[];
+}
+
+function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, initialName = "", existingNames = [] }: ItemPickerProps) {
   
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState("#34a853");

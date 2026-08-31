@@ -100,7 +100,7 @@ export async function registerUser(email: string, password: string, guestUserId:
         });
       }
     }, {
-      timeout: 15000 // Increase transaction timeout to 15 seconds to prevent Vercel crashes
+      timeout: 15000 
     });
 
     return { success: true, userId: newUserId };

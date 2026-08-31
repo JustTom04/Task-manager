@@ -1,16 +1,22 @@
 import { useState, useRef, useEffect } from "react";
 
-import { INPUT_LENGTH, useClickOutside } from "../utils.js";
+import { INPUT_LENGTH, useClickOutside } from "../utils";
 
-import ItemPicker from "../modals/ItemPicker.jsx";
-import ConfirmModal from "../modals/ConfirmModal.jsx";
+import ItemPicker from "../modals/ItemPicker";
+import ConfirmModal from "../modals/ConfirmModal";
 
 
 
-import AuthHeader from "./authentication/AuthHeader.jsx";
-import useStore from "@/frontend/store/useStore";
+import AuthHeader from "./authentication/AuthHeader";
+import useStore, { FrontendProject } from "@/frontend/store/useStore";
 
-function SettingsPanel({ isOpen, setIsOpen, activeUserId }) {
+interface SettingsPanelProps {
+  isOpen: boolean;
+  setIsOpen: (isOpen: boolean) => void;
+  activeUserId: string;
+}
+
+function SettingsPanel({ isOpen, setIsOpen, activeUserId }: SettingsPanelProps) {
   const projects = useStore((state) => state.projects);
   const activeProjectId = useStore((state) => state.activeProjectId);
   const onSelectProject = useStore((state) => state.setActiveProjectId);
@@ -23,11 +29,11 @@ function SettingsPanel({ isOpen, setIsOpen, activeUserId }) {
   const deleteProject = (id) => _deleteProject(id, activeUserId);
   const renameProject = (id, newName) => _renameProject(id, newName, activeUserId);
   const [showProjectModal, setShowProjectModal] = useState(false);
-  const [editingProjectId, setEditingProjectId] = useState(null);
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-  const [confirmConfig, setConfirmConfig] = useState(null);
+  const [confirmConfig, setConfirmConfig] = useState<any>(null);
 
-  const editInputRef = useRef(null);
+  const editInputRef = useRef<HTMLInputElement>(null);
   const settingsRef = useRef(null);
 
   useClickOutside(settingsRef, () => { setIsOpen(false) })
@@ -39,7 +45,7 @@ function SettingsPanel({ isOpen, setIsOpen, activeUserId }) {
     }
   }, [editingProjectId]);
 
-  const handleEditSubmit = (projectId, oldName) => {
+  const handleEditSubmit = (projectId: string, oldName: string) => {
     const trimmed = editValue.trim();
     
     // Check for duplicates (case-insensitive)
@@ -58,7 +64,7 @@ function SettingsPanel({ isOpen, setIsOpen, activeUserId }) {
     setEditingProjectId(null);
   };
 
-  const startEditing = (p) => {
+  const startEditing = (p: FrontendProject) => {
     if (p.name !== "General") {
       setEditingProjectId(p.id);
       setEditValue(p.name);

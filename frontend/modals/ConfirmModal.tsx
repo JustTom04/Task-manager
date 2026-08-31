@@ -1,6 +1,16 @@
 import { createPortal } from "react-dom";
 
-function ConfirmModal({ title, message, onConfirm, onCancel, confirmText = "Yes", cancelText = "Cancel", disabled = false }) {
+interface ConfirmModalProps {
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  confirmText?: string;
+  cancelText?: string;
+  disabled?: boolean;
+}
+
+function ConfirmModal({ title, message, onConfirm, onCancel, confirmText = "Yes", cancelText = "Cancel", disabled = false }: ConfirmModalProps) {
   
   return createPortal(
     <div className="modal-overlay" onClick={!disabled ? onCancel : undefined}>

@@ -2,9 +2,20 @@ import React, { forwardRef } from "react";
 import { createPortal } from "react-dom";
 
 import Label from "./Label";
+import { FrontendLabel } from "../store/useStore";
 
+interface LabelsPanelProps {
+  labels: FrontendLabel[];
+  selectedIds: string[];
+  onToggle?: (id: string) => void;
+  position?: { top: number; left: number } | null;
+  showDelete?: boolean;
+  showCheckbox?: boolean;
+  deleteLabel?: (id: string) => void;
+  footer?: React.ReactNode;
+}
 
-const LabelsPanel = forwardRef(({
+const LabelsPanel = forwardRef<HTMLDivElement, LabelsPanelProps>(({
   // ===== Required / core data =====
   labels,
   selectedIds,

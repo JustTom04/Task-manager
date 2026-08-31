@@ -1,13 +1,18 @@
 import { useState, useEffect, forwardRef, useRef } from "react";
 
-import { secondsToReadable, useClickOutside, useDropdownPosition, stopAnd, INPUT_LENGTH } from "@/frontend/utils.js"
-import Label from "./Label.jsx";
-import LabelsPanel from "./LabelsPanel.jsx";
-import CustomDropdown from "./CustomDropdown.jsx";
+import { secondsToReadable, useClickOutside, useDropdownPosition, stopAnd, INPUT_LENGTH } from "@/frontend/utils"
+import Label from "./Label";
+import LabelsPanel from "./LabelsPanel";
+import CustomDropdown from "./CustomDropdown";
 
-import useStore from "@/frontend/store/useStore";
+import useStore, { FrontendTask } from "@/frontend/store/useStore";
 
-const Task = forwardRef(({ task, activeUserId }, ref) => {
+interface TaskProps {
+  task: FrontendTask;
+  activeUserId: string;
+}
+
+const Task = forwardRef<HTMLDivElement, TaskProps>(({ task, activeUserId }, ref) => {
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
   const _updateTask = useStore(s => s.updateTask);
@@ -16,9 +21,9 @@ const Task = forwardRef(({ task, activeUserId }, ref) => {
   
   const toggleTask = () => _toggleTask(task.id, activeUserId);
   const deleteTask = () => _deleteTask(task.id, activeUserId);
-  const updateTask = (updated) => _updateTask(task.id, updated, activeUserId);
-  const deleteTaskLabel = (taskId, labelId) => _deleteTaskLabel(taskId, labelId, activeUserId);
-  const toggleLabelOnTask = (taskId, labelId) => _toggleLabelOnTask(taskId, labelId, activeUserId);
+  const updateTask = (updated: Partial<FrontendTask>) => _updateTask(task.id, updated, activeUserId);
+  const deleteTaskLabel = (taskId: string, labelId: string) => _deleteTaskLabel(taskId, labelId, activeUserId);
+  const toggleLabelOnTask = (taskId: string, labelId: string) => _toggleLabelOnTask(taskId, labelId, activeUserId);
 
   const projects = useStore(s => s.projects);
   const activeProjectId = useStore(s => s.activeProjectId);
@@ -50,7 +55,7 @@ const Task = forwardRef(({ task, activeUserId }, ref) => {
 
   useEffect(() => {
     if (!isEditing) return;
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setEditedTitle(task.title);
         setEditedPriority(task.priority);
@@ -101,7 +106,7 @@ const Task = forwardRef(({ task, activeUserId }, ref) => {
   };
 
 
-  const colorMap = { high: "red", mid: "orange", low: "green" };
+  const colorMap: Record<string, string> = { high: "red", mid: "orange", low: "green" };
   const color = colorMap[task.priority] || "green";
 
   const handleDelete = () => {

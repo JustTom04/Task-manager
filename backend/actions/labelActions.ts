@@ -9,7 +9,7 @@ import { verifyUserAccess } from "@/backend/lib/authHelper";
 export async function getLabels() {
   try {
     const labels = await prisma.label.findMany({
-      include: { projects: true },
+      include: { project: true },
     });
     console.log(`[SERVER ACTION] Fetched all labels. Total count: ${labels.length}`);
     return labels;
@@ -38,7 +38,7 @@ export async function createLabel({ id, name, color, projectIds }: CreateLabelAr
       throw new Error("Label must belong to a project");
     }
 
-    // Ensure actor has authorization to modify the project
+    // Ensure actor has authorization to modify the parent project
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project || project.userId !== actorId) {
       throw new Error("Unauthorized to add labels to this project");

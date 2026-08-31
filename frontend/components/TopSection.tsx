@@ -1,33 +1,40 @@
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import LabelsPanel from "./LabelsPanel";
 import CustomDropdown from "./CustomDropdown";
-import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/frontend/utils.js";
+import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
+
+interface TopSectionProps {
+  isMobile?: boolean;
+  setConfirmConfig: (config: any) => void;
+  setShowLabelModal: (show: boolean) => void;
+  activeUserId: string;
+}
 
 function TopSection({
   isMobile,
   setConfirmConfig,
   setShowLabelModal,
   activeUserId,
-}) {
+}: TopSectionProps) {
 
   // ===== Labels =====
   const [labelsOpen, setLabelsOpen] = useState(false);
-  const labelsRef = useRef(null);
-  const labelsButtonRef = useRef(null);
+  const labelsRef = useRef<HTMLDivElement>(null);
+  const labelsButtonRef = useRef<HTMLButtonElement>(null);
 
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen);
 
   // ===== Delete labels =====
   const [deleteLabelsOpen, setDeleteLabelsOpen] = useState(false);
-  const deleteLabelsRef = useRef(null);
-  const deleteLabelsButtonRef = useRef(null);
+  const deleteLabelsRef = useRef<HTMLDivElement>(null);
+  const deleteLabelsButtonRef = useRef<HTMLButtonElement>(null);
 
   useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
   const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen);
 
-  const newTitleRef = useRef(null);
+  const newTitleRef = useRef<HTMLInputElement>(null);
   const newTitle = useStore(s => s.newTitle);
   const setNewTitle = useStore(s => s.setNewTitle);
   const newPriority = useStore(s => s.newPriority);
@@ -36,8 +43,8 @@ function TopSection({
   const setSelectedLabels = useStore(s => s.setSelectedLabels);
   const _addTask = useStore(s => s.addTask);
   const _deleteAllTasks = useStore(s => s.deleteAllTasks);
-  
-  const addTask = (e) => {
+
+  const addTask = (e: React.FormEvent) => {
     e.preventDefault();
     _addTask(newTitle, newPriority, selectedLabels, activeUserId);
   };
@@ -58,7 +65,7 @@ function TopSection({
 
   const _deleteLabel = useStore(s => s.deleteLabel);
   const _deleteAllLabels = useStore(s => s.deleteAllLabels);
-  const deleteLabel = (id) => _deleteLabel(id, activeUserId);
+  const deleteLabel = (id: string) => _deleteLabel(id, activeUserId);
   const deleteAllLabels = () => _deleteAllLabels(activeUserId);
 
   const options = {
@@ -100,7 +107,7 @@ function TopSection({
                   )}
                   deleteLabel={deleteLabel}
                   position={position}
-                  ref={ref}
+                  ref={ref as React.RefObject<HTMLDivElement>}
                 />
               )}
               customTitle={"Select labels"}
@@ -274,7 +281,7 @@ function TopSection({
                 )}
                 deleteLabel={deleteLabel}
                 position={position}
-                ref={ref}
+                ref={ref as React.RefObject<HTMLDivElement>}
               />
             )}
             customTitle={"Select labels"}

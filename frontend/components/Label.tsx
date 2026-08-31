@@ -1,6 +1,15 @@
 import React from "react";
+import { FrontendLabel } from "../store/useStore";
 
-function Label({ label, isSelected = false, showDelete = false, deleteLabel, marginRight = 0 }) {
+interface LabelProps {
+  label: FrontendLabel | { name: string; color: string };
+  isSelected?: boolean;
+  showDelete?: boolean;
+  deleteLabel?: (e: React.MouseEvent) => void;
+  marginRight?: number;
+}
+
+function Label({ label, isSelected = false, showDelete = false, deleteLabel, marginRight = 0 }: LabelProps) {
   return (
     <div
       className={`label-item ${isSelected ? "selected" : ""}`}

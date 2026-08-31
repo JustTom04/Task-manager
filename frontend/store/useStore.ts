@@ -6,7 +6,70 @@ import { getProjects, createProject, deleteProject as deleteProjectAction, updat
 import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAction, createLabel } from "@/backend/actions/labelActions";
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
-const useStore = create((set, get) => ({
+export interface FrontendLabel {
+  id: string;
+  name: string;
+  color: string;
+  projectId?: string | null;
+}
+
+export interface FrontendTask {
+  id: string;
+  title: string;
+  done: boolean;
+  priority: string;
+  labels: string[]; // Frontend only expects an array of label IDs
+  projectId: string;
+}
+
+export interface FrontendProject {
+  id: string;
+  name: string;
+  userId?: string | null;
+  labels: FrontendLabel[];
+  tasks: FrontendTask[];
+}
+
+export interface AppState {
+  // Project Slice
+  projects: FrontendProject[];
+  activeProjectId: string | null;
+  setActiveProjectId: (id: string | null) => void;
+  fetchProjects: (activeUserId: string) => Promise<void>;
+  addProject: (name: string, activeUserId: string) => void;
+  deleteProject: (projectId: string, activeUserId: string) => void;
+  renameProject: (projectId: string, newName: string, activeUserId: string) => void;
+
+  // Label Slice
+  selectedLabels: string[];
+  labelsFilter: string[];
+  setSelectedLabels: (val: string[] | ((prev: string[]) => string[])) => void;
+  setLabelsFilter: (filter: string[] | ((prev: string[]) => string[])) => void;
+  addLabelToProject: (newLabel: { name: string; color: string; id?: string; projectIds?: string[] }, activeUserId: string) => void;
+  deleteLabel: (id: string, activeUserId: string) => void;
+  deleteAllLabels: (activeUserId: string) => void;
+
+  // Task Slice
+  newTitle: string;
+  newPriority: string;
+  statusFilter: string;
+  priorityFilter: string;
+  isLoadingTasks: boolean;
+  setNewTitle: (val: string | ((prev: string) => string)) => void;
+  setNewPriority: (val: string | ((prev: string) => string)) => void;
+  setStatusFilter: (filter: string) => void;
+  setPriorityFilter: (filter: string) => void;
+  setIsLoadingTasks: (loading: boolean) => void;
+  addTask: (newTitle: string, newPriority: string, selectedLabels: string[], activeUserId: string) => void;
+  toggleTask: (id: string, activeUserId: string) => void;
+  deleteTask: (id: string, activeUserId: string) => void;
+  deleteAllTasks: (activeUserId: string) => void;
+  deleteTaskLabel: (taskId: string, labelId: string, activeUserId: string) => void;
+  toggleLabelOnTask: (taskId: string, labelId: string, activeUserId: string) => void;
+  updateTask: (id: string, updatedTask: Partial<FrontendTask>, activeUserId: string) => void;
+}
+
+const useStore = create<AppState>((set, get) => ({
 
   // ==========================================
   // PROJECT SLICE
@@ -15,7 +78,7 @@ const useStore = create((set, get) => ({
   activeProjectId: typeof window !== 'undefined' ? localStorage.getItem("activeProjectId") || null : null,
 
   setActiveProjectId: (id) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && id) {
       localStorage.setItem("activeProjectId", id);
     }
     set({ activeProjectId: id });
@@ -27,10 +90,10 @@ const useStore = create((set, get) => ({
       const projectsTree = await getProjects(activeUserId);
       console.log("📥 Full Projects Tree loaded from Server Action:", projectsTree);
       if (projectsTree && projectsTree.length > 0) {
-        set({ projects: projectsTree });
+        set({ projects: projectsTree as unknown as FrontendProject[] });
 
         const state = get();
-        const stillExists = projectsTree.find(p => p.id === state.activeProjectId);
+        const stillExists = projectsTree.find((p: any) => p.id === state.activeProjectId);
         if (!stillExists) {
           state.setActiveProjectId(projectsTree[0].id);
         }
@@ -47,7 +110,7 @@ const useStore = create((set, get) => ({
     const { projects } = get();
     const generalLabels = projects[0]?.labels || [];
 
-    const newProject = {
+    const newProject: FrontendProject = {
       id: crypto.randomUUID(),
       name: trimmedName,
       tasks: [],
@@ -112,16 +175,16 @@ const useStore = create((set, get) => ({
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.LABEL_NAME) return;
 
     const { activeProjectId } = get();
-    newLabel.projectIds = [activeProjectId];
+    newLabel.projectIds = activeProjectId ? [activeProjectId] : [];
 
-    createLabel(newLabel, activeUserId)
+    createLabel(newLabel as any, activeUserId)
       .then(data => console.log("✅ Label created via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId
-          ? { ...p, labels: [...(p.labels || []), newLabel] }
+          ? { ...p, labels: [...(p.labels || []), newLabel as FrontendLabel] }
           : p
       )
     }));
@@ -152,6 +215,8 @@ const useStore = create((set, get) => ({
 
   deleteAllLabels: (activeUserId) => {
     const { activeProjectId } = get();
+    if (!activeProjectId) return;
+
     deleteAllLabelsAction(activeProjectId, activeUserId)
       .then(data => console.log("🗑️ ALL Labels deleted via Server Action for project:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
@@ -186,18 +251,18 @@ const useStore = create((set, get) => ({
     if (!newTitle.trim() || newTitle.length > INPUT_LENGTH.TASK_TITLE) return;
 
     const { activeProjectId } = get();
+    if (!activeProjectId) return;
 
-    const newTask = {
+    const newTask: FrontendTask = {
       id: crypto.randomUUID(),
       title: newTitle,
       done: false,
       priority: newPriority,
       labels: selectedLabels,
       projectId: activeProjectId,
-      projectIds: [activeProjectId],
     };
 
-    createTask(newTask, activeUserId)
+    createTask({ ...newTask, projectIds: [activeProjectId] }, activeUserId)
       .then(data => console.log("✅ Task created via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
 
@@ -245,6 +310,8 @@ const useStore = create((set, get) => ({
 
   deleteAllTasks: (activeUserId) => {
     const { activeProjectId } = get();
+    if (!activeProjectId) return;
+
     deleteAllTasksAction(activeProjectId, activeUserId)
       .then(data => console.log("🗑️ ALL Tasks deleted via Server Action for project:", data))
       .catch(err => console.error("❌ Server Action Error:", err));

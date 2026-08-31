@@ -12,8 +12,8 @@ export default function AuthHeader() {
   const profileInfoRef = useRef(null);
 
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (profileInfoRef.current && !profileInfoRef.current.contains(event.target)) {
+    function handleClickOutside(event: MouseEvent | TouchEvent) {
+      if (profileInfoRef.current && !(profileInfoRef.current as any).contains(event.target)) {
         setShowEmailTooltip(false);
       }
     }

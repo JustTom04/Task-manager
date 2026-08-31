@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, RefObject } from "react";
 
 
 // ===== Helpers =====
-export const stopAnd = (fn) => (e) => {
+export const stopAnd = (fn: () => void) => (e: React.SyntheticEvent | Event) => {
   e.stopPropagation();
   fn();
 };
 
 
-export function getUserId() {
+export function getUserId(): string | null {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -21,7 +21,7 @@ export function getUserId() {
   return userId;
 }
 
-export function secondsToReadable(seconds) {
+export function secondsToReadable(seconds: number): string {
   const units = [
     { value: 86400, unit: "d" },
     { value: 3600, unit: "h" },
@@ -41,13 +41,13 @@ export function secondsToReadable(seconds) {
 
 
 // ===== Hooks =====
-export function useClickOutside(refs, onOutsideClick) {
+export function useClickOutside(refs: RefObject<HTMLElement | null> | RefObject<HTMLElement | null>[], onOutsideClick: () => void) {
   const refsArray = Array.isArray(refs) ? refs : [refs];
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    function handleClickOutside(event: MouseEvent) {
       const isInside = refsArray.some(
-        (ref) => ref.current && ref.current.contains(event.target)
+        (ref) => ref.current && ref.current.contains(event.target as Node)
       );
 
       if (!isInside) {
@@ -62,7 +62,7 @@ export function useClickOutside(refs, onOutsideClick) {
 }
 
 
-export function useDropdownPosition(buttonRef, labelsOpen) {
+export function useDropdownPosition(buttonRef: RefObject<HTMLElement | null>, labelsOpen: boolean) {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {

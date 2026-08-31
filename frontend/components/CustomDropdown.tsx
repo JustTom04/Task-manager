@@ -2,7 +2,22 @@ import { useState, useRef } from "react";
 import { useClickOutside, useDropdownPosition, stopAnd } from "@/frontend/utils";
 import "../styles/components/customDropdown.css";
 
-function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass }) {
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface CustomDropdownProps {
+  options?: Option[];
+  value?: string;
+  onChange?: (val: string) => void;
+  customPanel?: (args: { close: () => void, ref: React.RefObject<HTMLUListElement | HTMLDivElement | null>, position: any }) => React.ReactNode;
+  customTitle?: string | React.ReactNode;
+  icon?: string;
+  wrapperClass?: string;
+}
+
+function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass }: CustomDropdownProps) {
   
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
