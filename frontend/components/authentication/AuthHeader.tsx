@@ -13,7 +13,7 @@ export default function AuthHeader() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
-      if (profileInfoRef.current && !(profileInfoRef.current as any).contains(event.target)) {
+      if (profileInfoRef.current && !(profileInfoRef.current as HTMLElement).contains(event.target as Node)) {
         setShowEmailTooltip(false);
       }
     }

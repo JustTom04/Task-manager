@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { INPUT_LENGTH, useClickOutside } from "../utils";
 
 import ItemPicker from "../modals/ItemPicker";
-import ConfirmModal from "../modals/ConfirmModal";
+import ConfirmModal, { ConfirmConfig } from "../modals/ConfirmModal";
 
 
 
@@ -31,7 +31,7 @@ function SettingsPanel({ isOpen, setIsOpen, activeUserId }: SettingsPanelProps) 
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
-  const [confirmConfig, setConfirmConfig] = useState<any>(null);
+  const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
 
   const editInputRef = useRef<HTMLInputElement>(null);
   const settingsRef = useRef(null);

@@ -1,5 +1,11 @@
 import { createPortal } from "react-dom";
 
+export interface ConfirmConfig {
+  action: () => void;
+  title: string;
+  message: string;
+}
+
 interface ConfirmModalProps {
   title: string;
   message: string;

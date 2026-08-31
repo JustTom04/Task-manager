@@ -1,12 +1,13 @@
 import React, { useState, useRef } from "react";
 import LabelsPanel from "./LabelsPanel";
 import CustomDropdown from "./CustomDropdown";
+import { ConfirmConfig } from "../modals/ConfirmModal";
 import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
 
 interface TopSectionProps {
   isMobile?: boolean;
-  setConfirmConfig: (config: any) => void;
+  setConfirmConfig: (config: ConfirmConfig | null) => void;
   setShowLabelModal: (show: boolean) => void;
   activeUserId: string;
 }

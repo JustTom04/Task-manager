@@ -84,7 +84,7 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task, activeUserId }, ref)
     const interval = setInterval(() => {
       setSeconds((prev) => {
         const newVal = prev + 1;
-        localStorage.setItem(`task-${task.id}-seconds`, newVal);
+        localStorage.setItem(`task-${task.id}-seconds`, newVal.toString());
         return newVal;
       });
     }, 1000);
@@ -121,8 +121,12 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task, activeUserId }, ref)
     <div
     className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""}`}
     ref={(node) => {
-      localRef.current = node;
-      if (ref) ref.current = node; 
+      (localRef as any).current = node;
+      if (typeof ref === 'function') {
+        ref(node);
+      } else if (ref) {
+        ref.current = node;
+      }
     }}
     onClick={() => setIsEditing(true)} 
     >

@@ -93,7 +93,7 @@ const useStore = create<AppState>((set, get) => ({
         set({ projects: projectsTree as unknown as FrontendProject[] });
 
         const state = get();
-        const stillExists = projectsTree.find((p: any) => p.id === state.activeProjectId);
+        const stillExists = projectsTree.find((p: FrontendProject) => p.id === state.activeProjectId);
         if (!stillExists) {
           state.setActiveProjectId(projectsTree[0].id);
         }
@@ -177,7 +177,7 @@ const useStore = create<AppState>((set, get) => ({
     const { activeProjectId } = get();
     newLabel.projectIds = activeProjectId ? [activeProjectId] : [];
 
-    createLabel(newLabel as any, activeUserId)
+    createLabel(newLabel, activeUserId)
       .then(data => console.log("✅ Label created via Server Action:", data))
       .catch(err => console.error("❌ Server Action Error:", err));
 

@@ -11,7 +11,7 @@ interface CustomDropdownProps {
   options?: Option[];
   value?: string;
   onChange?: (val: string) => void;
-  customPanel?: (args: { close: () => void, ref: React.RefObject<HTMLUListElement | HTMLDivElement | null>, position: any }) => React.ReactNode;
+  customPanel?: (args: { close: () => void, ref: React.RefObject<HTMLUListElement | HTMLDivElement | null>, position: { top: number; left: number } | null }) => React.ReactNode;
   customTitle?: string | React.ReactNode;
   icon?: string;
   wrapperClass?: string;
