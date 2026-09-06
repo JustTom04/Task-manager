@@ -24,6 +24,14 @@ export default function Home() {
   const { data: session, status } = useSession();
   const activeUserId = session?.user?.id || getUserId();
 
+  const setActiveUserId = useStore((state) => state.setActiveUserId);
+
+  useEffect(() => {
+    if (activeUserId) {
+      setActiveUserId(activeUserId);
+    }
+  }, [activeUserId, setActiveUserId]);
+
   // ===== Mobile breakpoint =====
   const breakpoint = 668;
   const [isMobile, setIsMobile] = useState(false);
@@ -75,14 +83,14 @@ export default function Home() {
   const actualLabelsList = actualProject?.labels || [];
   
   const _addLabelToProject = useStore((state) => state.addLabelToProject);
-  const addLabelToProject = (label) => _addLabelToProject(label, activeUserId);
+  const addLabelToProject = (label) => _addLabelToProject(label);
 
   const isLoadingTasks = useStore((state) => state.isLoadingTasks);
 
   // Fetch initial projects from Server
   useEffect(() => {
-    if (status !== "loading") {
-      fetchProjects(activeUserId);
+    if (status !== "loading" && activeUserId) {
+      fetchProjects();
     }
   }, [status, activeUserId, fetchProjects]);
 
@@ -129,7 +137,6 @@ export default function Home() {
         isMobile={isMobile}
         setConfirmConfig={setConfirmConfig}
         setShowLabelModal={setShowLabelModal}
-        activeUserId={activeUserId}
       />
 
       <span id="completed-counter">
@@ -167,7 +174,6 @@ export default function Home() {
               <Task
                 key={task.id}
                 task={task}
-                activeUserId={activeUserId}
                 ref={isLast ? lastTaskRef : null}
               />
             );
@@ -198,7 +204,10 @@ export default function Home() {
         <ConfirmModal
           title={confirmConfig.title}
           message={confirmConfig.message}
-          onConfirm={confirmConfig.action}
+          onConfirm={() => {
+            confirmConfig.action();
+            setConfirmConfig(null);
+          }}
           onCancel={() => setConfirmConfig(null)}
         />
       )}
@@ -206,7 +215,6 @@ export default function Home() {
         <SettingsPanel
           isOpen={settingsOpen}
           setIsOpen={setSettingsOpen}
-          activeUserId={activeUserId}
         />
     </div>
   );

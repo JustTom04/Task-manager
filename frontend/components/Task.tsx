@@ -9,21 +9,20 @@ import useStore, { FrontendTask } from "@/frontend/store/useStore";
 
 interface TaskProps {
   task: FrontendTask;
-  activeUserId: string;
 }
 
-const Task = forwardRef<HTMLDivElement, TaskProps>(({ task, activeUserId }, ref) => {
+const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
   const _updateTask = useStore(s => s.updateTask);
   const _deleteTaskLabel = useStore(s => s.deleteTaskLabel);
   const _toggleLabelOnTask = useStore(s => s.toggleLabelOnTask);
   
-  const toggleTask = () => _toggleTask(task.id, activeUserId);
-  const deleteTask = () => _deleteTask(task.id, activeUserId);
-  const updateTask = (updated: Partial<FrontendTask>) => _updateTask(task.id, updated, activeUserId);
-  const deleteTaskLabel = (taskId: string, labelId: string) => _deleteTaskLabel(taskId, labelId, activeUserId);
-  const toggleLabelOnTask = (taskId: string, labelId: string) => _toggleLabelOnTask(taskId, labelId, activeUserId);
+  const toggleTask = () => _toggleTask(task.id);
+  const deleteTask = () => _deleteTask(task.id);
+  const updateTask = (updated: Partial<FrontendTask>) => _updateTask(task.id, updated);
+  const deleteTaskLabel = (taskId: string, labelId: string) => _deleteTaskLabel(taskId, labelId);
+  const toggleLabelOnTask = (taskId: string, labelId: string) => _toggleLabelOnTask(taskId, labelId);
 
   const projects = useStore(s => s.projects);
   const activeProjectId = useStore(s => s.activeProjectId);

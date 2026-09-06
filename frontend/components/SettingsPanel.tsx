@@ -13,10 +13,9 @@ import useStore, { FrontendProject } from "@/frontend/store/useStore";
 interface SettingsPanelProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  activeUserId: string;
 }
 
-function SettingsPanel({ isOpen, setIsOpen, activeUserId }: SettingsPanelProps) {
+function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   const projects = useStore((state) => state.projects);
   const activeProjectId = useStore((state) => state.activeProjectId);
   const onSelectProject = useStore((state) => state.setActiveProjectId);
@@ -25,9 +24,9 @@ function SettingsPanel({ isOpen, setIsOpen, activeUserId }: SettingsPanelProps) 
   const _deleteProject = useStore((state) => state.deleteProject);
   const _renameProject = useStore((state) => state.renameProject);
 
-  const addProject = (name) => _addProject(name, activeUserId);
-  const deleteProject = (id) => _deleteProject(id, activeUserId);
-  const renameProject = (id, newName) => _renameProject(id, newName, activeUserId);
+  const addProject = (name) => _addProject(name);
+  const deleteProject = (id) => _deleteProject(id);
+  const renameProject = (id, newName) => _renameProject(id, newName);
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");

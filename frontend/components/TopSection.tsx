@@ -9,14 +9,12 @@ interface TopSectionProps {
   isMobile?: boolean;
   setConfirmConfig: (config: ConfirmConfig | null) => void;
   setShowLabelModal: (show: boolean) => void;
-  activeUserId: string;
 }
 
 function TopSection({
   isMobile,
   setConfirmConfig,
   setShowLabelModal,
-  activeUserId,
 }: TopSectionProps) {
 
   // ===== Labels =====
@@ -47,9 +45,9 @@ function TopSection({
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
-    _addTask(newTitle, newPriority, selectedLabels, activeUserId);
+    _addTask(newTitle, newPriority, selectedLabels);
   };
-  const deleteAllTasks = () => _deleteAllTasks(activeUserId);
+  const deleteAllTasks = () => _deleteAllTasks();
 
   const labelsFilter = useStore(s => s.labelsFilter);
   const setLabelsFilter = useStore(s => s.setLabelsFilter);
@@ -66,8 +64,8 @@ function TopSection({
 
   const _deleteLabel = useStore(s => s.deleteLabel);
   const _deleteAllLabels = useStore(s => s.deleteAllLabels);
-  const deleteLabel = (id: string) => _deleteLabel(id, activeUserId);
-  const deleteAllLabels = () => _deleteAllLabels(activeUserId);
+  const deleteLabel = (id: string) => _deleteLabel(id);
+  const deleteAllLabels = () => _deleteAllLabels();
 
   const options = {
     status: [
