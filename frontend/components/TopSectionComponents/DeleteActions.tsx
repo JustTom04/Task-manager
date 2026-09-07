@@ -4,11 +4,8 @@ import { ConfirmConfig } from "../../modals/ConfirmModal";
 import { useClickOutside, useDropdownPosition } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
 
-interface DeleteActionsProps {
-  setConfirmConfig: (config: ConfirmConfig | null) => void;
-}
-
-export default function DeleteActions({ setConfirmConfig }: DeleteActionsProps) {
+export default function DeleteActions() {
+  const setConfirmConfig = useStore(s => s.setConfirmConfig);
   const [deleteLabelsOpen, setDeleteLabelsOpen] = useState(false);
   const deleteLabelsRef = useRef<HTMLDivElement>(null);
   const deleteLabelsButtonRef = useRef<HTMLButtonElement>(null);
@@ -33,7 +30,7 @@ export default function DeleteActions({ setConfirmConfig }: DeleteActionsProps) 
   const deleteAllTasks = () => _deleteAllTasks();
 
   return (
-    <div className="section buttons">
+    <>
       <div className="labels-select">
         <button
           type="button"
@@ -90,6 +87,6 @@ export default function DeleteActions({ setConfirmConfig }: DeleteActionsProps) 
       >
         Delete all tasks
       </button>
-    </div>
+    </>
   );
 }

@@ -49,11 +49,13 @@ export default function Home() {
   // ===== States =====
   const [labelsOpen, setLabelsOpen] = useState(false);
   const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
-  const [showLabelModal, setShowLabelModal] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
 
-  const [confirmConfig, setConfirmConfig] = useState(null);
+  const showLabelModal = useStore((state) => state.showLabelModal);
+  const setShowLabelModal = useStore((state) => state.setShowLabelModal);
+  const confirmConfig = useStore((state) => state.confirmConfig);
+  const setConfirmConfig = useStore((state) => state.setConfirmConfig);
 
   // ===== Ref =====
   const labelsRef = useRef(null);
@@ -135,8 +137,6 @@ export default function Home() {
       {/* ===== Top section ===== */}
       <TopSection
         isMobile={isMobile}
-        setConfirmConfig={setConfirmConfig}
-        setShowLabelModal={setShowLabelModal}
       />
 
       <span id="completed-counter">

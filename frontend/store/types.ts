@@ -44,6 +44,13 @@ export interface LabelSlice {
   deleteAllLabels: () => void;
 }
 
+export interface ModalSlice {
+  confirmConfig: { action: () => void; title: string; message: string } | null;
+  showLabelModal: boolean;
+  setConfirmConfig: (config: { action: () => void; title: string; message: string } | null) => void;
+  setShowLabelModal: (show: boolean) => void;
+}
+
 export interface TaskSlice {
   newTitle: string;
   newPriority: string;
@@ -64,4 +71,4 @@ export interface TaskSlice {
   updateTask: (id: string, updatedTask: Partial<FrontendTask>) => void;
 }
 
-export interface AppState extends ProjectSlice, LabelSlice, TaskSlice {}
+export interface AppState extends ProjectSlice, LabelSlice, TaskSlice, ModalSlice {}

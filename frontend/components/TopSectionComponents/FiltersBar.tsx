@@ -34,7 +34,7 @@ export default function FiltersBar() {
   };
 
   return (
-    <div className="section">
+    <>
       <CustomDropdown
         icon="filter-icon"
         value={null}
@@ -69,6 +69,6 @@ export default function FiltersBar() {
         value={priorityFilter}
         onChange={setPriorityFilter}
       />
-    </div>
+    </>
   );
 }
