@@ -4,6 +4,8 @@ import CustomDropdown from "./CustomDropdown";
 import { ConfirmConfig } from "../modals/ConfirmModal";
 import { useClickOutside, INPUT_LENGTH, useDropdownPosition } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
+import FiltersBar from "./TopSectionComponents/FiltersBar";
+import DeleteActions from "./TopSectionComponents/DeleteActions";
 
 interface TopSectionProps {
   isMobile?: boolean;
@@ -25,13 +27,7 @@ function TopSection({
   useClickOutside(labelsRef, () => setLabelsOpen(false));
   const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen);
 
-  // ===== Delete labels =====
-  const [deleteLabelsOpen, setDeleteLabelsOpen] = useState(false);
-  const deleteLabelsRef = useRef<HTMLDivElement>(null);
-  const deleteLabelsButtonRef = useRef<HTMLButtonElement>(null);
-
-  useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
-  const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen);
+  // ===== Delete labels extracted to DeleteActions =====
 
   const newTitleRef = useRef<HTMLInputElement>(null);
   const newTitle = useStore(s => s.newTitle);
@@ -41,46 +37,16 @@ function TopSection({
   const selectedLabels = useStore(s => s.selectedLabels);
   const setSelectedLabels = useStore(s => s.setSelectedLabels);
   const _addTask = useStore(s => s.addTask);
-  const _deleteAllTasks = useStore(s => s.deleteAllTasks);
 
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
     _addTask(newTitle, newPriority, selectedLabels);
   };
-  const deleteAllTasks = () => _deleteAllTasks();
-
-  const labelsFilter = useStore(s => s.labelsFilter);
-  const setLabelsFilter = useStore(s => s.setLabelsFilter);
-  const statusFilter = useStore(s => s.statusFilter);
-  const setStatusFilter = useStore(s => s.setStatusFilter);
-  const priorityFilter = useStore(s => s.priorityFilter);
-  const setPriorityFilter = useStore(s => s.setPriorityFilter);
 
   const projects = useStore(s => s.projects);
   const activeProjectId = useStore(s => s.activeProjectId);
   const actualProject = projects.find(p => p.id === activeProjectId);
-  const actualTasksList = actualProject?.tasks || [];
   const actualLabelsList = actualProject?.labels || [];
-
-  const _deleteLabel = useStore(s => s.deleteLabel);
-  const _deleteAllLabels = useStore(s => s.deleteAllLabels);
-  const deleteLabel = (id: string) => _deleteLabel(id);
-  const deleteAllLabels = () => _deleteAllLabels();
-
-  const options = {
-    status: [
-      { value: "ALL", label: "All status" },
-      { value: "Finished", label: "Finished" },
-      { value: "On working", label: "On working" },
-    ],
-    priority: [
-      { value: "ALL", label: "Any priority" },
-      { value: "high", label: "High" },
-      { value: "mid", label: "Mid" },
-      { value: "low", label: "Low" },
-    ],
-  };
-
 
   // =====================================================
   // ===================== MOBILE ========================
@@ -90,43 +56,7 @@ function TopSection({
       <div className="top-section">
         <div className="section-group">
           {/* ===== Filters ===== */}
-          <div className="section">
-            <CustomDropdown
-              icon="filter-icon"
-              value={null}
-              options={[]}
-              customPanel={({ close, position, ref }) => (
-                <LabelsPanel
-                  labels={actualLabelsList}
-                  selectedIds={labelsFilter}
-                  onToggle={(id) => setLabelsFilter(prev =>
-                    prev.includes(id)
-                      ? prev.filter(l => l !== id)
-                      : [...prev, id]
-                  )}
-                  deleteLabel={deleteLabel}
-                  position={position}
-                  ref={ref as React.RefObject<HTMLDivElement>}
-                />
-              )}
-              customTitle={"Select labels"}
-            />
-
-            <CustomDropdown
-              icon="filter-icon"
-              options={options.status}
-              value={statusFilter}
-              onChange={setStatusFilter}
-            />
-
-            <CustomDropdown
-              icon="filter-icon"
-              options={options.priority}
-              value={priorityFilter}
-              onChange={setPriorityFilter}
-            />
-
-          </div>
+          <FiltersBar />
 
           <div className="section buttons">
             <div className="labels-select">
@@ -175,82 +105,23 @@ function TopSection({
               ref={newTitleRef}
             />
 
-            <select
+            <CustomDropdown
               value={newPriority}
-              className="add-task-selection"
-              onChange={(e) => setNewPriority(e.target.value)}
-            >
-              <option value="high">High</option>
-              <option value="mid">Mid</option>
-              <option value="low">Low</option>
-            </select>
+              wrapperClass="add-task-selection"
+              onChange={setNewPriority}
+              options={[
+                { value: "high", label: "High" },
+                { value: "mid", label: "Mid" },
+                { value: "low", label: "Low" }
+              ]}
+            />
 
             <button type="submit" className="task-button done">
               Add task
             </button>
           </form>
 
-          <div className="section buttons">
-            <div className="labels-select">
-              <button
-                type="button"
-                ref={deleteLabelsButtonRef}
-                className="button-delete"
-                onClick={() => setDeleteLabelsOpen(prev => !prev)}
-
-              >
-                Delete labels
-              </button>
-
-              {deleteLabelsOpen && (
-                <LabelsPanel
-                  labels={actualLabelsList}
-                  selectedIds={selectedLabels}
-                  showDelete={true}
-                  deleteLabel={deleteLabel}
-                  position={deleteLabelsPos}
-                  showCheckbox={false}
-                  footer={
-                    <button
-                      onMouseDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmConfig({
-                          action: deleteAllLabels,
-                          title: "Delete all labels?",
-                          message:
-                            "All labels in this project will be permanently deleted.",
-                        });
-                        setDeleteLabelsOpen(false);
-                      }}
-                      className={`button-delete ${actualLabelsList.length === 0 ? "inactive" : ""
-                        }`}
-                      disabled={actualLabelsList.length === 0}
-                    >
-                      Delete All labels
-                    </button>
-                  }
-                  ref={deleteLabelsRef}
-                />
-              )}
-            </div>
-            <button
-              onClick={() =>
-                setConfirmConfig({
-                  action: deleteAllTasks,
-                  title: "Delete all tasks?",
-                  message:
-                    "All tasks in this project will be permanently deleted.",
-                })
-              }
-              className={`button-delete ${actualTasksList.length === 0 ? "inactive" : ""
-                }`}
-              disabled={actualTasksList.length === 0}
-            >
-              Delete all tasks
-            </button>
-
-          </div>
+          <DeleteActions setConfirmConfig={setConfirmConfig} />
         </div>
       </div>
     );
@@ -264,42 +135,7 @@ function TopSection({
       <div className="section-group">
 
         {/* ===== Filters ===== */}
-        <div className="section">
-
-          <CustomDropdown
-            value={null}
-            options={[]}
-            customPanel={({ close, position, ref }) => (
-              <LabelsPanel
-                labels={actualLabelsList}
-                selectedIds={labelsFilter}
-                onToggle={(id) => setLabelsFilter(prev =>
-                  prev.includes(id)
-                    ? prev.filter(l => l !== id)
-                    : [...prev, id]
-                )}
-                deleteLabel={deleteLabel}
-                position={position}
-                ref={ref as React.RefObject<HTMLDivElement>}
-              />
-            )}
-            customTitle={"Select labels"}
-          />
-
-          <CustomDropdown
-            icon="filter-icon"
-            options={options.status}
-            value={statusFilter}
-            onChange={setStatusFilter}
-          />
-
-          <CustomDropdown
-            icon="filter-icon"
-            options={options.priority}
-            value={priorityFilter}
-            onChange={setPriorityFilter}
-          />
-        </div>
+        <FiltersBar />
 
         <div className="section buttons">
           <button
@@ -366,66 +202,7 @@ function TopSection({
           </button>
         </form>
 
-        <div className="section buttons">
-          <div className="labels-select">
-            <button
-              type="button"
-              ref={deleteLabelsButtonRef}
-              className="button-delete"
-              onClick={() => setDeleteLabelsOpen(prev => !prev)}
-
-            >
-              Delete labels
-            </button>
-
-            {deleteLabelsOpen && (
-              <LabelsPanel
-                labels={actualLabelsList}
-                selectedIds={selectedLabels}
-                showDelete={true}
-                deleteLabel={deleteLabel}
-                position={deleteLabelsPos}
-                showCheckbox={false}
-                footer={
-                  <button
-                    onMouseDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setConfirmConfig({
-                        action: deleteAllLabels,
-                        title: "Delete all labels?",
-                        message:
-                          "All labels in this project will be permanently deleted.",
-                      });
-                      setDeleteLabelsOpen(false);
-                    }}
-                    className={`button-delete ${actualLabelsList.length === 0 ? "inactive" : ""
-                      }`}
-                    disabled={actualLabelsList.length === 0}
-                  >
-                    Delete All labels
-                  </button>
-                }
-                ref={deleteLabelsRef}
-              />
-            )}
-          </div>
-          <button
-            onClick={() =>
-              setConfirmConfig({
-                action: deleteAllTasks,
-                title: "Delete all tasks?",
-                message:
-                  "All tasks in this project will be permanently deleted.",
-              })
-            }
-            className={`button-delete ${actualTasksList.length === 0 ? "inactive" : ""
-              }`}
-            disabled={actualTasksList.length === 0}
-          >
-            Delete all tasks
-          </button>
-        </div>
+        <DeleteActions setConfirmConfig={setConfirmConfig} />
       </div>
     </div>
   );
