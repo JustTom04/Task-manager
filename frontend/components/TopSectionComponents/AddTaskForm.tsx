@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import CustomDropdown from "../CustomDropdown";
-import { INPUT_LENGTH } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
+import { INPUT_LENGTH, DROPDOWN_OPTIONS } from "@/frontend/constants";
 
 interface AddTaskFormProps {
   isMobile?: boolean;
@@ -39,11 +39,7 @@ export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
         value={newPriority}
         wrapperClass={isMobile ? "add-task-selection" : "priority-dropdown"}
         onChange={setNewPriority}
-        options={[
-          { value: "high", label: "High" },
-          { value: "mid", label: "Mid" },
-          { value: "low", label: "Low" },
-        ]}
+        options={DROPDOWN_OPTIONS.PRIORITY}
       />
 
       <button type="submit" className="task-button done">

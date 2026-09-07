@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, LabelSlice, FrontendLabel } from '../types';
-import { INPUT_LENGTH } from '../../utils';
+import { INPUT_LENGTH } from '@/frontend/constants';
 import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAction, createLabel } from "@/backend/actions/labelActions";
 
 export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set, get) => ({

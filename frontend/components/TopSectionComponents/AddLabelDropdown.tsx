@@ -20,7 +20,7 @@ export default function AddLabelDropdown() {
   const actualLabelsList = actualProject?.labels || [];
 
   return (
-    <div className="labels-select">
+    <div className="labels-select" ref={labelsRef}>
       <button
         type="button"
         ref={labelsButtonRef}
@@ -41,7 +41,6 @@ export default function AddLabelDropdown() {
           )}
           showDelete={false}
           position={dropdownPos}
-          ref={labelsRef}
         />
       )}
     </div>

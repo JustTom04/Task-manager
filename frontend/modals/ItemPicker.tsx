@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { INPUT_LENGTH } from "@/frontend/utils";
+import { INPUT_LENGTH } from "@/frontend/constants";
 
 export interface ItemPickerResult {
   name: string;

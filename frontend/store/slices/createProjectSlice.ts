@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, ProjectSlice, FrontendProject } from '../types';
-import { INPUT_LENGTH } from '../../utils';
+import { INPUT_LENGTH } from '@/frontend/constants';
 import { getProjects, createProject, deleteProject as deleteProjectAction, updateProject as updateProjectAction } from "@/backend/actions/projectActions";
 
 export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = (set, get) => ({

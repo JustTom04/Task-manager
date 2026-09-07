@@ -80,9 +80,4 @@ export function useDropdownPosition(buttonRef: RefObject<HTMLElement | null>, la
 }
 
 
-// ===== Constants =====
-export const INPUT_LENGTH = {
-  TASK_TITLE: 60,
-  PROJECT_NAME: 60,
-  LABEL_NAME: 40,
-};
+// Removed Constants -> moved to constants.ts

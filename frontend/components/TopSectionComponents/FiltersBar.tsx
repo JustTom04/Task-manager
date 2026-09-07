@@ -2,6 +2,7 @@ import React from "react";
 import CustomDropdown from "../CustomDropdown";
 import LabelsPanel from "../LabelsPanel";
 import useStore from "@/frontend/store/useStore";
+import { DROPDOWN_OPTIONS } from "@/frontend/constants";
 
 export default function FiltersBar() {
   const labelsFilter = useStore((s) => s.labelsFilter);
@@ -18,20 +19,6 @@ export default function FiltersBar() {
   const actualLabelsList = actualProject?.labels || [];
 
   const deleteLabel = (id: string) => _deleteLabel(id);
-
-  const options = {
-    status: [
-      { value: "ALL", label: "All status" },
-      { value: "Finished", label: "Finished" },
-      { value: "On working", label: "On working" },
-    ],
-    priority: [
-      { value: "ALL", label: "Any priority" },
-      { value: "high", label: "High" },
-      { value: "mid", label: "Mid" },
-      { value: "low", label: "Low" },
-    ],
-  };
 
   return (
     <>
@@ -58,14 +45,14 @@ export default function FiltersBar() {
 
       <CustomDropdown
         icon="filter-icon"
-        options={options.status}
+        options={DROPDOWN_OPTIONS.STATUS_FILTER}
         value={statusFilter}
         onChange={setStatusFilter}
       />
 
       <CustomDropdown
         icon="filter-icon"
-        options={options.priority}
+        options={DROPDOWN_OPTIONS.PRIORITY_FILTER}
         value={priorityFilter}
         onChange={setPriorityFilter}
       />

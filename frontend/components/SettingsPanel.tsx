@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 
-import { INPUT_LENGTH, useClickOutside } from "../utils";
+import { useClickOutside } from "../utils";
+import { INPUT_LENGTH } from "@/frontend/constants";
 
 import ItemPicker from "../modals/ItemPicker";
 import ConfirmModal, { ConfirmConfig } from "../modals/ConfirmModal";

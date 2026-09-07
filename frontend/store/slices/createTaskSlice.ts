@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, TaskSlice, FrontendTask } from '../types';
-import { INPUT_LENGTH } from '../../utils';
+import { INPUT_LENGTH } from '@/frontend/constants';
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
 export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, get) => ({
@@ -42,8 +42,7 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
         p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
       ),
       newTitle: "",
-      newPriority: "mid",
-      selectedLabels: []
+      // newPriority and selectedLabels remain the same so the user can quickly add multiple similar tasks
     }));
   },
 

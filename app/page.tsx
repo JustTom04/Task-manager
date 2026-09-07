@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 
-import { useClickOutside, INPUT_LENGTH, getUserId } from "@/frontend/utils";
+import { useClickOutside, getUserId } from "@/frontend/utils";
+import { INPUT_LENGTH } from "@/frontend/constants";
 import useStore from "@/frontend/store/useStore";
 import { useSession } from "next-auth/react";
 
