@@ -11,7 +11,7 @@ This repository demonstrates a unified monolithic structure where front-end UI a
 ### Tech Stack
 * **Core Framework:** Next.js 16 (App Router & Turbopack)
 * **UI & Client Components:** React 19 with optimistic state management
-* **Styling:** Custom Vanilla CSS with highly responsive layouts
+* **Styling & Animations:** Custom Vanilla CSS and Framer Motion for fluid UX
 * **Database:** PostgreSQL
 * **ORM & Data Queries:** Prisma ORM integrated via Next.js Server Actions (`"use server";`)
 
@@ -24,10 +24,14 @@ The project incorporates a clean separation of presentation, state management, a
 ### Frontend (Client Components & State)
 - **`app/`** → Next.js App Router root layout (`layout.js`) and main application dashboard (`page.js`)
 - **`frontend/components/`** → Reusable interactive React components
-- **`frontend/hooks/`** → Modular custom React hooks (`useProjectState`, `useTaskState`, `useLabelState`) with optimistic UI updating
-- **`frontend/modals/`** → Popup dialogues and interactive item pickers
+  - **`Task/`** → Task rendering, inline editing, and state-synced background timer logic
+  - **`TopSectionComponents/`** → High-level interactive elements (Dropdowns, Filters, Project actions)
+  - **`authentication/`** → Login, registration forms, and Auth header UI
+- **`frontend/store/`** → Centralized Zustand global state management and isolated store slices
+- **`frontend/modals/`** → Popup dialogues and interactive item pickers wrapped in Framer Motion `AnimatePresence`
+- **`frontend/constants.ts`** → Centralized configuration, global animation variants, and UI tokens
 - **`frontend/styles/`** → Modular custom CSS stylesheets
-- **`frontend/utils.js`** → UI event propagation helpers, timestamp conversion, and user UUID management
+- **`frontend/utils.ts`** → UI event propagation helpers, timestamp conversion, and user UUID management
 - **`public/assets/`** → Static media, icons, and interface SVGs
 
 ### Backend (Server Actions & ORM)
@@ -63,7 +67,7 @@ The project incorporates a clean separation of presentation, state management, a
 - **Task management**
   - Add new tasks to projects.
   - Edit, delete, and update task status (done / in progress).
-  - Track time spent on tasks and automatically save data.
+  - Track time spent on tasks with **background-syncing timers** using timestamps, ensuring accurate duration tracking even when navigating away or closing the app.
   
   ![Task Edit](assets/edit_task.png)
 
@@ -75,6 +79,7 @@ The project incorporates a clean separation of presentation, state management, a
 
 - **User interface and state persistence**
   - Responsive design for mobile and desktop views.
+  - Fluid **Framer Motion** micro-animations for modals, popups, and dialogs.
   - Modal components, dropdowns, and label panels for easier usability.
   - Projects and tasks are saved in a **PostgreSQL Database** via **Prisma ORM**, ensuring robust data persistence.
   

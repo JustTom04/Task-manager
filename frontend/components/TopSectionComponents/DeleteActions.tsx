@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
 import LabelsPanel from "../LabelsPanel";
-import { ConfirmConfig } from "../../modals/ConfirmModal";
 import { useClickOutside, useDropdownPosition } from "@/frontend/utils";
 import useStore from "@/frontend/store/useStore";
 
