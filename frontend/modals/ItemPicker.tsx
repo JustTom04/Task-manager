@@ -48,8 +48,8 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
 
   // ===== Return JSX =====
   return createPortal(
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="modal-overlay" onMouseDown={() => onClose(null)}>
+      <div className="modal" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
         <h2>{title}</h2>
 
         <input

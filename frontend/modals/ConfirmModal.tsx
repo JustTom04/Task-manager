@@ -19,8 +19,8 @@ interface ConfirmModalProps {
 function ConfirmModal({ title, message, onConfirm, onCancel, confirmText = "Yes", cancelText = "Cancel", disabled = false }: ConfirmModalProps) {
   
   return createPortal(
-    <div className="modal-overlay" onClick={!disabled ? onCancel : undefined}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay" onMouseDown={!disabled ? onCancel : undefined}>
+      <div className="modal" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
         <h2>{title}</h2>
         <p>{message}</p>
 

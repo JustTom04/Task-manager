@@ -40,7 +40,10 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
-      )
+      ),
+      newTitle: "",
+      newPriority: "mid",
+      selectedLabels: []
     }));
   },
 
