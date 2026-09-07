@@ -33,6 +33,6 @@ export const MODAL_ANIMATION = {
     initial: { scale: 0.95, opacity: 0, y: 6 },
     animate: { scale: 1, opacity: 1, y: 0 },
     exit: { scale: 0.95, opacity: 0, y: 6 },
-    transition: { duration: 0.18, ease: "easeOut" }
+    transition: { duration: 0.18, ease: "easeOut" as const }
   }
 };
