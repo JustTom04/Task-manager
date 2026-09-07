@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSession, signOut } from "next-auth/react";
 import "@/frontend/styles/components/authentication.css";
 import AuthModal from "./AuthModal";
+import { AnimatePresence } from "framer-motion";
 
 export default function AuthHeader() {
   const { data: session } = useSession();
@@ -69,7 +70,9 @@ export default function AuthHeader() {
         </button>
       )}
       
-      {showModal && <AuthModal onClose={() => setShowModal(false)} />}
+      <AnimatePresence>
+        {showModal && <AuthModal onClose={() => setShowModal(false)} />}
+      </AnimatePresence>
     </div>
   );
 }

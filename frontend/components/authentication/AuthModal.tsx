@@ -6,6 +6,8 @@ import { signIn } from "next-auth/react";
 import { registerUser } from "@/backend/actions/authActions";
 import { getUserId } from "@/frontend/utils";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
+import { motion } from "framer-motion";
+import { MODAL_ANIMATION } from "@/frontend/constants";
 import "@/frontend/styles/components/authentication.css";
 
 export default function AuthModal({ onClose }) {
@@ -117,8 +119,13 @@ export default function AuthModal({ onClose }) {
   }
 
   return createPortal(
-    <div className="modal-overlay" onMouseDown={onClose}>
-      <div className="modal" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+    <motion.div className="modal-overlay" onMouseDown={onClose} {...MODAL_ANIMATION.overlay}>
+      <motion.div 
+        className="modal" 
+        onMouseDown={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
+        {...MODAL_ANIMATION.content}
+      >
         
         <h2>{isLogin ? "Log In" : "Register"}</h2>
 
@@ -160,8 +167,8 @@ export default function AuthModal({ onClose }) {
           </span>
         </div>
 
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   );
 }

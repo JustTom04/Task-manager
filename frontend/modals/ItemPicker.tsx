@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { INPUT_LENGTH } from "@/frontend/constants";
+import { motion } from "framer-motion";
+import { INPUT_LENGTH, MODAL_ANIMATION } from "@/frontend/constants";
 
 export interface ItemPickerResult {
   name: string;
@@ -48,8 +49,17 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
 
   // ===== Return JSX =====
   return createPortal(
-    <div className="modal-overlay" onMouseDown={() => onClose(null)}>
-      <div className="modal" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+    <motion.div 
+      className="modal-overlay" 
+      onMouseDown={() => onClose(null)}
+      {...MODAL_ANIMATION.overlay}
+    >
+      <motion.div 
+        className="modal" 
+        onMouseDown={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
+        {...MODAL_ANIMATION.content}
+      >
         <h2>{title}</h2>
 
         <input
@@ -90,8 +100,8 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
             Cancel
           </button>
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   );
 }

@@ -24,6 +24,13 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
       const projectsTree = await getProjects(activeUserId);
       console.log("📥 Full Projects Tree loaded from Server Action:", projectsTree);
       if (projectsTree && projectsTree.length > 0) {
+        // Enforce deterministic ordering: "General" project must always remain at index 0
+        const generalIndex = projectsTree.findIndex((p: any) => p.name === "General");
+        if (generalIndex > 0) {
+          const generalProject = projectsTree.splice(generalIndex, 1)[0];
+          projectsTree.unshift(generalProject);
+        }
+
         set({ projects: projectsTree as unknown as FrontendProject[] });
 
         const state = get();

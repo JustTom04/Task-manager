@@ -1,4 +1,6 @@
 import { createPortal } from "react-dom";
+import { motion } from "framer-motion";
+import { MODAL_ANIMATION } from "@/frontend/constants";
 
 export interface ConfirmConfig {
   action: () => void;
@@ -19,8 +21,17 @@ interface ConfirmModalProps {
 function ConfirmModal({ title, message, onConfirm, onCancel, confirmText = "Yes", cancelText = "Cancel", disabled = false }: ConfirmModalProps) {
   
   return createPortal(
-    <div className="modal-overlay" onMouseDown={!disabled ? onCancel : undefined}>
-      <div className="modal" onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+    <motion.div 
+      className="modal-overlay" 
+      onMouseDown={!disabled ? onCancel : undefined}
+      {...MODAL_ANIMATION.overlay}
+    >
+      <motion.div 
+        className="modal" 
+        onMouseDown={(e) => e.stopPropagation()} 
+        onClick={(e) => e.stopPropagation()}
+        {...MODAL_ANIMATION.content}
+      >
         <h2>{title}</h2>
         <p>{message}</p>
 
@@ -40,8 +51,8 @@ function ConfirmModal({ title, message, onConfirm, onCancel, confirmText = "Yes"
             {cancelText}
           </button>
         </div>
-      </div>
-    </div>,
+      </motion.div>
+    </motion.div>,
     document.body
   );
 }

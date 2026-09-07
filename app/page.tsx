@@ -6,6 +6,7 @@ import { useClickOutside, getUserId } from "@/frontend/utils";
 import { INPUT_LENGTH } from "@/frontend/constants";
 import useStore from "@/frontend/store/useStore";
 import { useSession } from "next-auth/react";
+import { AnimatePresence } from "framer-motion";
 
 import Task from "@/frontend/components/Task";
 import ItemPicker from "@/frontend/modals/ItemPicker";
@@ -182,36 +183,40 @@ export default function Home() {
         )}
       </div>
 
-      {showLabelModal && (
-        <ItemPicker
-          title="Create Label"
-          inputMaxLength={INPUT_LENGTH.LABEL_NAME}
-          includeColor={true}
-          existingNames={actualLabelsList.map(l => l.name)}
-          onClose={(result) => {
-            setShowLabelModal(false);
-            if (result) {
-              addLabelToProject({
-                id: crypto.randomUUID(),
-                name: result.name,
-                color: result.color,
-              });
-            }
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {showLabelModal && (
+          <ItemPicker
+            title="Create Label"
+            inputMaxLength={INPUT_LENGTH.LABEL_NAME}
+            includeColor={true}
+            existingNames={actualLabelsList.map(l => l.name)}
+            onClose={(result) => {
+              setShowLabelModal(false);
+              if (result) {
+                addLabelToProject({
+                  id: crypto.randomUUID(),
+                  name: result.name,
+                  color: result.color,
+                });
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {confirmConfig && (
-        <ConfirmModal
-          title={confirmConfig.title}
-          message={confirmConfig.message}
-          onConfirm={() => {
-            confirmConfig.action();
-            setConfirmConfig(null);
-          }}
-          onCancel={() => setConfirmConfig(null)}
-        />
-      )}
+      <AnimatePresence>
+        {confirmConfig && (
+          <ConfirmModal
+            title={confirmConfig.title}
+            message={confirmConfig.message}
+            onConfirm={() => {
+              confirmConfig.action();
+              setConfirmConfig(null);
+            }}
+            onCancel={() => setConfirmConfig(null)}
+          />
+        )}
+      </AnimatePresence>
 
         <SettingsPanel
           isOpen={settingsOpen}

@@ -31,15 +31,33 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
 
   // ===== Handle timer =====
   useEffect(() => {
-    const savedSeconds = parseInt(localStorage.getItem(`task-${task.id}-seconds`) || "0");
+    let savedSeconds = parseInt(localStorage.getItem(`task-${task.id}-seconds`) || "0");
+    const lastTick = parseInt(localStorage.getItem(`task-${task.id}-last-tick`) || "0");
+
+    // Reconcile elapsed time if the task was tracking in the background
+    if (!task.done && lastTick > 0) {
+      const passedSeconds = Math.floor((Date.now() - lastTick) / 1000);
+      if (passedSeconds > 0) {
+        savedSeconds += passedSeconds;
+        localStorage.setItem(`task-${task.id}-seconds`, savedSeconds.toString());
+      }
+    }
+    
     setSeconds(savedSeconds);
 
-    if (task.done) return;
+    if (task.done) {
+      // Clear the tracking anchor to prevent time jumps if the task is unmarked later
+      localStorage.removeItem(`task-${task.id}-last-tick`);
+      return;
+    }
+
+    localStorage.setItem(`task-${task.id}-last-tick`, Date.now().toString());
 
     const interval = setInterval(() => {
       setSeconds((prev) => {
         const newVal = prev + 1;
         localStorage.setItem(`task-${task.id}-seconds`, newVal.toString());
+        localStorage.setItem(`task-${task.id}-last-tick`, Date.now().toString());
         return newVal;
       });
     }, 1000);

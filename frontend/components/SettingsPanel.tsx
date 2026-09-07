@@ -5,6 +5,7 @@ import { INPUT_LENGTH } from "@/frontend/constants";
 
 import ItemPicker from "../modals/ItemPicker";
 import ConfirmModal, { ConfirmConfig } from "../modals/ConfirmModal";
+import { AnimatePresence } from "framer-motion";
 
 
 
@@ -169,20 +170,22 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
       </div>
 
 
-      {showProjectModal && (
-        <ItemPicker
-          title="Create Project"
-          inputMaxLength={INPUT_LENGTH.PROJECT_NAME}
-          includeColor={false}
-          existingNames={projects.map(p => p.name)}
-          onClose={(result) => {
-            setShowProjectModal(false);
-            if (result?.name) {
-              addProject(result.name);
-            }
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {showProjectModal && (
+          <ItemPicker
+            title="Create Project"
+            inputMaxLength={INPUT_LENGTH.PROJECT_NAME}
+            includeColor={false}
+            existingNames={projects.map(p => p.name)}
+            onClose={(result) => {
+              setShowProjectModal(false);
+              if (result?.name) {
+                addProject(result.name);
+              }
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {confirmConfig && (
         <ConfirmModal
