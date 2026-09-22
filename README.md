@@ -11,7 +11,7 @@ This repository demonstrates a unified monolithic structure where front-end UI a
 ### Tech Stack
 * **Core Framework:** Next.js 16 (App Router & Turbopack)
 * **UI & Client Components:** React 19 with optimistic state management
-* **Styling & Animations:** Custom Vanilla CSS and Framer Motion for fluid UX
+* **Styling & Animations:** Custom Vanilla CSS with responsive layout and Framer Motion for fluid UX
 * **Database:** PostgreSQL
 * **ORM & Data Queries:** Prisma ORM integrated via Next.js Server Actions (`"use server";`)
 
@@ -29,8 +29,8 @@ The project incorporates a clean separation of presentation, state management, a
   - **`authentication/`** → Login, registration forms, and Auth header UI
 - **`frontend/store/`** → Centralized Zustand global state management and isolated store slices
 - **`frontend/modals/`** → Popup dialogues and interactive item pickers wrapped in Framer Motion `AnimatePresence`
-- **`frontend/constants.ts`** → Centralized configuration, global animation variants, and UI tokens
 - **`frontend/styles/`** → Modular custom CSS stylesheets
+- **`frontend/constants.ts`** → Centralized configuration, global animation variants, and UI tokens
 - **`frontend/utils.ts`** → UI event propagation helpers, timestamp conversion, and user UUID management
 - **`public/assets/`** → Static media, icons, and interface SVGs
 

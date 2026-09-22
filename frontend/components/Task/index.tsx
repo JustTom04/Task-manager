@@ -1,4 +1,5 @@
 import { useState, useEffect, forwardRef } from "react";
+import { Reorder, useDragControls } from "framer-motion";
 
 import { secondsToReadable, stopAnd } from "@/frontend/utils"
 import Label from "../Label";
@@ -8,13 +9,15 @@ import useStore, { FrontendTask } from "@/frontend/store/useStore";
 
 interface TaskProps {
   task: FrontendTask;
+  onDragEnd?: () => void;
 }
 
-const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
+const Task = forwardRef<any, TaskProps>(({ task, onDragEnd }, ref) => {
+  const dragControls = useDragControls();
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
   const _deleteTaskLabel = useStore(s => s.deleteTaskLabel);
-  
+
   const toggleTask = () => _toggleTask(task.id);
   const deleteTask = () => _deleteTask(task.id);
   const deleteTaskLabel = (taskId: string, labelId: string) => _deleteTaskLabel(taskId, labelId);
@@ -42,7 +45,7 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
         localStorage.setItem(`task-${task.id}-seconds`, savedSeconds.toString());
       }
     }
-    
+
     setSeconds(savedSeconds);
 
     if (task.done) {
@@ -78,11 +81,34 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
 
   // ===== Return JSX =====
   return (
-    <div
+    <Reorder.Item
+      value={task}
+      dragListener={false} // Disable dragging on the whole item
+      dragControls={dragControls}
+      onDragEnd={onDragEnd}
       className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""}`}
       ref={ref}
-      onClick={() => !isEditing && setIsEditing(true)} 
+      onClick={() => !isEditing && setIsEditing(true)}
     >
+      {/* ===== Drag Handle ===== */}
+      {!isEditing && (
+        <div
+          className="task-drag-handle"
+          onPointerDown={(e) => {
+            useStore.getState().setDraggingTaskId(task.id);
+            dragControls.start(e);
+            if (navigator.vibrate) {
+              navigator.vibrate(50);
+            }
+          }}
+          onClick={(e) => e.stopPropagation()} // Prevent opening edit mode
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M10 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM10 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
+          </svg>
+        </div>
+      )}
+
       <div className="task-left-container">
         <div>
           {/* ===== EDIT MODE OR VIEW MODE ===== */}
@@ -92,7 +118,7 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
             <>
               {/* ===== Checkbox ===== */}
               <button
-                className={`task-button mark-btn ${task.done ? "completed": ""}`}
+                className={`task-button mark-btn ${task.done ? "completed" : ""}`}
                 onClick={stopAnd(toggleTask)}
               >
                 ✓ {task.done ? "Completed" : "Mark complete"}
@@ -148,7 +174,7 @@ const Task = forwardRef<HTMLDivElement, TaskProps>(({ task }, ref) => {
           </button>
         </div>
       )}
-    </div>
+    </Reorder.Item>
   );
 });
 

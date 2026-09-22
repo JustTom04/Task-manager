@@ -12,6 +12,7 @@ export interface FrontendTask {
   priority: string;
   labels: string[]; // Frontend only expects an array of label IDs
   projectId: string;
+  orderIndex: number;
 }
 
 export interface FrontendProject {
@@ -69,6 +70,9 @@ export interface TaskSlice {
   deleteTaskLabel: (taskId: string, labelId: string) => void;
   toggleLabelOnTask: (taskId: string, labelId: string) => void;
   updateTask: (id: string, updatedTask: Partial<FrontendTask>) => void;
+  reorderTasks: (newTasks: FrontendTask[]) => void;
+  draggingTaskId: string | null;
+  setDraggingTaskId: (id: string | null) => void;
 }
 
 export interface AppState extends ProjectSlice, LabelSlice, TaskSlice, ModalSlice {}

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 import { useClickOutside, getUserId } from "@/frontend/utils";
 import { INPUT_LENGTH } from "@/frontend/constants";
 import useStore from "@/frontend/store/useStore";
 import { useSession } from "next-auth/react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, Reorder } from "framer-motion";
 
 import Task from "@/frontend/components/Task";
 import ItemPicker from "@/frontend/modals/ItemPicker";
@@ -69,23 +69,41 @@ export default function Home() {
   const statusFilter = useStore((state) => state.statusFilter);
   const priorityFilter = useStore((state) => state.priorityFilter);
   const labelsFilter = useStore((state) => state.labelsFilter);
+  const reorderTasks = useStore((state) => state.reorderTasks);
+  const draggingTaskId = useStore((state) => state.draggingTaskId);
+  const setDraggingTaskId = useStore((state) => state.setDraggingTaskId);
 
   const activeProjectId = useStore((state) => state.activeProjectId);
   const actualProject = projects.find(p => p.id === activeProjectId);
-  const rawTasksList = actualProject?.tasks || [];
-  
-  const actualTasksList = rawTasksList.filter(task => {
-    if (statusFilter === "Finished" && !task.done) return false;
-    if (statusFilter === "On working" && task.done) return false;
-    if (priorityFilter && priorityFilter !== "ALL" && task.priority.toLowerCase() !== priorityFilter.toLowerCase()) return false;
-    if (labelsFilter && labelsFilter.length > 0) {
-      if (!task.labels.some(lId => labelsFilter.includes(lId))) return false;
+
+  const actualTasksList = useMemo(() => {
+    const raw = actualProject?.tasks || [];
+    return raw.filter(task => {
+      if (statusFilter === "Finished" && !task.done) return false;
+      if (statusFilter === "On working" && task.done) return false;
+      if (priorityFilter && priorityFilter !== "ALL" && task.priority.toLowerCase() !== priorityFilter.toLowerCase()) return false;
+      if (labelsFilter && labelsFilter.length > 0) {
+        if (!task.labels.some(lId => labelsFilter.includes(lId))) return false;
+      }
+      return true;
+    }).sort((a, b) => {
+      const diff = (a.orderIndex || 0) - (b.orderIndex || 0);
+      if (diff !== 0) return diff;
+      return a.id.localeCompare(b.id); // Stable fallback
+    });
+  }, [actualProject?.tasks, statusFilter, priorityFilter, labelsFilter]);
+
+  const [localTasks, setLocalTasks] = useState(actualTasksList);
+
+  useEffect(() => {
+    // Only update local array from global state if we are NOT currently dragging
+    if (!draggingTaskId) {
+      setLocalTasks(actualTasksList);
     }
-    return true;
-  });
+  }, [actualTasksList, draggingTaskId]);
 
   const actualLabelsList = actualProject?.labels || [];
-  
+
   const _addLabelToProject = useStore((state) => state.addLabelToProject);
   const addLabelToProject = (label) => _addLabelToProject(label);
 
@@ -169,17 +187,27 @@ export default function Home() {
             <p className="empty-state-text">No tasks match your current filters.</p>
           </div>
         ) : (
-          actualTasksList &&
-          actualTasksList.map((task, index) => {
-            const isLast = index === actualTasksList.length - 1;
-            return (
-              <Task
-                key={task.id}
-                task={task}
-                ref={isLast ? lastTaskRef : null}
-              />
-            );
-          })
+          <Reorder.Group
+            axis="y"
+            values={localTasks}
+            onReorder={setLocalTasks}
+            style={{ listStyleType: "none", padding: 0, margin: 0, width: "100%" }}
+          >
+            {localTasks.map((task, index) => {
+              const isLast = index === localTasks.length - 1;
+              return (
+                <Task
+                  key={task.id}
+                  task={task}
+                  ref={isLast ? lastTaskRef : null}
+                  onDragEnd={() => {
+                    reorderTasks(localTasks);
+                    setDraggingTaskId(null);
+                  }}
+                />
+              );
+            })}
+          </Reorder.Group>
         )}
       </div>
 
@@ -218,10 +246,10 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-        <SettingsPanel
-          isOpen={settingsOpen}
-          setIsOpen={setSettingsOpen}
-        />
+      <SettingsPanel
+        isOpen={settingsOpen}
+        setIsOpen={setSettingsOpen}
+      />
     </div>
   );
 }

@@ -40,6 +40,7 @@ dist-ssr
 
 # AI Agents
 AGENTS.md
+FramerMotion-DragAndDrop-WithAI/
 
 # TypeScript Cache
 tsconfig.tsbuildinfo

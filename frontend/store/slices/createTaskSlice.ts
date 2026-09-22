@@ -9,12 +9,14 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
   statusFilter: "ALL",
   priorityFilter: "ALL",
   isLoadingTasks: false,
+  draggingTaskId: null,
 
   setNewTitle: (val) => set({ newTitle: typeof val === 'function' ? val(get().newTitle) : val }),
   setNewPriority: (val) => set({ newPriority: typeof val === 'function' ? val(get().newPriority) : val }),
   setStatusFilter: (filter) => set({ statusFilter: filter }),
   setPriorityFilter: (filter) => set({ priorityFilter: filter }),
   setIsLoadingTasks: (loading) => set({ isLoadingTasks: loading }),
+  setDraggingTaskId: (id) => set({ draggingTaskId: id }),
 
   addTask: (newTitle, newPriority, selectedLabels) => {
     const activeUserId = get().activeUserId;
@@ -24,6 +26,9 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const { activeProjectId } = get();
     if (!activeProjectId) return;
 
+    const actualProject = get().projects.find(p => p.id === activeProjectId);
+    const maxOrder = actualProject?.tasks.reduce((max, t) => Math.max(max, t.orderIndex || 0), 0) || 0;
+
     const newTask: FrontendTask = {
       id: crypto.randomUUID(),
       title: newTitle,
@@ -31,6 +36,7 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
       priority: newPriority,
       labels: selectedLabels,
       projectId: activeProjectId,
+      orderIndex: maxOrder + 1,
     };
 
     createTask({ ...newTask, projectIds: [activeProjectId] }, activeUserId)
@@ -169,5 +175,55 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
           : p
       )
     }));
+  },
+
+  reorderTasks: (newFilteredOrder) => {
+    const { activeProjectId, draggingTaskId, projects } = get();
+    if (!activeProjectId || !draggingTaskId) return;
+
+    const actualProject = projects.find(p => p.id === activeProjectId);
+    if (!actualProject) return;
+
+    // 1. Find the new index of the dragged task in the visually sorted array
+    const newIndex = newFilteredOrder.findIndex(t => t.id === draggingTaskId);
+    if (newIndex === -1) return;
+
+    // 2. Calculate the Fractional orderIndex based on the new neighbors
+    const prevItem = newFilteredOrder[newIndex - 1];
+    const nextItem = newFilteredOrder[newIndex + 1];
+
+    let newOrderIndex = 0;
+    if (prevItem && nextItem) {
+      newOrderIndex = ((prevItem.orderIndex || 0) + (nextItem.orderIndex || 0)) / 2.0;
+    } else if (prevItem) {
+      newOrderIndex = (prevItem.orderIndex || 0) + 1.0; // Moved to very bottom
+    } else if (nextItem) {
+      newOrderIndex = (nextItem.orderIndex || 0) - 1.0; // Moved to very top
+    }
+
+    // 3. Update ONLY the dragged task's orderIndex in the GLOBAL array, and sort it.
+    set((state) => ({
+      projects: state.projects.map((p) =>
+        p.id === activeProjectId
+          ? {
+              ...p,
+              tasks: p.tasks
+                .map(t => t.id === draggingTaskId ? { ...t, orderIndex: newOrderIndex } : t)
+                .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+            }
+          : p
+      )
+    }));
+
+    // 4. Save to backend asynchronously
+    const activeUserId = get().activeUserId;
+    if (activeUserId) {
+      updateTaskAction(draggingTaskId, { orderIndex: newOrderIndex }, activeUserId)
+        .then(() => console.log("✅ Task order updated in database"))
+        .catch((err) => {
+          console.error("❌ Failed to update task order in database:", err);
+          // Optional: Handle rollback here if necessary in the future
+        });
+    }
   }
 });

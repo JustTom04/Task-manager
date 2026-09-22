@@ -63,7 +63,7 @@ export function useClickOutside(refs: RefObject<HTMLElement | null> | RefObject<
 
 
 export function useDropdownPosition(buttonRef: RefObject<HTMLElement | null>, labelsOpen: boolean) {
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     if (labelsOpen && buttonRef.current) {
@@ -72,6 +72,7 @@ export function useDropdownPosition(buttonRef: RefObject<HTMLElement | null>, la
       setDropdownPos({
         top: rect.bottom + window.scrollY,
         left: rect.left + window.scrollX,
+        width: rect.width,
       });
     }
   }, [labelsOpen, buttonRef]);

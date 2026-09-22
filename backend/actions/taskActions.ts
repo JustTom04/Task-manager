@@ -68,7 +68,7 @@ export async function getFilteredTasks(projectId: string, filters: FilterArgs, u
     const tasks = await prisma.task.findMany({
       where: whereClause,
       include: { labels: true },
-      orderBy: { createdAt: 'asc' }, // Ensure consistent ordering
+      orderBy: { orderIndex: 'asc' }, // Ensure consistent ordering
     });
 
     console.log(`[SERVER ACTION] Fetched filtered tasks for project ${projectId}. Count: ${tasks.length}`);
@@ -92,12 +92,13 @@ interface CreateTaskArgs {
   labels?: string[];
   projectId?: string;
   projectIds?: string[];
+  orderIndex?: number;
 }
 
 /**
  * Create a new task and link any attached labels
  */
-export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds }: CreateTaskArgs, userId: string) {
+export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds, orderIndex = 0 }: CreateTaskArgs, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
@@ -123,6 +124,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
         done,
         priority: priority || "low",
         projectId: activeProjectId,
+        orderIndex,
         labels: { connect: connectLabels },
       },
       include: { labels: true },

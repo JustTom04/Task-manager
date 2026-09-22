@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useClickOutside, useDropdownPosition, stopAnd } from "@/frontend/utils";
 import "../styles/components/customDropdown.css";
 
@@ -15,13 +16,15 @@ interface CustomDropdownProps {
   customTitle?: string | React.ReactNode;
   icon?: string;
   wrapperClass?: string;
+  portalRef?: React.RefObject<HTMLUListElement | null>;
 }
 
-function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass }: CustomDropdownProps) {
+function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass, portalRef }: CustomDropdownProps) {
   
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const dropdownRef = useRef(null);
+  const internalDropdownRef = useRef(null);
+  const dropdownRef = portalRef || internalDropdownRef;
 
 
   const selectedOption = options?.find(opt => opt.value === value);
@@ -49,19 +52,34 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle, ic
 
       {open && (
         customPanel ? (
+          // Custom panels might already be portaled or positioned by the caller
           customPanel({ close: () => setOpen(false), ref: dropdownRef, position: dropdownPos })
         ) : (
-          <ul className="dropdown-filter dropdown">
-            {options.map((opt) => (
-              <li
-                key={opt.value}
-                className={opt.value === value ? "selected" : ""}
-                onClick={stopAnd(() => { onChange(opt.value); setOpen(false); })}
-              >
-                {opt.label}
-              </li>
-            ))}
-          </ul>
+          createPortal(
+            <ul 
+              className="dropdown-filter dropdown" 
+              ref={dropdownRef}
+              style={{
+                top: `${dropdownPos.top}px`,
+                left: `${dropdownPos.left}px`,
+                width: `${dropdownPos.width}px`,
+                position: "absolute",
+                margin: 0,
+                marginTop: "4px"
+              }}
+            >
+              {options.map((opt) => (
+                <li
+                  key={opt.value}
+                  className={opt.value === value ? "selected" : ""}
+                  onClick={stopAnd(() => { onChange(opt.value); setOpen(false); })}
+                >
+                  {opt.label}
+                </li>
+              ))}
+            </ul>,
+            document.body
+          )
         )
       )}
     </div>

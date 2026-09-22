@@ -30,11 +30,12 @@ export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
   const labelButtonRef = useRef<HTMLButtonElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const editContainerRef = useRef<HTMLDivElement>(null);
+  const priorityDropdownRef = useRef<HTMLUListElement>(null);
 
   const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen);
 
   useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
-  useClickOutside([editContainerRef, labelsRef], () => closeEdit());
+  useClickOutside([editContainerRef, labelsRef, priorityDropdownRef], () => closeEdit());
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -83,6 +84,7 @@ export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
               wrapperClass="priority-dropdown"
               onChange={setEditedPriority}
               options={DROPDOWN_OPTIONS.PRIORITY}
+              portalRef={priorityDropdownRef}
             />
             <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
             <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>
@@ -106,6 +108,7 @@ export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
               wrapperClass="priority-dropdown"
               onChange={setEditedPriority}
               options={DROPDOWN_OPTIONS.PRIORITY}
+              portalRef={priorityDropdownRef}
             />
           </div>
           <div className="mobile-bottom-row">
@@ -153,6 +156,7 @@ export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
             { value: "mid", label: "Mid" },
             { value: "low", label: "Low" }
           ]}
+          portalRef={priorityDropdownRef}
         />
         <button className="task-button done" onClick={stopAnd(saveEdit)}>Save</button>
         <button className="task-button undone" onClick={stopAnd(cancelEdit)}>Cancel</button>

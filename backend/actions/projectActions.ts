@@ -41,7 +41,7 @@ export async function getProjects(userId: string) {
         labels: true,
         tasks: {
           include: { labels: true },
-          orderBy: { createdAt: 'asc' }
+          orderBy: { orderIndex: 'asc' }
         }
       },
     });
