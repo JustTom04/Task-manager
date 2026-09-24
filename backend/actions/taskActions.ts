@@ -158,7 +158,7 @@ export async function updateTask(taskId: string, updatedData: Partial<FrontendTa
       throw new Error("Unauthorized to update this task");
     }
 
-    const prismaUpdateData = { ...updatedData };
+    const prismaUpdateData: any = { ...updatedData };
 
     // Remove virtual fields from update payload to prevent Prisma schema validation errors
     if (prismaUpdateData.projectIds) {
