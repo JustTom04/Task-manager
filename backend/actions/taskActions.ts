@@ -2,6 +2,7 @@
 
 import prisma from "@/backend/lib/prisma";
 import { verifyUserAccess } from "@/backend/lib/authHelper";
+import { FrontendTask } from "@/frontend/store/types";
 
 /**
  * Get all tasks for a given user
