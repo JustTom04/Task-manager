@@ -201,6 +201,9 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
       newOrderIndex = (nextItem.orderIndex || 0) - 1.0; // Moved to very top
     }
 
+    // SNAPSHOT: Take a snapshot of the current state before we optimistically update
+    const previousProjectsSnapshot = projects;
+
     // 3. Update ONLY the dragged task's orderIndex in the GLOBAL array, and sort it.
     set((state) => ({
       projects: state.projects.map((p) =>
@@ -222,7 +225,10 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
         .then(() => console.log("✅ Task order updated in database"))
         .catch((err) => {
           console.error("❌ Failed to update task order in database:", err);
-          // Optional: Handle rollback here if necessary in the future
+          
+          // ROLLBACK: Revert to the snapshot if the backend fails
+          set({ projects: previousProjectsSnapshot });
+          alert("Network error: couldn't save task order. Changes reverted.");
         });
     }
   }

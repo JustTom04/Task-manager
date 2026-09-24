@@ -144,7 +144,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
 /**
  * Update an existing task (title, done status, priority, or attached labels)
  */
-export async function updateTask(taskId: string, updatedData: any, userId: string) {
+export async function updateTask(taskId: string, updatedData: Partial<FrontendTask>, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 

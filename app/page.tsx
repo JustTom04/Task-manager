@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
 import { useClickOutside, getUserId } from "@/frontend/utils";
 import { INPUT_LENGTH } from "@/frontend/constants";
@@ -62,7 +62,8 @@ export default function Home() {
   // ===== Ref =====
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
-  const lastTaskRef = useRef(null);
+  const lastTaskRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const fetchProjects = useStore((state) => state.fetchProjects);
   const projects = useStore((state) => state.projects);
@@ -94,6 +95,12 @@ export default function Home() {
   }, [actualProject?.tasks, statusFilter, priorityFilter, labelsFilter]);
 
   const [localTasks, setLocalTasks] = useState(actualTasksList);
+  const localTaskIds = useMemo(() => localTasks.map(t => t.id), [localTasks]);
+
+  const seenTaskIds = useRef(new Set(actualTasksList.map(t => t.id)));
+  useEffect(() => {
+    actualTasksList.forEach(task => seenTaskIds.current.add(task.id));
+  }, [actualTasksList]);
 
   useEffect(() => {
     // Only update local array from global state if we are NOT currently dragging
@@ -188,17 +195,24 @@ export default function Home() {
           </div>
         ) : (
           <Reorder.Group
+            ref={listRef}
             axis="y"
-            values={localTasks}
-            onReorder={setLocalTasks}
-            style={{ listStyleType: "none", padding: 0, margin: 0, width: "100%" }}
+            values={localTaskIds}
+            onReorder={(newIds) => {
+              const reordered = newIds.map(id => localTasks.find(t => t.id === id)).filter(Boolean) as typeof localTasks;
+              setLocalTasks(reordered);
+            }}
+            style={{ listStyleType: "none", padding: 0, margin: 0, width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}
           >
             {localTasks.map((task, index) => {
               const isLast = index === localTasks.length - 1;
+              const isNew = !seenTaskIds.current.has(task.id);
               return (
                 <Task
                   key={task.id}
                   task={task}
+                  isNew={isNew}
+                  listRef={listRef}
                   ref={isLast ? lastTaskRef : null}
                   onDragEnd={() => {
                     reorderTasks(localTasks);

@@ -10,13 +10,18 @@ import useStore, { FrontendTask } from "@/frontend/store/useStore";
 interface TaskProps {
   task: FrontendTask;
   onDragEnd?: () => void;
+  isNew?: boolean;
+  listRef?: React.RefObject<any>;
 }
 
-const Task = forwardRef<any, TaskProps>(({ task, onDragEnd }, ref) => {
+const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, ref) => {
   const dragControls = useDragControls();
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
   const _deleteTaskLabel = useStore(s => s.deleteTaskLabel);
+  const draggingTaskId = useStore(s => s.draggingTaskId);
+
+  const isDragging = draggingTaskId === task.id;
 
   const toggleTask = () => _toggleTask(task.id);
   const deleteTask = () => _deleteTask(task.id);
@@ -79,14 +84,27 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd }, ref) => {
     }, 380); // Wait for CSS animation
   };
 
+  // Ideiglenes logolás a z-index megfigyelésére
+  useEffect(() => {
+    const el = document.getElementById(`task-${task.id}`);
+    const computedZIndex = el ? window.getComputedStyle(el).zIndex : "N/A";
+    console.log(`Task ID: ${task.id} | isDragging: ${isDragging} | computed zIndex (DOM szerint): ${computedZIndex}`);
+  }, [isDragging, task.id]);
+
   // ===== Return JSX =====
   return (
     <Reorder.Item
-      value={task}
+      id={`task-${task.id}`}
+      value={task.id}
       dragListener={false} // Disable dragging on the whole item
       dragControls={dragControls}
+      dragConstraints={listRef}
       onDragEnd={onDragEnd}
-      className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""}`}
+      initial={isNew ? { opacity: 0 } : false}
+      animate={{ opacity: 1, scale: isDragging ? 1.01 : 1, zIndex: isDragging ? 5000000 : 0 }}
+      transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 }, zIndex: { duration: 0 }, layout: { type: "tween", duration: 0.2, ease: "easeOut" } }}
+      style={{ position: "relative" }}
+      className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""} ${isDragging ? "dragging" : ""}`}
       ref={ref}
       onClick={() => !isEditing && setIsEditing(true)}
     >
@@ -95,11 +113,23 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd }, ref) => {
         <div
           className="task-drag-handle"
           onPointerDown={(e) => {
+            e.preventDefault(); // Critical to prevent selection and drag lock
             useStore.getState().setDraggingTaskId(task.id);
             dragControls.start(e);
             if (navigator.vibrate) {
               navigator.vibrate(50);
             }
+
+            const handlePointerUp = () => {
+              setTimeout(() => {
+                const currentDragging = useStore.getState().draggingTaskId;
+                if (currentDragging === task.id) {
+                  useStore.getState().setDraggingTaskId(null);
+                }
+              }, 50);
+              window.removeEventListener('pointerup', handlePointerUp);
+            };
+            window.addEventListener('pointerup', handlePointerUp);
           }}
           onClick={(e) => e.stopPropagation()} // Prevent opening edit mode
         >
