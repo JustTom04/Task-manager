@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from "react";
+import { useState, useEffect, forwardRef, useRef } from "react";
 import { Reorder, useDragControls } from "framer-motion";
 
 import { secondsToReadable, stopAnd } from "@/frontend/utils"
@@ -36,6 +36,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const preventClickRef = useRef(false);
 
   // ===== Handle timer =====
   useEffect(() => {
@@ -98,13 +99,21 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
       transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
       className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""} ${isDragging ? "dragging" : ""}`}
       ref={ref}
-      onClick={() => !isEditing && setIsEditing(true)}
+      onClick={(e) => {
+        // If the click started in the drag handle, prevent opening edit mode
+        if (preventClickRef.current) {
+          return;
+        }
+        if (!isEditing) setIsEditing(true);
+      }}
     >
       {/* ===== Drag Handle ===== */}
       {!isEditing && (
         <div
           className="task-drag-handle"
           onPointerDown={(e) => {
+            preventClickRef.current = true; // Mark that mousedown started on the drag handle
+            e.stopPropagation();
             e.preventDefault(); // Critical to prevent selection and drag lock
             useStore.getState().setDraggingTaskId(task.id);
             dragControls.start(e);
@@ -118,6 +127,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
                 if (currentDragging === task.id) {
                   useStore.getState().setDraggingTaskId(null);
                 }
+                preventClickRef.current = false; // Reset the flag shortly after release
               }, 50);
               window.removeEventListener('pointerup', handlePointerUp);
             };
