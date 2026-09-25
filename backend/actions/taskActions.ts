@@ -13,7 +13,12 @@ export async function getTasks(userId: string) {
 
     const tasks = await prisma.task.findMany({
       where: {
-        project: { userId: actorId },
+        project: {
+          OR: [
+            { userId: actorId },
+            { collaborators: { some: { userId: actorId } } }
+          ]
+        },
       },
       include: { labels: true, project: true },
     });
@@ -38,10 +43,14 @@ export async function getFilteredTasks(projectId: string, filters: FilterArgs, u
   try {
     const actorId = await verifyUserAccess(userId);
 
-    // Construct dynamic filter parameters based on frontend selections
     const whereClause: any = {
       projectId: projectId,
-      project: { userId: actorId },
+      project: {
+        OR: [
+          { userId: actorId },
+          { collaborators: { some: { userId: actorId } } }
+        ]
+      },
     };
 
     if (filters) {
@@ -109,8 +118,19 @@ export async function createTask({ id, title, done = false, priority, labels = [
     }
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ where: { id: activeProjectId } });
-    if (!project || project.userId !== actorId) {
+    const project = await prisma.project.findUnique({ 
+      where: { id: activeProjectId },
+      include: { collaborators: true }
+    });
+    
+    if (!project) {
+      throw new Error("Project not found");
+    }
+    
+    const isOwner = project.userId === actorId;
+    const isCollaborator = project.collaborators.some(c => c.userId === actorId);
+    
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to add tasks to this project");
     }
 
@@ -152,9 +172,21 @@ export async function updateTask(taskId: string, updatedData: Partial<FrontendTa
     // Ensure actor has authorization to modify the parent project
     const task = await prisma.task.findUnique({ 
       where: { id: taskId }, 
-      include: { project: true } 
+      include: { 
+        project: {
+          include: { collaborators: true }
+        }
+      } 
     });
-    if (!task || task.project.userId !== actorId) {
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    const isOwner = task.project.userId === actorId;
+    const isCollaborator = task.project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to update this task");
     }
 
@@ -199,9 +231,21 @@ export async function deleteTask(taskId: string, userId: string) {
     // Verify task ownership via project
     const task = await prisma.task.findUnique({ 
       where: { id: taskId }, 
-      include: { project: true } 
+      include: { 
+        project: {
+          include: { collaborators: true }
+        }
+      } 
     });
-    if (!task || task.project.userId !== actorId) {
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    const isOwner = task.project.userId === actorId;
+    const isCollaborator = task.project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete this task");
     }
 
@@ -224,8 +268,19 @@ export async function deleteAllTasks(projectId: string, userId: string) {
     const actorId = await verifyUserAccess(userId);
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== actorId) {
+    const project = await prisma.project.findUnique({ 
+      where: { id: projectId },
+      include: { collaborators: true }
+    });
+    
+    if (!project) {
+      throw new Error("Project not found");
+    }
+    
+    const isOwner = project.userId === actorId;
+    const isCollaborator = project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete tasks in this project");
     }
 
