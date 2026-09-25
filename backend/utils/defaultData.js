@@ -23,41 +23,49 @@ function getDefaultProjectsData() {
                         {
                             title: 'Hire Imre as a Developer! 🚀',
                             priority: 'high',
+                            orderIndex: 1,
                             labels: { connect: [{ id: labelUrgentId }, { id: labelReviewId }] } // 2 labels on one task!
                         },
                         {
                             title: 'Test the Anonymous Session functionality',
                             priority: 'high',
                             done: true,
+                            orderIndex: 2,
                             labels: { connect: [{ id: labelBackendId }] }
                         },
                         {
                             title: 'Check out the React source code on GitHub',
                             priority: 'mid',
+                            orderIndex: 3,
                             labels: { connect: [{ id: labelFrontendId }] }
                         },
                         {
                             title: 'Create your own custom label and assign it',
                             priority: 'mid',
+                            orderIndex: 4,
                             labels: { connect: [{ id: labelFrontendId }] }
                         },
                         {
                             title: 'Try deleting this specific task',
-                            priority: 'low'
+                            priority: 'low',
+                            orderIndex: 5
                         },
                         {
                             title: 'Rename this project by clicking on its title',
                             priority: 'low',
-                            done: true
+                            done: true,
+                            orderIndex: 6
                         },
                         {
                             title: 'Change the priority of a task',
                             priority: 'mid',
+                            orderIndex: 7,
                             labels: { connect: [{ id: labelReviewId }] }
                         },
                         {
                             title: 'Create a new project',
-                            priority: 'mid'
+                            priority: 'mid',
+                            orderIndex: 8
                         }
                     ]
                 }

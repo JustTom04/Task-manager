@@ -84,13 +84,6 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
     }, 380); // Wait for CSS animation
   };
 
-  // Ideiglenes logolás a z-index megfigyelésére
-  useEffect(() => {
-    const el = document.getElementById(`task-${task.id}`);
-    const computedZIndex = el ? window.getComputedStyle(el).zIndex : "N/A";
-    console.log(`Task ID: ${task.id} | isDragging: ${isDragging} | computed zIndex (DOM szerint): ${computedZIndex}`);
-  }, [isDragging, task.id]);
-
   // ===== Return JSX =====
   return (
     <Reorder.Item
@@ -101,9 +94,8 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
       dragConstraints={listRef}
       onDragEnd={onDragEnd}
       initial={isNew ? { opacity: 0 } : false}
-      animate={{ opacity: 1, scale: isDragging ? 1.01 : 1, zIndex: isDragging ? 5000000 : 0 }}
-      transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 }, zIndex: { duration: 0 }, layout: { type: "tween", duration: 0.2, ease: "easeOut" } }}
-      style={{ position: "relative" }}
+      animate={{ opacity: 1, scale: isDragging ? 1.01 : 1 }}
+      transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
       className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""} ${isDragging ? "dragging" : ""}`}
       ref={ref}
       onClick={() => !isEditing && setIsEditing(true)}

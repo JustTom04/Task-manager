@@ -81,7 +81,7 @@ export default function Home() {
     const raw = actualProject?.tasks || [];
     return raw.filter(task => {
       if (statusFilter === "Finished" && !task.done) return false;
-      if (statusFilter === "On working" && task.done) return false;
+      if (statusFilter === "In progress" && task.done) return false;
       if (priorityFilter && priorityFilter !== "ALL" && task.priority.toLowerCase() !== priorityFilter.toLowerCase()) return false;
       if (labelsFilter && labelsFilter.length > 0) {
         if (!task.labels.some(lId => labelsFilter.includes(lId))) return false;

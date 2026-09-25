@@ -19,7 +19,7 @@ export const DROPDOWN_OPTIONS = {
   STATUS_FILTER: [
     { value: "ALL", label: "All status" },
     { value: "Finished", label: "Finished" },
-    { value: "On working", label: "On working" },
+    { value: "In progress", label: "In progress" },
   ],
 };
 

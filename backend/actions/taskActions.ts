@@ -47,7 +47,7 @@ export async function getFilteredTasks(projectId: string, filters: FilterArgs, u
     if (filters) {
       if (filters.status === "Finished") {
         whereClause.done = true;
-      } else if (filters.status === "On working") {
+      } else if (filters.status === "In progress") {
         whereClause.done = false;
       }
 

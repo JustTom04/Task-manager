@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand';
 import { AppState, ProjectSlice, FrontendProject } from '../types';
 import { INPUT_LENGTH } from '@/frontend/constants';
 import { getProjects, createProject, deleteProject as deleteProjectAction, updateProject as updateProjectAction } from "@/backend/actions/projectActions";
+import { updateTask as updateTaskAction } from "@/backend/actions/taskActions";
 
 export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
@@ -30,6 +31,31 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
           const generalProject = projectsTree.splice(generalIndex, 1)[0];
           projectsTree.unshift(generalProject);
         }
+
+        // --- DATA MIGRATION: Auto-fix orderIndex for old tasks ---
+        projectsTree.forEach((project: any) => {
+          let needsProjectFix = false;
+          const seenOrders = new Set();
+          
+          project.tasks.forEach((t: any) => {
+            // If orderIndex is missing, exactly 0, or a duplicate of another task
+            if (!t.orderIndex || t.orderIndex === 0 || seenOrders.has(t.orderIndex)) {
+              needsProjectFix = true;
+            }
+            seenOrders.add(t.orderIndex);
+          });
+
+          if (needsProjectFix && project.tasks.length > 0) {
+            console.log(`[Data Migration] Auto-fixing orderIndex for project: ${project.name}`);
+            project.tasks.forEach((t: any, index: number) => {
+               const newOrder = index + 1;
+               t.orderIndex = newOrder;
+               // Silently update the backend in the background
+               updateTaskAction(t.id, { orderIndex: newOrder }, activeUserId).catch(() => {});
+            });
+          }
+        });
+        // ---------------------------------------------------------
 
         set({ projects: projectsTree as unknown as FrontendProject[] });
 
