@@ -1,0 +1,1 @@
+import prisma from './backend/lib/prisma'; import { getDefaultProjectsData } from './backend/utils/defaultData'; async function main() { try { const user = await prisma.user.create({ data: { id: require('crypto').randomUUID(), projects: getDefaultProjectsData() } }); console.log('OK'); } catch (e) { console.error(e); } finally { await prisma.$disconnect(); } } main();

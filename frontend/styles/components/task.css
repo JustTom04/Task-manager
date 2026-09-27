@@ -18,6 +18,20 @@
 
 
 
+.task-item.new-task {
+  animation: fadeInTask 0.35s ease-out forwards;
+}
+
+@keyframes fadeInTask {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 /* ===== Task elem ===== */
 .task-item>* {
   position: relative;

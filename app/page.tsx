@@ -97,10 +97,10 @@ export default function Home() {
   const [localTasks, setLocalTasks] = useState(actualTasksList);
   const localTaskIds = useMemo(() => localTasks.map(t => t.id), [localTasks]);
 
-  const seenTaskIds = useRef(new Set(actualTasksList.map(t => t.id)));
+  const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));
   useEffect(() => {
-    actualTasksList.forEach(task => seenTaskIds.current.add(task.id));
-  }, [actualTasksList]);
+    localTasks.forEach(task => seenTaskIds.current.add(task.id));
+  }, [localTasks]);
 
   useEffect(() => {
     // Only update local array from global state if we are NOT currently dragging
@@ -204,23 +204,25 @@ export default function Home() {
             }}
             style={{ listStyleType: "none", padding: 0, margin: 0, width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}
           >
-            {localTasks.map((task, index) => {
-              const isLast = index === localTasks.length - 1;
-              const isNew = !seenTaskIds.current.has(task.id);
-              return (
-                <Task
-                  key={task.id}
-                  task={task}
-                  isNew={isNew}
-                  listRef={listRef}
-                  ref={isLast ? lastTaskRef : null}
-                  onDragEnd={() => {
-                    reorderTasks(localTasks);
-                    setDraggingTaskId(null);
-                  }}
-                />
-              );
-            })}
+            <AnimatePresence mode="popLayout">
+              {localTasks.map((task, index) => {
+                const isLast = index === localTasks.length - 1;
+                const isNew = !seenTaskIds.current.has(task.id);
+                return (
+                  <Task
+                    key={task.id}
+                    task={task}
+                    isNew={isNew}
+                    listRef={listRef}
+                    ref={isLast ? lastTaskRef : null}
+                    onDragEnd={() => {
+                      reorderTasks(localTasks);
+                      setDraggingTaskId(null);
+                    }}
+                  />
+                );
+              })}
+            </AnimatePresence>
           </Reorder.Group>
         )}
       </div>

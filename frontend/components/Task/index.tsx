@@ -35,7 +35,6 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
   // ===== States =====
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
   const preventClickRef = useRef(false);
 
   // ===== Handle timer =====
@@ -79,25 +78,28 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
   const color = colorMap[task.priority] || "green";
 
   const handleDelete = () => {
-    setIsDeleting(true);
-    setTimeout(() => {
-      deleteTask();
-    }, 380); // Wait for CSS animation
+    deleteTask();
   };
+
 
   // ===== Return JSX =====
   return (
     <Reorder.Item
+      layout="position"
       id={`task-${task.id}`}
       value={task.id}
       dragListener={false} // Disable dragging on the whole item
       dragControls={dragControls}
       dragConstraints={listRef}
       onDragEnd={onDragEnd}
-      initial={isNew ? { opacity: 0 } : false}
-      animate={{ opacity: 1, scale: isDragging ? 1.01 : 1 }}
-      transition={{ opacity: { duration: 0.2 }, scale: { duration: 0.15 } }}
-      className={`task-item ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDeleting ? "deleting" : ""} ${isDragging ? "dragging" : ""}`}
+      animate={{ scale: isDragging ? 1.01 : 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{
+        scale: { duration: 0.25 },
+        layout: { type: "tween", ease: "easeOut", duration: 0.25 },
+        opacity: { duration: 0.3 }
+      }}
+      className={`task-item ${isNew ? "new-task" : ""} ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDragging ? "dragging" : ""}`}
       ref={ref}
       onClick={(e) => {
         // If the click started in the drag handle, prevent opening edit mode
