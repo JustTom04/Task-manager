@@ -35,6 +35,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   const [showProjectModal, setShowProjectModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [copiedProjectId, setCopiedProjectId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
 
@@ -158,32 +159,38 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 </button>
               )}
               {p.name !== "General" && (
-                <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    if (!activeUserId) return;
+                <div style={{ position: "relative", display: "flex" }}>
+                  <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      if (!activeUserId) return;
 
-                    try {
-                      // 1. Backend: Generate the code
-                      const code = await generateShareCode(p.id, activeUserId);
+                      try {
+                        const code = await generateShareCode(p.id, activeUserId);
+                        await useStore.getState().fetchProjects();
+                        await navigator.clipboard.writeText(code);
 
-                      // 2. SZÓLUNK A FRONTENDNEK, HOGY KÉRJE LE AZ ÚJ ADATOKAT:
-                      await useStore.getState().fetchProjects();
-
-                      // 3. Frontend: Copy to clipboard
-                      await navigator.clipboard.writeText(code);
-
-                      alert(`✅ Success! The share code for ${p.name} (${code}) has been copied to your clipboard!\n\nPress Ctrl + V to paste it.`);
-                      console.log("Projekt:", p);
-                    } catch (error: any) {
-                      alert("Error generating share code: " + error.message);
-                    }
-                  }}
-                  data-tooltip="Share Project"
-                >
-                  🔗
-                </button>
+                        setCopiedProjectId(p.id);
+                        setTimeout(() => {
+                          setCopiedProjectId((current) => current === p.id ? null : current);
+                        }, 2000);
+                        
+                        console.log("Projekt:", p);
+                      } catch (error: any) {
+                        alert("Error generating share code: " + error.message);
+                      }
+                    }}
+                    data-tooltip="Share Project"
+                  >
+                    🔗
+                  </button>
+                  {copiedProjectId === p.id && (
+                    <div className="copy-popup">
+                      Code copied!
+                    </div>
+                  )}
+                </div>
               )}
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
@@ -245,8 +252,11 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
         <JoinProjectModal
           onJoin={async (code) => {
             if (!activeUserId) return;
-            await joinProjectByCode(code, activeUserId);
+            const result = await joinProjectByCode(code, activeUserId);
             await useStore.getState().fetchProjects(); // Reload projects to show the new one
+            if (result && result.projectId) {
+              onSelectProject(result.projectId);
+            }
             setShowJoinModal(false);
           }}
           onCancel={() => setShowJoinModal(false)}

@@ -49,6 +49,7 @@ export async function getProjects(userId: string) {
           orderBy: { orderIndex: 'asc' }
         }
       },
+      orderBy: { createdAt: 'asc' }
     });
 
     // Format projects and their tasks
@@ -236,9 +237,20 @@ export async function generateShareCode(projectId: string, userId: string) {
   try {
     const actorId = await verifyUserAccess(userId);
 
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    const project = await prisma.project.findUnique({ 
+      where: { id: projectId },
+      include: { collaborators: true }
+    });
     if (!project) throw new Error("Project not found");
-    if (project.userId !== actorId) throw new Error("Only the owner can generate a share code.");
+    
+    const isOwner = project.userId === actorId;
+    const isCollaborator = project.collaborators.some(c => c.userId === actorId);
+    if (!isOwner && !isCollaborator) throw new Error("Unauthorized to access share code.");
+
+    // If a code already exists, simply return it instead of generating a new one
+    if (project.shareCode) {
+      return project.shareCode;
+    }
 
     // Generate a 6-character random alphanumeric code
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
