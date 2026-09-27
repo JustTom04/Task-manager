@@ -95,6 +95,13 @@ export default function Home() {
   }, [actualProject?.tasks, statusFilter, priorityFilter, labelsFilter]);
 
   const [localTasks, setLocalTasks] = useState(actualTasksList);
+  const [prevProjectId, setPrevProjectId] = useState(actualProject?.id);
+
+  if (actualProject?.id !== prevProjectId) {
+    setLocalTasks(actualTasksList);
+    setPrevProjectId(actualProject?.id);
+  }
+
   const localTaskIds = useMemo(() => localTasks.map(t => t.id), [localTasks]);
 
   const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));

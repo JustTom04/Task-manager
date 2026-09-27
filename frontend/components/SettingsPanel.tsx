@@ -143,23 +143,23 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
             <div style={{ display: "flex", gap: "5px" }}>
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
-                  onMouseDown={(e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
-                    e.preventDefault(); // Prevents input from losing focus if we want, or just let it fire before blur
+                    e.preventDefault(); 
                     if (editingProjectId === p.id) {
                       handleEditSubmit(p.id, p.name);
                     } else {
                       startEditing(p);
                     }
                   }}
-                  title={editingProjectId === p.id ? "Save" : "Rename"}
+                  data-tooltip={editingProjectId === p.id ? "Save" : "Rename"}
                 >
                   {editingProjectId === p.id ? "💾" : "✏️"}
                 </button>
               )}
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
-                  onMouseDown={async (e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     if (!activeUserId) return;
@@ -180,14 +180,14 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                       alert("Error generating share code: " + error.message);
                     }
                   }}
-                  title="Share Project"
+                  data-tooltip="Share Project"
                 >
                   🔗
                 </button>
               )}
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
-                  onMouseDown={(e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                     if (editingProjectId === p.id) {
@@ -200,7 +200,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                       });
                     }
                   }}
-                  title={editingProjectId === p.id ? "Cancel" : "Delete"}
+                  data-tooltip={editingProjectId === p.id ? "Cancel" : "Delete"}
                 >
                   {editingProjectId === p.id ? "✖️" : "❌"}
                 </button>
