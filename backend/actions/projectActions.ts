@@ -19,7 +19,7 @@ export async function getProjects(userId: string) {
         user = await prisma.user.create({
           data: {
             id: actorId,
-            projects: getDefaultProjectsData() as any,
+            ownedProjects: getDefaultProjectsData() as any,
           },
         });
         console.log(`[AUTH] Created new anonymous user: ${actorId} with default data.`);
@@ -36,7 +36,12 @@ export async function getProjects(userId: string) {
     }
 
     let projects = await prisma.project.findMany({
-      where: { userId: actorId },
+      where: {
+        OR: [
+          { userId: actorId },
+          { collaborators: { some: { userId: actorId } } }
+        ]
+      },
       include: {
         labels: true,
         tasks: {
@@ -221,5 +226,77 @@ export async function updateProject({ id, name, userId }: UpdateProjectArgs) {
   } catch (error: any) {
     console.error("[SERVER ACTION ERROR: updateProject]", error);
     throw new Error(error.message || "Failed to update project");
+  }
+}
+
+/**
+ * Generate a new share code for a project. Only the owner can do this.
+ */
+export async function generateShareCode(projectId: string, userId: string) {
+  try {
+    const actorId = await verifyUserAccess(userId);
+
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (!project) throw new Error("Project not found");
+    if (project.userId !== actorId) throw new Error("Only the owner can generate a share code.");
+
+    // Generate a 6-character random alphanumeric code
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+
+    // Update the project with the new code
+    const updated = await prisma.project.update({
+      where: { id: projectId },
+      data: { shareCode: code }
+    });
+
+    return updated.shareCode;
+  } catch (error: any) {
+    console.error("[SERVER ACTION ERROR: generateShareCode]", error);
+    throw new Error(error.message || "Failed to generate share code");
+  }
+}
+
+/**
+ * Join a project using a share code.
+ */
+export async function joinProjectByCode(code: string, userId: string) {
+  if (!code || !code.trim()) throw new Error("Share code is required");
+  
+  try {
+    const actorId = await verifyUserAccess(userId);
+    const trimmedCode = code.trim().toUpperCase();
+
+    const project = await prisma.project.findUnique({ where: { shareCode: trimmedCode } });
+    
+    if (!project) {
+      throw new Error("Invalid share code. Project not found.");
+    }
+
+    if (project.userId === actorId) {
+      throw new Error("You are already the owner of this project.");
+    }
+
+    // Add to ProjectCollaborators
+    await prisma.projectCollaborator.upsert({
+      where: {
+        projectId_userId: {
+          projectId: project.id,
+          userId: actorId
+        }
+      },
+      update: {}, // Do nothing if it already exists
+      create: {
+        projectId: project.id,
+        userId: actorId
+      }
+    });
+
+    console.log(`[SERVER ACTION] User ${actorId} joined project ${project.id} via code ${trimmedCode}`);
+    return { success: true, projectId: project.id };
+  } catch (error: any) {
+    console.error("[SERVER ACTION ERROR: joinProjectByCode]", error);
+    throw new Error(error.message || "Failed to join project");
   }
 }

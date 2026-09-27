@@ -15,17 +15,23 @@ model User {
   password  String?
   createdAt DateTime @default(now())
   
-  projects  Project[]
+  ownedProjects  Project[] @relation("ProjectOwner")
+  sharedProjects ProjectCollaborator[]
 }
 
 model Project {
   id        String   @id @default(uuid())
   name      String
   createdAt DateTime @default(now())
+  
+  shareCode String?  @unique
 
-  // Belongs to ONE User (Optional to prevent crash with existing data)
+  // Belongs to ONE User (Owner)
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation("ProjectOwner", fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Users who joined via share code
+  collaborators ProjectCollaborator[]
 
   // Many-to-Many with Tasks
   tasks     Task[]
@@ -62,4 +68,17 @@ model Label {
 
   // Many-to-Many with Tasks
   tasks     Task[]
+}
+
+model ProjectCollaborator {
+  id        String   @id @default(uuid())
+  joinedAt  DateTime @default(now())
+  
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
 }

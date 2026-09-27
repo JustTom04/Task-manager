@@ -11,6 +11,8 @@ import { AnimatePresence } from "framer-motion";
 
 import AuthHeader from "./authentication/AuthHeader";
 import useStore, { FrontendProject } from "@/frontend/store/useStore";
+import { generateShareCode, joinProjectByCode } from "@/backend/actions/projectActions";
+import JoinProjectModal from "../modals/JoinProjectModal";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -20,8 +22,9 @@ interface SettingsPanelProps {
 function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   const projects = useStore((state) => state.projects);
   const activeProjectId = useStore((state) => state.activeProjectId);
+  const activeUserId = useStore((state) => state.activeUserId);
   const onSelectProject = useStore((state) => state.setActiveProjectId);
-  
+
   const _addProject = useStore((state) => state.addProject);
   const _deleteProject = useStore((state) => state.deleteProject);
   const _renameProject = useStore((state) => state.renameProject);
@@ -30,6 +33,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   const deleteProject = (id) => _deleteProject(id);
   const renameProject = (id, newName) => _renameProject(id, newName);
   const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [confirmConfig, setConfirmConfig] = useState<ConfirmConfig | null>(null);
@@ -48,9 +52,9 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
 
   const handleEditSubmit = (projectId: string, oldName: string) => {
     const trimmed = editValue.trim();
-    
+
     // Check for duplicates (case-insensitive)
-    const isDuplicate = projects.some(p => 
+    const isDuplicate = projects.some(p =>
       p.id !== projectId && p.name.toLowerCase() === trimmed.toLowerCase()
     );
 
@@ -77,12 +81,22 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
       <AuthHeader />
       <h2 className="settings-title">Projects</h2>
       <div className="projects-list">
-        <button
-          className="done add-project-button"
-          onClick={() => setShowProjectModal(true)}
-        >
-          ➕ Add Project
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          <button
+            className="done add-project-button"
+            style={{ flex: 1 }}
+            onClick={() => setShowProjectModal(true)}
+          >
+            ➕ Add
+          </button>
+          <button
+            className="done add-project-button"
+            style={{ flex: 1, backgroundColor: "#10b981" }}
+            onClick={() => setShowJoinModal(true)}
+          >
+            🔗 Join
+          </button>
+        </div>
         {projects.map((p) => (
           <div
             key={p.id}
@@ -144,6 +158,34 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 </button>
               )}
               {p.name !== "General" && (
+                <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
+                  onMouseDown={async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (!activeUserId) return;
+
+                    try {
+                      // 1. Backend: Generate the code
+                      const code = await generateShareCode(p.id, activeUserId);
+
+                      // 2. SZÓLUNK A FRONTENDNEK, HOGY KÉRJE LE AZ ÚJ ADATOKAT:
+                      await useStore.getState().fetchProjects();
+
+                      // 3. Frontend: Copy to clipboard
+                      await navigator.clipboard.writeText(code);
+
+                      alert(`✅ Success! The share code for ${p.name} (${code}) has been copied to your clipboard!\n\nPress Ctrl + V to paste it.`);
+                      console.log("Projekt:", p);
+                    } catch (error: any) {
+                      alert("Error generating share code: " + error.message);
+                    }
+                  }}
+                  title="Share Project"
+                >
+                  🔗
+                </button>
+              )}
+              {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
@@ -196,6 +238,18 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
             setConfirmConfig(null);
           }}
           onCancel={() => setConfirmConfig(null)}
+        />
+      )}
+
+      {showJoinModal && (
+        <JoinProjectModal
+          onJoin={async (code) => {
+            if (!activeUserId) return;
+            await joinProjectByCode(code, activeUserId);
+            await useStore.getState().fetchProjects(); // Reload projects to show the new one
+            setShowJoinModal(false);
+          }}
+          onCancel={() => setShowJoinModal(false)}
         />
       )}
     </div>

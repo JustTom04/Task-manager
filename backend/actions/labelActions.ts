@@ -39,8 +39,19 @@ export async function createLabel({ id, name, color, projectIds }: CreateLabelAr
     }
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== actorId) {
+    const project = await prisma.project.findUnique({ 
+      where: { id: projectId },
+      include: { collaborators: true }
+    });
+    
+    if (!project) {
+      throw new Error("Project not found");
+    }
+    
+    const isOwner = project.userId === actorId;
+    const isCollaborator = project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to add labels to this project");
     }
 
@@ -88,11 +99,22 @@ export async function deleteLabel(labelId: string, userId: string) {
 
     const label = await prisma.label.findUnique({
       where: { id: labelId },
-      include: { project: true }
+      include: { 
+        project: {
+          include: { collaborators: true }
+        }
+      }
     });
 
+    if (!label) {
+      throw new Error("Label not found");
+    }
+
     // Ensure actor has authorization to modify the parent project
-    if (!label || label.project.userId !== actorId) {
+    const isOwner = label.project.userId === actorId;
+    const isCollaborator = label.project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete this label");
     }
 
@@ -115,8 +137,19 @@ export async function deleteAllLabels(projectId: string, userId: string) {
     const actorId = await verifyUserAccess(userId);
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ where: { id: projectId } });
-    if (!project || project.userId !== actorId) {
+    const project = await prisma.project.findUnique({ 
+      where: { id: projectId },
+      include: { collaborators: true }
+    });
+    
+    if (!project) {
+      throw new Error("Project not found");
+    }
+    
+    const isOwner = project.userId === actorId;
+    const isCollaborator = project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete labels in this project");
     }
 
