@@ -200,16 +200,19 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                     if (editingProjectId === p.id) {
                       setEditingProjectId(null);
                     } else {
+                      const isOwner = p.userId === activeUserId;
                       setConfirmConfig({
-                        title: "Delete project?",
-                        message: `Project "${p.name}" will be permanently deleted.`,
+                        title: isOwner ? "Delete project?" : "Leave project?",
+                        message: isOwner 
+                          ? `Project "${p.name}" will be permanently deleted.` 
+                          : `Are you sure you want to leave "${p.name}"?`,
                         action: () => deleteProject(p.id),
                       });
                     }
                   }}
-                  data-tooltip={editingProjectId === p.id ? "Cancel" : "Delete"}
+                  data-tooltip={editingProjectId === p.id ? "Cancel" : (p.userId === activeUserId ? "Delete" : "Leave")}
                 >
-                  {editingProjectId === p.id ? "✖️" : "❌"}
+                  {editingProjectId === p.id ? "✖️" : (p.userId === activeUserId ? "❌" : "🚪")}
                 </button>
               )}
             </div>
