@@ -202,6 +202,7 @@ export default function Home() {
           </div>
         ) : (
           <Reorder.Group
+            key={activeProjectId}
             ref={listRef}
             axis="y"
             values={localTaskIds}

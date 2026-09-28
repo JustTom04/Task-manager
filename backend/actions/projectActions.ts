@@ -44,23 +44,36 @@ export async function getProjects(userId: string) {
       },
       include: {
         labels: true,
+        collaborators: {
+          where: { userId: actorId },
+          select: { joinedAt: true }
+        },
         tasks: {
           include: { labels: true },
           orderBy: { orderIndex: 'asc' }
         }
-      },
-      orderBy: { createdAt: 'asc' }
+      }
+    });
+
+    // Sort projects by when the user acquired access (createdAt for owners, joinedAt for collaborators)
+    projects.sort((a, b) => {
+      const dateA = a.userId === actorId ? a.createdAt : (a.collaborators[0]?.joinedAt || a.createdAt);
+      const dateB = b.userId === actorId ? b.createdAt : (b.collaborators[0]?.joinedAt || b.createdAt);
+      return dateA.getTime() - dateB.getTime();
     });
 
     // Format projects and their tasks
     // The frontend expects task.labels to be an array of IDs, not full objects
-    const formattedProjects = projects.map((p) => ({
-      ...p,
-      tasks: p.tasks.map(t => ({
-        ...t,
-        labels: t.labels.map(l => l.id)
-      })),
-    }));
+    const formattedProjects = projects.map((p) => {
+      const { collaborators, ...projectData } = p; // Remove collaborators from frontend response
+      return {
+        ...projectData,
+        tasks: projectData.tasks.map(t => ({
+          ...t,
+          labels: t.labels.map(l => l.id)
+        })),
+      };
+    });
 
     console.log(`[SERVER ACTION] Fetched all projects. Total count: ${formattedProjects.length}`);
     return formattedProjects;
