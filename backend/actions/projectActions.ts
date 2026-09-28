@@ -165,7 +165,18 @@ export async function deleteProject(projectId: string, userId: string) {
     }
 
     if (projectToDelete.userId !== actorId) {
-      throw new Error("Unauthorized to delete this project");
+      // Check if they are a collaborator
+      const collab = await prisma.projectCollaborator.findUnique({
+        where: { projectId_userId: { projectId, userId: actorId } }
+      });
+      if (collab) {
+        await prisma.projectCollaborator.delete({
+          where: { projectId_userId: { projectId, userId: actorId } }
+        });
+        console.log(`[SERVER ACTION] User ${actorId} left project ID: ${projectId}`);
+        return { success: true, id: projectId };
+      }
+      throw new Error("Unauthorized to delete or leave this project");
     }
 
     if (projectToDelete.name === "General") {

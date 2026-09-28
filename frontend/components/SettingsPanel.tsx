@@ -144,9 +144,9 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
             <div style={{ display: "flex", gap: "5px" }}>
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    e.preventDefault(); 
                     if (editingProjectId === p.id) {
                       handleEditSubmit(p.id, p.name);
                     } else {
@@ -161,9 +161,9 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
               {p.name !== "General" && (
                 <div style={{ position: "relative", display: "flex" }}>
                   <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={async (e) => {
                       e.stopPropagation();
-                      e.preventDefault();
                       if (!activeUserId) return;
 
                       try {
@@ -175,7 +175,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                         setTimeout(() => {
                           setCopiedProjectId((current) => current === p.id ? null : current);
                         }, 2000);
-                        
+
                         console.log("Projekt:", p);
                       } catch (error: any) {
                         alert("Error generating share code: " + error.message);
@@ -194,9 +194,9 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
               )}
               {p.name !== "General" && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
-                    e.preventDefault();
                     if (editingProjectId === p.id) {
                       setEditingProjectId(null);
                     } else {
