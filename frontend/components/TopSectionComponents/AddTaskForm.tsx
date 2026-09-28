@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import CustomDropdown from "../CustomDropdown";
 import useStore from "@/frontend/store/useStore";
 import { INPUT_LENGTH, DROPDOWN_OPTIONS } from "@/frontend/constants";
@@ -17,9 +17,17 @@ export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
   const selectedLabels = useStore((s) => s.selectedLabels);
   const _addTask = useStore((s) => s.addTask);
 
+  const [showError, setShowError] = useState(false);
+
   const addTask = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newTitle.trim()) {
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
     _addTask(newTitle, newPriority, selectedLabels);
+    setShowError(false);
   };
 
   return (
@@ -28,10 +36,14 @@ export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
 
       <input
         type="text"
+        className={showError ? "input-error shake-animation" : ""}
         maxLength={INPUT_LENGTH.TASK_TITLE}
-        placeholder="Task title"
+        placeholder={showError ? "Title cannot be empty!" : "Task title"}
         value={newTitle}
-        onChange={(e) => setNewTitle(e.target.value)}
+        onChange={(e) => {
+          setNewTitle(e.target.value);
+          if (showError) setShowError(false);
+        }}
         ref={newTitleRef}
       />
 

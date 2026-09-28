@@ -8,9 +8,10 @@ import useStore, { FrontendTask } from "@/frontend/store/useStore";
 interface TaskEditProps {
   task: FrontendTask;
   closeEdit: () => void;
+  taskRef?: React.RefObject<HTMLDivElement | HTMLLIElement>;
 }
 
-export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
+export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
   const _updateTask = useStore(s => s.updateTask);
   const _toggleLabelOnTask = useStore(s => s.toggleLabelOnTask);
   
@@ -35,7 +36,7 @@ export default function TaskEdit({ task, closeEdit }: TaskEditProps) {
   const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen);
 
   useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
-  useClickOutside([editContainerRef, labelsRef, priorityDropdownRef], () => closeEdit());
+  useClickOutside([editContainerRef, labelsRef, priorityDropdownRef, taskRef], () => closeEdit());
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

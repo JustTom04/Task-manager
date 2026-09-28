@@ -96,15 +96,16 @@ export default function Home() {
 
   const [localTasks, setLocalTasks] = useState(actualTasksList);
   const [prevProjectId, setPrevProjectId] = useState(actualProject?.id);
+  const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));
 
   if (actualProject?.id !== prevProjectId) {
     setLocalTasks(actualTasksList);
     setPrevProjectId(actualProject?.id);
+    seenTaskIds.current.clear();
   }
 
   const localTaskIds = useMemo(() => localTasks.map(t => t.id), [localTasks]);
 
-  const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));
   useEffect(() => {
     localTasks.forEach(task => seenTaskIds.current.add(task.id));
   }, [localTasks]);
@@ -115,6 +116,31 @@ export default function Home() {
       setLocalTasks(actualTasksList);
     }
   }, [actualTasksList, draggingTaskId]);
+
+  const prevTaskCount = useRef(localTasks.length);
+  const prevProjectForScroll = useRef(activeProjectId);
+
+  useEffect(() => {
+    const container = document.querySelector('.task-list-container');
+
+    if (activeProjectId === prevProjectForScroll.current) {
+      // Same project: Scroll to the bottom manually when a new task is added
+      if (localTasks.length === prevTaskCount.current + 1) {
+        setTimeout(() => {
+          container?.scrollTo({
+            top: container.scrollHeight,
+            behavior: "smooth"
+          });
+        }, 100);
+      }
+    } else {
+      // Different project: Scroll to the top when switching to a new project
+      container?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    prevTaskCount.current = localTasks.length;
+    prevProjectForScroll.current = activeProjectId;
+  }, [localTasks.length, activeProjectId]);
 
   const actualLabelsList = actualProject?.labels || [];
 
@@ -221,6 +247,7 @@ export default function Home() {
                     key={task.id}
                     task={task}
                     isNew={isNew}
+                    isLast={isLast}
                     listRef={listRef}
                     ref={isLast ? lastTaskRef : null}
                     onDragEnd={() => {

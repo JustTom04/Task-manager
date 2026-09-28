@@ -35,6 +35,28 @@
   --top-section-elems-height: 36px;
 }
 
+/* ===== Input Error State ===== */
+input.input-error {
+  border: 1px solid var(--color-danger) !important;
+  box-shadow: 0 0 0 1px var(--color-danger) !important;
+}
+
+input.input-error::placeholder {
+  color: var(--color-danger);
+  opacity: 0.8;
+}
+
+.shake-animation {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+
 
 *,
 *::before,
@@ -229,7 +251,7 @@ button.undone {
 
   transition:
     transform 0.15s ease,
-    box-shadow 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .remove-button:hover {
@@ -244,6 +266,9 @@ button.remove-button.medium:hover {
   transform: scale(0.7) !important;
 }
 
+button.remove-button.medium:active {
+  transform: scale(0.65) !important;
+}
 
 button.remove-button.small {
   transform: scale(0.6);
@@ -251,6 +276,10 @@ button.remove-button.small {
 
 button.remove-button.small:hover {
   transform: scale(0.52) !important;
+}
+
+button.remove-button.small:active {
+  transform: scale(0.45) !important;
 }
 
 

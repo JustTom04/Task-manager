@@ -11,10 +11,11 @@ interface TaskProps {
   task: FrontendTask;
   onDragEnd?: () => void;
   isNew?: boolean;
+  isLast?: boolean;
   listRef?: React.RefObject<any>;
 }
 
-const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, ref) => {
+const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listRef }, ref) => {
   const dragControls = useDragControls();
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
@@ -36,6 +37,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
   const [seconds, setSeconds] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
   const preventClickRef = useRef(false);
+  const internalRef = useRef<HTMLDivElement>(null);
 
   // ===== Handle timer =====
   useEffect(() => {
@@ -93,14 +95,21 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
       dragConstraints={listRef}
       onDragEnd={onDragEnd}
       animate={{ scale: isDragging ? 1.01 : 1 }}
-      exit={{ opacity: 0, scale: 0.8 }}
+      exit={{ opacity: 0, scale: isLast ? 1 : 0.8 }}
       transition={{
         scale: { duration: 0.25 },
         layout: { type: "tween", ease: "easeOut", duration: 0.25 },
-        opacity: { duration: 0.3 }
+        opacity: { duration: isLast ? 0 : 0.3 }
       }}
       className={`task-item ${isNew ? "new-task" : ""} ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDragging ? "dragging" : ""}`}
-      ref={ref}
+      ref={(element) => {
+        internalRef.current = element;
+        if (typeof ref === 'function') {
+          ref(element);
+        } else if (ref) {
+          ref.current = element;
+        }
+      }}
       onClick={(e) => {
         // If the click started in the drag handle, prevent opening edit mode
         if (preventClickRef.current) {
@@ -147,7 +156,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, listRef }, re
         <div>
           {/* ===== EDIT MODE OR VIEW MODE ===== */}
           {isEditing ? (
-            <TaskEdit task={task} closeEdit={() => setIsEditing(false)} />
+            <TaskEdit task={task} closeEdit={() => setIsEditing(false)} taskRef={internalRef} />
           ) : (
             <>
               {/* ===== Checkbox ===== */}
