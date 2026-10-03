@@ -94,13 +94,15 @@ export default function Home() {
     });
   }, [actualProject?.tasks, statusFilter, priorityFilter, labelsFilter]);
 
+  const activeFilterHash = `${activeProjectId || ""}-${statusFilter}-${priorityFilter}-${(labelsFilter || []).join(",")}`;
+
   const [localTasks, setLocalTasks] = useState(actualTasksList);
-  const [prevProjectId, setPrevProjectId] = useState(actualProject?.id);
+  const [prevFilterHash, setPrevFilterHash] = useState(activeFilterHash);
   const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));
 
-  if (actualProject?.id !== prevProjectId) {
+  if (activeFilterHash !== prevFilterHash) {
     setLocalTasks(actualTasksList);
-    setPrevProjectId(actualProject?.id);
+    setPrevFilterHash(activeFilterHash);
     seenTaskIds.current.clear();
   }
 
@@ -118,13 +120,13 @@ export default function Home() {
   }, [actualTasksList, draggingTaskId]);
 
   const prevTaskCount = useRef(localTasks.length);
-  const prevProjectForScroll = useRef(activeProjectId);
+  const prevFilterHashForScroll = useRef(activeFilterHash);
 
   useEffect(() => {
     const container = document.querySelector('.task-list-container');
 
-    if (activeProjectId === prevProjectForScroll.current) {
-      // Same project: Scroll to the bottom manually when a new task is added
+    if (activeFilterHash === prevFilterHashForScroll.current) {
+      // Same filter & project: Scroll to the bottom manually when a new task is added
       if (localTasks.length === prevTaskCount.current + 1) {
         setTimeout(() => {
           container?.scrollTo({
@@ -134,13 +136,13 @@ export default function Home() {
         }, 100);
       }
     } else {
-      // Different project: Scroll to the top when switching to a new project
+      // Different filter or project: Scroll to the top cleanly
       container?.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     prevTaskCount.current = localTasks.length;
-    prevProjectForScroll.current = activeProjectId;
-  }, [localTasks.length, activeProjectId]);
+    prevFilterHashForScroll.current = activeFilterHash;
+  }, [localTasks.length, activeFilterHash]);
 
   const actualLabelsList = actualProject?.labels || [];
 
@@ -203,7 +205,7 @@ export default function Home() {
         Completed: {completedCount}/{actualTasksList.length}
       </span>
 
-      <div className="task-list-container">
+      <div className="task-list-container" style={{ overflowY: draggingTaskId ? "hidden" : "auto" }}>
         {actualTasksList.length === 0 && !isLoadingTasks && (statusFilter === 'ALL' && priorityFilter === 'ALL' && labelsFilter.length === 0) ? (
           <div className="empty-state">
             <span className="empty-state-icon">🎉</span>
@@ -228,7 +230,7 @@ export default function Home() {
           </div>
         ) : (
           <Reorder.Group
-            key={activeProjectId}
+            key={activeFilterHash}
             ref={listRef}
             axis="y"
             values={localTaskIds}
@@ -236,7 +238,7 @@ export default function Home() {
               const reordered = newIds.map(id => localTasks.find(t => t.id === id)).filter(Boolean) as typeof localTasks;
               setLocalTasks(reordered);
             }}
-            style={{ listStyleType: "none", padding: 0, margin: 0, width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}
+            style={{ position: "relative", listStyleType: "none", padding: 0, margin: 0, width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}
           >
             <AnimatePresence mode="popLayout">
               {localTasks.map((task, index) => {

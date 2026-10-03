@@ -97,8 +97,8 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
       animate={{ scale: isDragging ? 1.01 : 1 }}
       exit={{ opacity: 0, scale: isLast ? 1 : 0.8 }}
       transition={{
-        scale: { duration: 0.25 },
-        layout: { type: "tween", ease: "easeOut", duration: 0.25 },
+        scale: { duration: 0.3 },
+        layout: { type: "tween", ease: "easeOut", duration: 0.3 },
         opacity: { duration: isLast ? 0 : 0.3 }
       }}
       className={`task-item ${isNew ? "new-task" : ""} ${isEditing ? "active" : ""} ${task.done ? "done-overlay" : ""} ${isDragging ? "dragging" : ""}`}
