@@ -92,7 +92,6 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
       value={task.id}
       dragListener={false} // Disable dragging on the whole item
       dragControls={dragControls}
-      dragConstraints={listRef}
       onDragEnd={onDragEnd}
       animate={{ scale: isDragging ? 1.01 : 1 }}
       exit={{ opacity: 0, scale: isLast ? 1 : 0.8 }}
