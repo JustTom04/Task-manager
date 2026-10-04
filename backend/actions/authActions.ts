@@ -25,7 +25,7 @@ export async function registerUser(email: string, password: string, guestUserId:
     };
 
     if (!saveProjects) {
-      createData.projects = getEmptyGeneralProjectData();
+      createData.ownedProjects = getEmptyGeneralProjectData();
     }
 
     // Execute complex registration workflow atomically to prevent partial database states
@@ -35,68 +35,13 @@ export async function registerUser(email: string, password: string, guestUserId:
         data: createData,
       });
 
-      // Migrate guest user data to the new permanent account
+      // Migrate guest user data to the new permanent account:
+      // Directly reassign ownership of guest projects to the new user.
+      // This preserves all tasks, labels, relations, and orderIndex without duplication overhead.
       if (saveProjects && guestUserId) {
-        const guestProjects = await tx.project.findMany({
+        await tx.project.updateMany({
           where: { userId: guestUserId },
-          include: {
-            labels: true,
-            tasks: {
-              include: { labels: true }
-            }
-          }
-        });
-
-        for (const oldProject of guestProjects) {
-          // Create new project
-          const newProject = await tx.project.create({
-            data: {
-              name: oldProject.name,
-              userId: newUserId,
-            },
-          });
-
-          // Maintain referential integrity during label duplication
-          const labelMap = new Map();
-
-          // Duplicate labels
-          for (const oldLabel of oldProject.labels) {
-            const newLabel = await tx.label.create({
-              data: {
-                name: oldLabel.name,
-                color: oldLabel.color,
-                projectId: newProject.id,
-              }
-            });
-            labelMap.set(oldLabel.id, newLabel.id);
-          }
-
-          // Duplicate tasks
-          for (const oldTask of oldProject.tasks) {
-            const newLabels = oldTask.labels.map((l: any) => ({
-              id: labelMap.get(l.id)
-            })).filter((l: any) => l.id !== undefined);
-
-            await tx.task.create({
-              data: {
-                title: oldTask.title,
-                done: oldTask.done,
-                priority: oldTask.priority,
-                projectId: newProject.id,
-                labels: {
-                  connect: newLabels
-                }
-              }
-            });
-          }
-        }
-      }
-
-      // Database Cleanup: Delete the old guest projects.
-      // (Because of onDelete: Cascade in schema, this also deletes guest tasks and labels automatically)
-      if (saveProjects && guestUserId) {
-        await tx.project.deleteMany({
-          where: { userId: guestUserId }
+          data: { userId: newUserId }
         });
       }
     }, {

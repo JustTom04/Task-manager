@@ -276,10 +276,32 @@ export async function generateShareCode(projectId: string, userId: string) {
       return project.shareCode;
     }
 
-    // Generate a 6-character random alphanumeric code
+    // Generate a unique 6-character random alphanumeric code with collision checking
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let code = '';
-    for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+    let isUnique = false;
+    let attempts = 0;
+
+    while (!isUnique && attempts < 10) {
+      code = '';
+      for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+
+      const existing = await prisma.project.findUnique({
+        where: { shareCode: code },
+        select: { id: true }
+      });
+
+      if (!existing) {
+        isUnique = true;
+      }
+      attempts++;
+    }
+
+    if (!isUnique) {
+      throw new Error("Failed to generate a unique share code. Please try again.");
+    }
 
     // Update the project with the new code
     const updated = await prisma.project.update({
