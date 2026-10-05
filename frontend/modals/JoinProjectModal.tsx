@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { MODAL_ANIMATION } from "@/frontend/constants";
+import "@/frontend/styles/components/authentication.css";
 
 interface JoinProjectModalProps {
   onJoin: (code: string) => Promise<void>;
@@ -23,6 +24,10 @@ function JoinProjectModal({ onJoin, onCancel }: JoinProjectModalProps) {
 
   const handleJoin = async () => {
     const trimmedCode = code.trim().toUpperCase();
+    if (!trimmedCode) {
+      setError("Please enter a share code.");
+      return;
+    }
     if (trimmedCode.length !== 6) {
       setError("The code must be exactly 6 characters.");
       return;
@@ -64,7 +69,7 @@ function JoinProjectModal({ onJoin, onCancel }: JoinProjectModalProps) {
           maxLength={6}
           placeholder="e.g. A7X9WQ"
           disabled={isJoining}
-          className="search-input" // Reuse existing styling
+          className={`search-input ${error ? "input-error shake-animation" : ""}`}
           style={{ width: "100%", marginBottom: "15px", textTransform: "uppercase", textAlign: "center", letterSpacing: "2px", fontWeight: "bold" }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !isJoining) handleJoin();
@@ -72,13 +77,18 @@ function JoinProjectModal({ onJoin, onCancel }: JoinProjectModalProps) {
           }}
         />
 
-        {error && <p style={{ color: "var(--color-urgent)", marginTop: "-10px", marginBottom: "15px", fontSize: "14px" }}>{error}</p>}
+        {error && (
+          <div className="auth-error-box" style={{ marginBottom: "15px" }}>
+            <span className="auth-error-icon">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
 
         <div className="modal-actions">
           <button
             className="task-button done"
             onClick={handleJoin}
-            disabled={isJoining || code.trim().length !== 6}
+            disabled={isJoining}
           >
             {isJoining ? "Joining..." : "Join"}
           </button>

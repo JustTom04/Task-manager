@@ -81,23 +81,23 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
     <div className={`settings-panel ${isOpen ? "open" : ""}`} ref={settingsRef} >
       <AuthHeader />
       <h2 className="settings-title">Projects</h2>
+      <div style={{ display: "flex", gap: "10px" }}>
+        <button
+          className="done add-project-button"
+          style={{ flex: 1 }}
+          onClick={() => setShowProjectModal(true)}
+        >
+          ➕ Add
+        </button>
+        <button
+          className="done add-project-button"
+          style={{ flex: 1, backgroundColor: "#10b981" }}
+          onClick={() => setShowJoinModal(true)}
+        >
+          🔗 Join
+        </button>
+      </div>
       <div className="projects-list">
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            className="done add-project-button"
-            style={{ flex: 1 }}
-            onClick={() => setShowProjectModal(true)}
-          >
-            ➕ Add
-          </button>
-          <button
-            className="done add-project-button"
-            style={{ flex: 1, backgroundColor: "#10b981" }}
-            onClick={() => setShowJoinModal(true)}
-          >
-            🔗 Join
-          </button>
-        </div>
         {projects.map((p) => (
           <div
             key={p.id}
@@ -137,12 +137,23 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
               />
             ) : (
               <div className="project-item-title" style={{ cursor: p.name !== "General" ? "text" : "default" }}>
-                {p.name}
+                {p.userId !== activeUserId ? (
+                  <span className="project-badge project-badge-settings shared" data-tooltip="Shared">
+                    👥
+                  </span>
+                ) : p.shareCode ? (
+                  <span className="project-badge project-badge-settings owner" data-tooltip="Owner">
+                    👑
+                  </span>
+                ) : null}
+                <span className="project-item-name-wrapper" data-tooltip={p.name}>
+                  <span className="project-item-name">{p.name}</span>
+                </span>
               </div>
             )}
 
             <div style={{ display: "flex", gap: "5px" }}>
-              {p.name !== "General" && (
+              {p.name !== "General" && p.userId === activeUserId && (
                 <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
@@ -203,8 +214,8 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                       const isOwner = p.userId === activeUserId;
                       setConfirmConfig({
                         title: isOwner ? "Delete project?" : "Leave project?",
-                        message: isOwner 
-                          ? `Project "${p.name}" will be permanently deleted.` 
+                        message: isOwner
+                          ? `Project "${p.name}" will be permanently deleted.`
                           : `Are you sure you want to leave "${p.name}"?`,
                         action: () => deleteProject(p.id),
                       });

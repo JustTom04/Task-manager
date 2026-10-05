@@ -27,7 +27,7 @@ body {
   color: #fff;
   padding: 4px 8px;
   border-radius: 6px;
-  font-size: 1.1rem;
+  font-size: var(--tooltip-font-size, 0.85rem);
   font-weight: 500;
   white-space: nowrap;
   pointer-events: none;

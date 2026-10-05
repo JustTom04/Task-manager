@@ -192,8 +192,17 @@ export default function Home() {
         onClick={() => setSettingsOpen((prev) => !prev)}
       />
 
-      <div id="title-row">
-        <h1 id="title">{actualProject.name}</h1>
+      <div id="title-row" >
+        {actualProject.userId !== activeUserId ? (
+          <span className="project-badge project-badge-title shared" data-tooltip="Shared Project">
+            👥
+          </span>
+        ) : actualProject.shareCode ? (
+          <span className="project-badge project-badge-title owner" data-tooltip="Owner">
+            👑
+          </span>
+        ) : null}
+        <h1 id="title" >{actualProject.name}</h1>
       </div>
 
       {/* ===== Top section ===== */}

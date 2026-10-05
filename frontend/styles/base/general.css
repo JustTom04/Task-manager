@@ -1,28 +1,28 @@
 :root {
   /* ===== Colors ===== */
-  --color-bg: #0e0e11;          
-  --color-container: #16161a;   
-  --color-panel-border: #2c2c35; 
-  --color-text: #f4f4f5;   
-  --color-task-title: #e4e4e7;  
-  --color-muted: #a1a1aa;    
-  --color-accent: #6366f1;     
-  --color-success: #10b981;      
-  --color-warning: #f59e0b;      
-  --color-danger: #ef4444;       
-  --color-task-bg: #1f1f24;    
-  --color-dropdown-bg: #1f1f24; 
+  --color-bg: #0e0e11;
+  --color-container: #16161a;
+  --color-panel-border: #2c2c35;
+  --color-text: #f4f4f5;
+  --color-task-title: #e4e4e7;
+  --color-muted: #a1a1aa;
+  --color-accent: #6366f1;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-task-bg: #1f1f24;
+  --color-dropdown-bg: #1f1f24;
   --color-dropdown-border: #2c2c35;
-  --color-checkbox: #6366f1;    
+  --color-checkbox: #6366f1;
 
-  --color-settings-bg: rgba(14, 14, 17, 0.95);           
-  --color-settings-border: #2c2c35;       
-  --color-settings-title: #818cf8;       
-  --color-settings-item: #1f1f24;         
-  --color-settings-item-hover: #2c2c35;   
-  --color-settings-item-active: #6366f1; 
-  --color-settings-text: #f4f4f5;         
-  --color-settings-muted: #a1a1aa;  
+  --color-settings-bg: rgba(14, 14, 17, 0.95);
+  --color-settings-border: #2c2c35;
+  --color-settings-title: #818cf8;
+  --color-settings-item: #1f1f24;
+  --color-settings-item-hover: #2c2c35;
+  --color-settings-item-active: #6366f1;
+  --color-settings-text: #f4f4f5;
+  --color-settings-muted: #a1a1aa;
 
   /* ===== Shadows ===== */
   --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
@@ -51,10 +51,27 @@ input.input-error::placeholder {
 }
 
 @keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 
@@ -64,7 +81,11 @@ input.input-error::placeholder {
   box-sizing: border-box;
 }
 
-select, input, button, #completed-counter, .select-wrapper {
+select,
+input,
+button,
+#completed-counter,
+.select-wrapper {
   white-space: nowrap;
 }
 
@@ -76,7 +97,7 @@ html {
 body {
   font-family: 'Inter', Arial, sans-serif;
   background: radial-gradient(circle at top left, #1e1b4b 0%, #0e0e11 40%),
-              radial-gradient(circle at bottom right, #312e81 0%, #0e0e11 50%);
+    radial-gradient(circle at bottom right, #312e81 0%, #0e0e11 50%);
   background-attachment: fixed;
   background-color: var(--color-bg);
   margin: 0;
@@ -89,11 +110,12 @@ body {
   max-width: 800px;
   height: 100dvh;
   margin: 0 auto;
-  
+
   /* Glassmorphism effect */
-  background: rgba(22, 22, 26, 0.95); /* A bit darker since there's no blur */
+  background: rgba(22, 22, 26, 0.95);
+  /* A bit darker since there's no blur */
   border: 1px solid rgba(255, 255, 255, 0.05);
-  
+
   padding: clamp(0.5rem, 1.5vw, 1.25rem);
   border-radius: 16px;
 
@@ -104,20 +126,63 @@ body {
   overflow: hidden;
 }
 
-/* ===== Title ===== */
+/* ===== Title ===== style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", margin: "5px 0 20px 0" }} */
 #title-row {
   display: flex;
   align-items: center;
-  position: relative; 
+  justify-content: center;
+  position: relative;
+
+  margin: -5px auto 10px auto;
+  gap: 10px;
 }
 
 #title {
-  margin: -5px auto 10px auto;
+  margin: 0px;
   color: var(--color-settings-title);
 }
 
+/* ===== Project Badge (Base) ===== */
+.project-badge {
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  line-height: 1;
+  cursor: pointer;
+}
 
-.task-title, #title, .project-item-title {
+.project-badge.shared {
+  background-color: rgba(14, 165, 233, 0.2);
+  color: #38bdf8;
+  border: 1px solid rgba(14, 165, 233, 0.4);
+}
+
+.project-badge.owner {
+  background-color: rgba(16, 185, 129, 0.2);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+/* Header/Title Badge Variant */
+.project-badge-title {
+  font-size: 1.2rem;
+  padding: 4px 4px;
+}
+
+.project-badge-title[data-tooltip]:hover::after {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 90%;
+  animation: tooltipFadeIn 0.2s forwards;
+  animation-delay: 0.3s;
+}
+
+
+.task-title,
+#title,
+.project-item-title {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
@@ -137,13 +202,15 @@ body {
 
 
 /* ===== Select, input ===== */
-select:not(.filter-select), input, .select-wrapper {
+select:not(.filter-select),
+input,
+.select-wrapper {
   background-color: transparent;
   color: var(--color-text);
   border: 1px solid var(--color-panel-border);
   border-radius: 8px;
   font-weight: normal;
-  
+
   box-shadow: var(--shadow-soft);
   transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
@@ -161,12 +228,17 @@ select {
 
 
 
-select, input, button, .select-wrapper {
+select,
+input,
+button,
+.select-wrapper {
   padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
   font-size: 0.9rem;
 }
 
-select:focus, input:focus, .select-wrapper.open {
+select:focus,
+input:focus,
+.select-wrapper.open {
   outline: none;
   border-color: var(--color-accent);
   box-shadow: var(--shadow-focus);
@@ -201,8 +273,8 @@ button {
 }
 
 button:not(.inactive):not(.filter-labels-button):not(.mark-btn):hover {
-  transform: scale(0.95);          
-  filter: brightness(0.9);     
+  transform: scale(0.95);
+  filter: brightness(0.9);
   box-shadow: var(--shadow-medium);
 }
 
@@ -235,6 +307,17 @@ button.undone {
 }
 
 /* ===== Remove button ===== */
+:root {
+  --btn-scale-medium: 0.8;
+  --btn-scale-medium-hover: 0.7;
+  --btn-scale-medium-active: 0.65;
+
+  --btn-scale-small: 0.6;
+  --btn-scale-small-hover: 0.52;
+
+  --tooltip-font-size: 0.85rem;
+}
+
 .remove-button {
   width: 30px;
   height: 30px;
@@ -245,9 +328,9 @@ button.undone {
   border-radius: 50%;
   cursor: pointer;
 
-  flex-shrink: 0;  
- 
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 
   transition:
     transform 0.15s ease,
@@ -259,23 +342,32 @@ button.undone {
 }
 
 button.remove-button.medium {
-  transform: scale(0.8);
+  transform: scale(var(--btn-scale-medium));
 }
 
 button.remove-button.medium:hover {
-  transform: scale(0.7) !important;
+  transform: scale(var(--btn-scale-medium-hover)) !important;
+}
+
+/* Counter-scale the tooltip so the text size matches unscaled elements */
+button.remove-button.medium[data-tooltip]:hover::after {
+  font-size: calc(var(--tooltip-font-size) / var(--btn-scale-medium-hover));
 }
 
 button.remove-button.medium:active {
-  transform: scale(0.65) !important;
+  transform: scale(var(--btn-scale-medium-active)) !important;
 }
 
 button.remove-button.small {
-  transform: scale(0.6);
+  transform: scale(var(--btn-scale-small));
 }
 
 button.remove-button.small:hover {
-  transform: scale(0.52) !important;
+  transform: scale(var(--btn-scale-small-hover)) !important;
+}
+
+button.remove-button.small[data-tooltip]:hover::after {
+  font-size: calc(var(--tooltip-font-size) / var(--btn-scale-small-hover));
 }
 
 button.remove-button.small:active {
@@ -295,6 +387,7 @@ button.remove-button.small:active {
     opacity: 0;
     transform: scaleY(0.95);
   }
+
   to {
     opacity: 1;
     transform: scaleY(1);
@@ -304,7 +397,8 @@ button.remove-button.small:active {
 
 
 /* ===== Task, labelsPanel ===== */
-.project-item, .labels-panel {
+.project-item,
+.labels-panel {
   background: rgba(31, 31, 36, 0.5);
   backdrop-filter: blur(8px);
   border: 1px solid rgba(255, 255, 255, 0.03);
@@ -313,7 +407,8 @@ button.remove-button.small:active {
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.project-item:hover, .labels-panel:hover {
+.project-item:hover,
+.labels-panel:hover {
   background: rgba(31, 31, 36, 0.7);
   box-shadow: var(--shadow-medium);
   transform: translateY(-2px);
