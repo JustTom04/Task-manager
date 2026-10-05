@@ -19,6 +19,7 @@ export interface FrontendProject {
   id: string;
   name: string;
   userId?: string | null;
+  shareCode?: string | null;
   labels: FrontendLabel[];
   tasks: FrontendTask[];
 }

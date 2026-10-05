@@ -3,21 +3,6 @@
 import prisma from "@/backend/lib/prisma";
 import { verifyUserAccess } from "@/backend/lib/authHelper";
 
-/**
- * Get all labels across projects
- */
-export async function getLabels() {
-  try {
-    const labels = await prisma.label.findMany({
-      include: { project: true },
-    });
-    console.log(`[SERVER ACTION] Fetched all labels. Total count: ${labels.length}`);
-    return labels;
-  } catch (error) {
-    console.error("[SERVER ACTION ERROR: getLabels]", error);
-    throw new Error("Failed to fetch labels");
-  }
-}
 
 interface CreateLabelArgs {
   id?: string;

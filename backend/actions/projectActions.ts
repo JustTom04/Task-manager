@@ -55,12 +55,38 @@ export async function getProjects(userId: string) {
       }
     });
 
-    // Sort projects by when the user acquired access (createdAt for owners, joinedAt for collaborators)
-    projects.sort((a, b) => {
-      const dateA = a.userId === actorId ? a.createdAt : (a.collaborators[0]?.joinedAt || a.createdAt);
-      const dateB = b.userId === actorId ? b.createdAt : (b.collaborators[0]?.joinedAt || b.createdAt);
-      return dateA.getTime() - dateB.getTime();
-    });
+    // Self-healing safety net: Ensure all tasks have valid, distinct orderIndex values.
+    // If any tasks have missing, zero, or duplicate orderIndex, re-index them in one batch transaction.
+    const reindexUpdates: any[] = [];
+    for (const project of projects) {
+      let needsFix = false;
+      const seenOrders = new Set<number>();
+      for (const t of project.tasks) {
+        if (!t.orderIndex || t.orderIndex === 0 || seenOrders.has(t.orderIndex)) {
+          needsFix = true;
+          break;
+        }
+        seenOrders.add(t.orderIndex);
+      }
+
+      if (needsFix && project.tasks.length > 0) {
+        project.tasks.forEach((t, index) => {
+          const newOrder = index + 1;
+          t.orderIndex = newOrder;
+          reindexUpdates.push(
+            prisma.task.update({
+              where: { id: t.id },
+              data: { orderIndex: newOrder }
+            })
+          );
+        });
+      }
+    }
+
+    if (reindexUpdates.length > 0) {
+      console.log(`[SERVER] Auto-healing orderIndex for ${reindexUpdates.length} tasks in a single transaction.`);
+      await prisma.$transaction(reindexUpdates);
+    }
 
     // Format projects and their tasks
     // The frontend expects task.labels to be an array of IDs, not full objects
