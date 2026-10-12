@@ -6,9 +6,9 @@ import { useClickOutside, getUserId } from "@/frontend/utils";
 import { INPUT_LENGTH } from "@/frontend/constants";
 import useStore from "@/frontend/store/useStore";
 import { useSession } from "next-auth/react";
-import { AnimatePresence, Reorder } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 
-import Task from "@/frontend/components/Task";
+import TaskList from "@/frontend/components/Task/TaskList";
 import ItemPicker from "@/frontend/modals/ItemPicker";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import SettingsPanel from "@/frontend/components/SettingsPanel";
@@ -62,17 +62,13 @@ export default function Home() {
   // ===== Ref =====
   const labelsRef = useRef(null);
   const filterLabelsRef = useRef(null);
-  const lastTaskRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
 
   const fetchProjects = useStore((state) => state.fetchProjects);
   const projects = useStore((state) => state.projects);
   const statusFilter = useStore((state) => state.statusFilter);
   const priorityFilter = useStore((state) => state.priorityFilter);
   const labelsFilter = useStore((state) => state.labelsFilter);
-  const reorderTasks = useStore((state) => state.reorderTasks);
   const draggingTaskId = useStore((state) => state.draggingTaskId);
-  const setDraggingTaskId = useStore((state) => state.setDraggingTaskId);
 
   const activeProjectId = useStore((state) => state.activeProjectId);
   const actualProject = projects.find(p => p.id === activeProjectId);
@@ -96,30 +92,7 @@ export default function Home() {
 
   const activeFilterHash = `${activeProjectId || ""}-${statusFilter}-${priorityFilter}-${(labelsFilter || []).join(",")}`;
 
-  const [localTasks, setLocalTasks] = useState(actualTasksList);
-  const [prevFilterHash, setPrevFilterHash] = useState(activeFilterHash);
-  const seenTaskIds = useRef(new Set(localTasks.map(t => t.id)));
-
-  if (activeFilterHash !== prevFilterHash) {
-    setLocalTasks(actualTasksList);
-    setPrevFilterHash(activeFilterHash);
-    seenTaskIds.current.clear();
-  }
-
-  const localTaskIds = useMemo(() => localTasks.map(t => t.id), [localTasks]);
-
-  useEffect(() => {
-    localTasks.forEach(task => seenTaskIds.current.add(task.id));
-  }, [localTasks]);
-
-  useEffect(() => {
-    // Only update local array from global state if we are NOT currently dragging
-    if (!draggingTaskId) {
-      setLocalTasks(actualTasksList);
-    }
-  }, [actualTasksList, draggingTaskId]);
-
-  const prevTaskCount = useRef(localTasks.length);
+  const prevTaskCount = useRef(actualTasksList.length);
   const prevFilterHashForScroll = useRef(activeFilterHash);
 
   useEffect(() => {
@@ -127,7 +100,7 @@ export default function Home() {
 
     if (activeFilterHash === prevFilterHashForScroll.current) {
       // Same filter & project: Scroll to the bottom manually when a new task is added
-      if (localTasks.length === prevTaskCount.current + 1) {
+      if (actualTasksList.length === prevTaskCount.current + 1) {
         setTimeout(() => {
           container?.scrollTo({
             top: container.scrollHeight,
@@ -140,9 +113,9 @@ export default function Home() {
       container?.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    prevTaskCount.current = localTasks.length;
+    prevTaskCount.current = actualTasksList.length;
     prevFilterHashForScroll.current = activeFilterHash;
-  }, [localTasks.length, activeFilterHash]);
+  }, [actualTasksList.length, activeFilterHash]);
 
   const actualLabelsList = actualProject?.labels || [];
 
@@ -238,38 +211,7 @@ export default function Home() {
             <p className="empty-state-text">No tasks match your current filters.</p>
           </div>
         ) : (
-          <Reorder.Group
-            key={activeFilterHash}
-            ref={listRef}
-            axis="y"
-            values={localTaskIds}
-            onReorder={(newIds) => {
-              const reordered = newIds.map(id => localTasks.find(t => t.id === id)).filter(Boolean) as typeof localTasks;
-              setLocalTasks(reordered);
-            }}
-            style={{ position: "relative", listStyleType: "none", padding: 0, margin: 0, width: "100%", display: "flex", flexDirection: "column", gap: "8px" }}
-          >
-            <AnimatePresence mode="popLayout">
-              {localTasks.map((task, index) => {
-                const isLast = index === localTasks.length - 1;
-                const isNew = !seenTaskIds.current.has(task.id);
-                return (
-                  <Task
-                    key={task.id}
-                    task={task}
-                    isNew={isNew}
-                    isLast={isLast}
-                    listRef={listRef}
-                    ref={isLast ? lastTaskRef : null}
-                    onDragEnd={() => {
-                      reorderTasks(localTasks);
-                      setDraggingTaskId(null);
-                    }}
-                  />
-                );
-              })}
-            </AnimatePresence>
-          </Reorder.Group>
+          <TaskList key={activeFilterHash} tasks={actualTasksList} />
         )}
       </div>
 

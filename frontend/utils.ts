@@ -62,20 +62,51 @@ export function useClickOutside(refs: RefObject<HTMLElement | null> | RefObject<
 }
 
 
-export function useDropdownPosition(buttonRef: RefObject<HTMLElement | null>, labelsOpen: boolean) {
+export function useDropdownPosition(
+  buttonRef: RefObject<HTMLElement | null>,
+  labelsOpen: boolean,
+  onClose?: () => void
+) {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
 
   useEffect(() => {
     if (labelsOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
+      const updatePosition = () => {
+        if (!buttonRef.current) return;
 
-      setDropdownPos({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
+        // Auto-close if the anchor button scrolls outside of its container
+        const scrollContainer = buttonRef.current.closest(".task-list-container, .projects-list");
+        if (scrollContainer && onClose) {
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const btnRect = buttonRef.current.getBoundingClientRect();
+
+          if (btnRect.top < containerRect.top || btnRect.bottom > containerRect.bottom) {
+            onClose();
+            return;
+          }
+        }
+
+        const rect = buttonRef.current.getBoundingClientRect();
+
+        setDropdownPos({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width,
+        });
+      };
+
+      updatePosition();
+
+      // Recalculate on any container scroll (useCapture: true) and window resize
+      window.addEventListener("scroll", updatePosition, true);
+      window.addEventListener("resize", updatePosition);
+
+      return () => {
+        window.removeEventListener("scroll", updatePosition, true);
+        window.removeEventListener("resize", updatePosition);
+      };
     }
-  }, [labelsOpen, buttonRef]);
+  }, [labelsOpen, buttonRef, onClose]);
 
   return dropdownPos;
 }

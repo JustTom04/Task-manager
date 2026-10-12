@@ -9,7 +9,7 @@ export default function AddLabelDropdown() {
   const labelsButtonRef = useRef<HTMLButtonElement>(null);
 
   useClickOutside(labelsRef, () => setLabelsOpen(false));
-  const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen);
+  const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen, () => setLabelsOpen(false));
 
   const selectedLabels = useStore(s => s.selectedLabels);
   const setSelectedLabels = useStore(s => s.setSelectedLabels);

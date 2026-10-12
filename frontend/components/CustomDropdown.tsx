@@ -32,7 +32,7 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle, ic
 
   useClickOutside([dropdownRef, wrapperRef], () => setOpen(false))
 
-  const dropdownPos = useDropdownPosition(wrapperRef, open);
+  const dropdownPos = useDropdownPosition(wrapperRef, open, () => setOpen(false));
 
   return (
     <div

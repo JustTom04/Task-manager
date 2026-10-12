@@ -35,6 +35,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
 
   // ===== States =====
   const [seconds, setSeconds] = useState(0);
+  const secondsRef = useRef(0);
   const [isEditing, setIsEditing] = useState(false);
   const preventClickRef = useRef(false);
   const internalRef = useRef<HTMLDivElement>(null);
@@ -54,6 +55,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
     }
 
     setSeconds(savedSeconds);
+    secondsRef.current = savedSeconds;
 
     if (task.done) {
       // Clear the tracking anchor to prevent time jumps if the task is unmarked later
@@ -63,11 +65,11 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
 
     localStorage.setItem(`task-${task.id}-last-tick`, Date.now().toString());
 
+    // Tick only in React memory every second (no continuous disk writes)
     const interval = setInterval(() => {
       setSeconds((prev) => {
         const newVal = prev + 1;
-        localStorage.setItem(`task-${task.id}-seconds`, newVal.toString());
-        localStorage.setItem(`task-${task.id}-last-tick`, Date.now().toString());
+        secondsRef.current = newVal;
         return newVal;
       });
     }, 1000);

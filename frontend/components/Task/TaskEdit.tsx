@@ -25,18 +25,28 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
 
   const [editedTitle, setEditedTitle] = useState(task.title);
   const [editedPriority, setEditedPriority] = useState(task.priority);
-  const [isMobileEdit, setIsMobileEdit] = useState(window.innerWidth <= 450);
+  const [isMobileEdit, setIsMobileEdit] = useState(typeof window !== "undefined" ? window.innerWidth <= 450 : false);
   const [labelsOpen, setLabelsOpen] = useState(false);
 
   const labelButtonRef = useRef<HTMLButtonElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
   const editContainerRef = useRef<HTMLDivElement>(null);
   const priorityDropdownRef = useRef<HTMLUListElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen);
+  const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen, () => setLabelsOpen(false));
 
   useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
   useClickOutside([editContainerRef, labelsRef, priorityDropdownRef, taskRef], () => closeEdit());
+
+  // Automatically focus task title input and place cursor at the end
+  useEffect(() => {
+    if (titleInputRef.current) {
+      titleInputRef.current.focus();
+      const len = titleInputRef.current.value.length;
+      titleInputRef.current.setSelectionRange(len, len);
+    }
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,7 +87,7 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
               </button>
               {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
             </div>
-            <input type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+            <input ref={titleInputRef} autoFocus type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
           </div>
           <div className="mobile-bottom-row">
             <CustomDropdown
@@ -103,7 +113,7 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
               </button>
               {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
             </div>
-            <input type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+            <input ref={titleInputRef} autoFocus type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
             <CustomDropdown
               value={editedPriority}
               wrapperClass="priority-dropdown"
@@ -139,6 +149,8 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
           )}
         </div>
         <input
+          ref={titleInputRef}
+          autoFocus
           type="text"
           maxLength={INPUT_LENGTH.TASK_TITLE}
           value={editedTitle}

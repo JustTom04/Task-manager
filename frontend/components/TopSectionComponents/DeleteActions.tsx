@@ -10,7 +10,7 @@ export default function DeleteActions() {
   const deleteLabelsButtonRef = useRef<HTMLButtonElement>(null);
 
   useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
-  const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen);
+  const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen, () => setDeleteLabelsOpen(false));
 
   const selectedLabels = useStore(s => s.selectedLabels);
   
