@@ -2,6 +2,7 @@
 
 import prisma from "@/backend/lib/prisma";
 import { verifyUserAccess } from "@/backend/lib/authHelper";
+import { INPUT_LENGTH, MAX_LABELS_PER_PROJECT } from "@/shared/constants";
 
 
 interface CreateLabelArgs {
@@ -40,7 +41,19 @@ export async function createLabel({ id, name, color, projectIds }: CreateLabelAr
       throw new Error("Unauthorized to add labels to this project");
     }
 
-    const trimmedName = name.trim();
+    // Enforce quota limit: max 50 labels per project
+    const labelCount = await prisma.label.count({ where: { projectId } });
+    if (labelCount >= MAX_LABELS_PER_PROJECT) {
+      throw new Error(`Label limit reached (maximum ${MAX_LABELS_PER_PROJECT} labels per project)`);
+    }
+
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      throw new Error("Label name cannot be empty");
+    }
+    if (trimmedName.length > INPUT_LENGTH.LABEL_NAME) {
+      throw new Error(`Label name exceeds maximum allowed length of ${INPUT_LENGTH.LABEL_NAME} characters`);
+    }
 
     // Prevent duplicate label creation to maintain project data integrity
     const existingLabel = await prisma.label.findFirst({

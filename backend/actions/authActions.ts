@@ -4,11 +4,27 @@ import prisma from "@/backend/lib/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
+import { AUTH_LIMITS } from "@/shared/constants";
 
 export async function registerUser(email: string, password: string, guestUserId: string, saveProjects: boolean) {
   try {
+    const trimmedEmail = email?.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+      return { error: "Please enter a valid email address." };
+    }
+
+    if (!password || password.length < AUTH_LIMITS.PASSWORD_MIN_LENGTH) {
+      return { error: `Password must be at least ${AUTH_LIMITS.PASSWORD_MIN_LENGTH} characters long.` };
+    }
+
+    if (password.length > AUTH_LIMITS.PASSWORD_MAX_LENGTH) {
+      return { error: `Password cannot exceed ${AUTH_LIMITS.PASSWORD_MAX_LENGTH} characters.` };
+    }
+
     // Prevent duplicate registrations by verifying email uniqueness
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await prisma.user.findUnique({ where: { email: trimmedEmail } });
     if (existingUser) {
       return { error: "User with this email already exists." };
     }
@@ -20,7 +36,7 @@ export async function registerUser(email: string, password: string, guestUserId:
     // Seed default data for new users to prevent empty UI state crashes if no guest data is being migrated
     const createData: any = {
       id: newUserId,
-      email,
+      email: trimmedEmail,
       password: hashedPassword,
     };
 

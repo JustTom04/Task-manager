@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, ProjectSlice, FrontendProject } from '../types';
-import { INPUT_LENGTH } from '@/frontend/constants';
+import { INPUT_LENGTH, MAX_PROJECTS_PER_USER } from '@/frontend/constants';
 import { getProjects, createProject, deleteProject as deleteProjectAction, updateProject as updateProjectAction } from "@/backend/actions/projectActions";
 
 export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = (set, get) => ({
@@ -49,6 +49,7 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
     if (!activeUserId) return;
     const trimmedName = name?.trim();
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return;
+    if (get().projects.length >= MAX_PROJECTS_PER_USER) return;
 
     const { projects } = get();
     const generalLabels = projects[0]?.labels || [];

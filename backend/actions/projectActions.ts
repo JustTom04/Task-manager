@@ -3,6 +3,7 @@
 import prisma from "@/backend/lib/prisma";
 import { getDefaultProjectsData, getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
 import { verifyUserAccess } from "@/backend/lib/authHelper";
+import { INPUT_LENGTH, MAX_PROJECTS_PER_USER } from "@/shared/constants";
 
 /**
  * Get all projects with their nested tasks and labels for a specific user.
@@ -120,11 +121,20 @@ interface CreateProjectArgs {
  * Create a new project, cloning default labels from General project if none provided
  */
 export async function createProject({ id, name, labels, userId }: CreateProjectArgs) {
-  if (!name || !name.trim()) throw new Error("Project name is required");
+  const trimmedName = name?.trim();
+  if (!trimmedName) throw new Error("Project name is required");
+  if (trimmedName.length > INPUT_LENGTH.PROJECT_NAME) {
+    throw new Error(`Project name exceeds maximum allowed length of ${INPUT_LENGTH.PROJECT_NAME} characters`);
+  }
 
   try {
     const actorId = await verifyUserAccess(userId);
-    const trimmedName = name.trim();
+
+    // Enforce quota limit: max 50 projects per user
+    const projectCount = await prisma.project.count({ where: { userId: actorId } });
+    if (projectCount >= MAX_PROJECTS_PER_USER) {
+      throw new Error(`Project limit reached (maximum ${MAX_PROJECTS_PER_USER} projects per user)`);
+    }
 
     // Prevent duplicate project names for this user
     const existingProject = await prisma.project.findFirst({
@@ -249,7 +259,13 @@ export async function updateProject({ id, name, userId }: UpdateProjectArgs) {
       throw new Error("The General project cannot be modified.");
     }
 
-    const trimmedName = name.trim();
+    const trimmedName = name?.trim();
+    if (!trimmedName) {
+      throw new Error("Project name cannot be empty");
+    }
+    if (trimmedName.length > INPUT_LENGTH.PROJECT_NAME) {
+      throw new Error(`Project name exceeds maximum allowed length of ${INPUT_LENGTH.PROJECT_NAME} characters`);
+    }
 
     // Prevent duplicate project names for this user (excluding itself)
     const existingProject = await prisma.project.findFirst({

@@ -3,6 +3,7 @@
 import prisma from "@/backend/lib/prisma";
 import { verifyUserAccess } from "@/backend/lib/authHelper";
 import { FrontendTask } from "@/frontend/store/types";
+import { INPUT_LENGTH, MAX_TASKS_PER_PROJECT } from "@/shared/constants";
 
 /**
  * Get all tasks for a given user
@@ -112,6 +113,14 @@ export async function createTask({ id, title, done = false, priority, labels = [
   try {
     const actorId = await verifyUserAccess(userId);
 
+    const trimmedTitle = title?.trim();
+    if (!trimmedTitle) {
+      throw new Error("Task title cannot be empty");
+    }
+    if (trimmedTitle.length > INPUT_LENGTH.TASK_TITLE) {
+      throw new Error(`Task title exceeds maximum allowed length of ${INPUT_LENGTH.TASK_TITLE} characters`);
+    }
+
     const activeProjectId = projectId || (projectIds && projectIds.length > 0 ? projectIds[0] : null);
     if (!activeProjectId) {
       throw new Error("Task must belong to a project");
@@ -134,6 +143,12 @@ export async function createTask({ id, title, done = false, priority, labels = [
       throw new Error("Unauthorized to add tasks to this project");
     }
 
+    // Enforce quota limit: max 200 tasks per project to protect server and browser performance
+    const taskCount = await prisma.task.count({ where: { projectId: activeProjectId } });
+    if (taskCount >= MAX_TASKS_PER_PROJECT) {
+      throw new Error(`Task limit reached (maximum ${MAX_TASKS_PER_PROJECT} tasks per project)`);
+    }
+
     const connectLabels = Array.isArray(labels)
       ? labels.map((lid) => ({ id: lid }))
       : [];
@@ -141,7 +156,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
     const newTask = await prisma.task.create({
       data: {
         id: id || undefined,
-        title,
+        title: trimmedTitle,
         done,
         priority: priority || "low",
         projectId: activeProjectId,
@@ -188,6 +203,17 @@ export async function updateTask(taskId: string, updatedData: Partial<FrontendTa
 
     if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to update this task");
+    }
+
+    if (updatedData.title !== undefined) {
+      const trimmedTitle = updatedData.title.trim();
+      if (!trimmedTitle) {
+        throw new Error("Task title cannot be empty");
+      }
+      if (trimmedTitle.length > INPUT_LENGTH.TASK_TITLE) {
+        throw new Error(`Task title exceeds maximum allowed length of ${INPUT_LENGTH.TASK_TITLE} characters`);
+      }
+      updatedData.title = trimmedTitle;
     }
 
     const prismaUpdateData: any = { ...updatedData };

@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, LabelSlice, FrontendLabel } from '../types';
-import { INPUT_LENGTH } from '@/frontend/constants';
+import { INPUT_LENGTH, MAX_LABELS_PER_PROJECT } from '@/frontend/constants';
 import { deleteLabel as deleteLabelAction, deleteAllLabels as deleteAllLabelsAction, createLabel } from "@/backend/actions/labelActions";
 
 export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set, get) => ({
@@ -17,7 +17,12 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.LABEL_NAME) return;
 
     const { activeProjectId } = get();
-    newLabel.projectIds = activeProjectId ? [activeProjectId] : [];
+    if (!activeProjectId) return;
+
+    const actualProject = get().projects.find(p => p.id === activeProjectId);
+    if ((actualProject?.labels?.length || 0) >= MAX_LABELS_PER_PROJECT) return;
+
+    newLabel.projectIds = [activeProjectId];
 
     createLabel(newLabel, activeUserId)
       .then(data => console.log("✅ Label created via Server Action:", data))

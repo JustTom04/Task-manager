@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import { AppState, TaskSlice, FrontendTask } from '../types';
-import { INPUT_LENGTH } from '@/frontend/constants';
+import { INPUT_LENGTH, MAX_TASKS_PER_PROJECT } from '@/frontend/constants';
 import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
 
 export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, get) => ({
@@ -27,6 +27,8 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     if (!activeProjectId) return;
 
     const actualProject = get().projects.find(p => p.id === activeProjectId);
+    if ((actualProject?.tasks.length || 0) >= MAX_TASKS_PER_PROJECT) return;
+
     const maxOrder = actualProject?.tasks.reduce((max, t) => Math.max(max, t.orderIndex || 0), 0) || 0;
 
     const newTask: FrontendTask = {
