@@ -7,7 +7,7 @@ import { registerUser } from "@/backend/actions/authActions";
 import { getUserId } from "@/frontend/utils";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import { motion } from "framer-motion";
-import { MODAL_ANIMATION } from "@/frontend/constants";
+import { MODAL_ANIMATION, AUTH_LIMITS } from "@/frontend/constants";
 import "@/frontend/styles/components/authentication.css";
 
 export default function AuthModal({ onClose }) {
@@ -33,8 +33,8 @@ export default function AuthModal({ onClose }) {
       return;
     }
     
-    if (!isLogin && password.length < 6) {
-      setError("Password must be at least 6 characters long.");
+    if (!isLogin && password.length < AUTH_LIMITS.PASSWORD_MIN_LENGTH) {
+      setError(`Password must be at least ${AUTH_LIMITS.PASSWORD_MIN_LENGTH} characters long.`);
       return;
     }
 

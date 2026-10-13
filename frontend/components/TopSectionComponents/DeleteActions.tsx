@@ -9,7 +9,7 @@ export default function DeleteActions() {
   const deleteLabelsRef = useRef<HTMLDivElement>(null);
   const deleteLabelsButtonRef = useRef<HTMLButtonElement>(null);
 
-  useClickOutside(deleteLabelsRef, () => setDeleteLabelsOpen(false));
+  useClickOutside([deleteLabelsRef, deleteLabelsButtonRef], () => setDeleteLabelsOpen(false));
   const deleteLabelsPos = useDropdownPosition(deleteLabelsButtonRef, deleteLabelsOpen, () => setDeleteLabelsOpen(false));
 
   const selectedLabels = useStore(s => s.selectedLabels);
@@ -50,7 +50,6 @@ export default function DeleteActions() {
             showCheckbox={false}
             footer={
               <button
-                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
                   setConfirmConfig({

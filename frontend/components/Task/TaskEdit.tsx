@@ -27,17 +27,19 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
   const [editedPriority, setEditedPriority] = useState(task.priority);
   const [isMobileEdit, setIsMobileEdit] = useState(typeof window !== "undefined" ? window.innerWidth <= 450 : false);
   const [labelsOpen, setLabelsOpen] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const labelButtonRef = useRef<HTMLButtonElement>(null);
   const labelsRef = useRef<HTMLDivElement>(null);
+  const labelsPanelRef = useRef<HTMLDivElement>(null);
   const editContainerRef = useRef<HTMLDivElement>(null);
   const priorityDropdownRef = useRef<HTMLUListElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
   const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen, () => setLabelsOpen(false));
 
-  useClickOutside([labelsRef, labelButtonRef], () => setLabelsOpen(false));
-  useClickOutside([editContainerRef, labelsRef, priorityDropdownRef, taskRef], () => closeEdit());
+  useClickOutside([labelsRef, labelButtonRef, labelsPanelRef], () => setLabelsOpen(false));
+  useClickOutside([editContainerRef, labelsRef, labelsPanelRef, priorityDropdownRef, taskRef], () => closeEdit());
 
   // Automatically focus task title input and place cursor at the end
   useEffect(() => {
@@ -66,8 +68,12 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
   }, [closeEdit]);
 
   const saveEdit = () => {
-    if (!editedTitle.trim()) return;
-    updateTask({ title: editedTitle, priority: editedPriority });
+    if (!editedTitle.trim()) {
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
+    updateTask({ title: editedTitle.trim(), priority: editedPriority });
     closeEdit();
   };
 
@@ -85,9 +91,23 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
               <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev))}>
                 Add label
               </button>
-              {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
+              {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
             </div>
-            <input ref={titleInputRef} autoFocus type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+            <input
+              ref={titleInputRef}
+              autoFocus
+              type="text"
+              className={showError ? "input-error shake-animation" : ""}
+              placeholder={showError ? "Title cannot be empty!" : "Task title"}
+              maxLength={INPUT_LENGTH.TASK_TITLE}
+              value={editedTitle}
+              onChange={(e) => {
+                setEditedTitle(e.target.value);
+                if (showError) setShowError(false);
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }}
+              style={{ width: `${Math.max(showError ? 24 : 10, task.title.length + 2)}ch`, maxWidth: '100%' }}
+            />
           </div>
           <div className="mobile-bottom-row">
             <CustomDropdown
@@ -111,9 +131,23 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
               <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev))}>
                 Add label
               </button>
-              {labelsOpen && <LabelsPanel labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
+              {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
             </div>
-            <input ref={titleInputRef} autoFocus type="text" maxLength={INPUT_LENGTH.TASK_TITLE} value={editedTitle} onChange={(e) => setEditedTitle(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }} style={{ width: `${Math.max(10, task.title.length + 2)}ch`, maxWidth: '100%' }} />
+            <input
+              ref={titleInputRef}
+              autoFocus
+              type="text"
+              className={showError ? "input-error shake-animation" : ""}
+              placeholder={showError ? "Title cannot be empty!" : "Task title"}
+              maxLength={INPUT_LENGTH.TASK_TITLE}
+              value={editedTitle}
+              onChange={(e) => {
+                setEditedTitle(e.target.value);
+                if (showError) setShowError(false);
+              }}
+              onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }}
+              style={{ width: `${Math.max(showError ? 24 : 10, task.title.length + 2)}ch`, maxWidth: '100%' }}
+            />
             <CustomDropdown
               value={editedPriority}
               wrapperClass="priority-dropdown"
@@ -141,6 +175,7 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
           </button>
           {labelsOpen && (
             <LabelsPanel
+              ref={labelsPanelRef}
               labels={allLabels}
               selectedIds={task.labels}
               onToggle={toggleLabelOnTask}
@@ -152,11 +187,16 @@ export default function TaskEdit({ task, closeEdit, taskRef }: TaskEditProps) {
           ref={titleInputRef}
           autoFocus
           type="text"
+          className={showError ? "input-error shake-animation" : ""}
+          placeholder={showError ? "Title cannot be empty!" : "Task title"}
           maxLength={INPUT_LENGTH.TASK_TITLE}
           value={editedTitle}
-          onChange={(e) => setEditedTitle(e.target.value)}
+          onChange={(e) => {
+            setEditedTitle(e.target.value);
+            if (showError) setShowError(false);
+          }}
           onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); }}
-          style={{ width: `${Math.max(20, task.title.length + 2)}ch`, maxWidth: '100%' }}
+          style={{ width: `${Math.max(showError ? 24 : 20, task.title.length + 2)}ch`, maxWidth: '100%' }}
         />
       </div>
       <div className="desktop-right-group">

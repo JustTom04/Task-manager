@@ -7,8 +7,9 @@ export default function AddLabelDropdown() {
   const [labelsOpen, setLabelsOpen] = useState(false);
   const labelsRef = useRef<HTMLDivElement>(null);
   const labelsButtonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  useClickOutside(labelsRef, () => setLabelsOpen(false));
+  useClickOutside([labelsRef, panelRef], () => setLabelsOpen(false));
   const dropdownPos = useDropdownPosition(labelsButtonRef, labelsOpen, () => setLabelsOpen(false));
 
   const selectedLabels = useStore(s => s.selectedLabels);
@@ -32,6 +33,7 @@ export default function AddLabelDropdown() {
 
       {labelsOpen && (
         <LabelsPanel
+          ref={panelRef}
           labels={actualLabelsList}
           selectedIds={selectedLabels}
           onToggle={(id) => setSelectedLabels(prev =>

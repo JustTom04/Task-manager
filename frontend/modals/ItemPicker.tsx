@@ -22,6 +22,7 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState("#34a853");
   const [error, setError] = useState("");
+  const [showError, setShowError] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -30,13 +31,19 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
 
   function handleSave() {
     const trimmedName = name.trim();
-    if (!trimmedName) return;
+    if (!trimmedName) {
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
+      return;
+    }
 
     const lowerCaseName = trimmedName.toLowerCase();
     const isDuplicate = existingNames.some(existing => existing.toLowerCase() === lowerCaseName);
 
     if (isDuplicate) {
       setError("This name is already taken.");
+      setShowError(true);
+      setTimeout(() => setShowError(false), 3000);
       return;
     }
 
@@ -64,13 +71,15 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
 
         <input
           type="text"
-          placeholder={`${title} name`}
+          className={showError ? "input-error shake-animation" : ""}
+          placeholder={showError ? "Name cannot be empty!" : `${title} name`}
           maxLength={inputMaxLength}
           value={name}
           ref={inputRef}
           onChange={(e) => {
             setName(e.target.value);
-            setError("");
+            if (showError) setShowError(false);
+            if (error) setError("");
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") handleSave();

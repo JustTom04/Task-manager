@@ -54,7 +54,6 @@ const LabelsPanel = forwardRef<HTMLDivElement, LabelsPanelProps>(({
                 type="checkbox"
                 className="label-checkbox"
                 checked={isChecked}
-                onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 onChange={() => onToggle?.(label.id)}
               />
@@ -63,7 +62,6 @@ const LabelsPanel = forwardRef<HTMLDivElement, LabelsPanelProps>(({
             <label
               htmlFor={inputId}
               className="labels-main"
-              onMouseDown={(e) => e.stopPropagation()}
             >
               <Label
                 label={label}
