@@ -1,4 +1,4 @@
-import { useEffect, useState, RefObject } from "react";
+import { useEffect, useState, useRef, RefObject } from "react";
 
 
 // ===== Helpers =====
@@ -68,6 +68,8 @@ export function useDropdownPosition(
   onClose?: () => void
 ) {
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (labelsOpen && buttonRef.current) {
@@ -76,22 +78,26 @@ export function useDropdownPosition(
 
         // Auto-close if the anchor button scrolls outside of its container
         const scrollContainer = buttonRef.current.closest(".task-list-container, .projects-list");
-        if (scrollContainer && onClose) {
+        if (scrollContainer && onCloseRef.current) {
           const containerRect = scrollContainer.getBoundingClientRect();
           const btnRect = buttonRef.current.getBoundingClientRect();
 
           if (btnRect.top < containerRect.top || btnRect.bottom > containerRect.bottom) {
-            onClose();
+            onCloseRef.current();
             return;
           }
         }
 
         const rect = buttonRef.current.getBoundingClientRect();
+        const newTop = rect.bottom + window.scrollY;
+        const newLeft = rect.left + window.scrollX;
+        const newWidth = rect.width;
 
-        setDropdownPos({
-          top: rect.bottom + window.scrollY,
-          left: rect.left + window.scrollX,
-          width: rect.width,
+        setDropdownPos((prev) => {
+          if (prev.top === newTop && prev.left === newLeft && prev.width === newWidth) {
+            return prev;
+          }
+          return { top: newTop, left: newLeft, width: newWidth };
         });
       };
 
@@ -106,7 +112,7 @@ export function useDropdownPosition(
         window.removeEventListener("resize", updatePosition);
       };
     }
-  }, [labelsOpen, buttonRef, onClose]);
+  }, [labelsOpen, buttonRef]);
 
   return dropdownPos;
 }

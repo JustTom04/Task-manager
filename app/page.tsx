@@ -201,7 +201,7 @@ export default function Home() {
               width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.1)',
               borderTopColor: '#ff2c55', borderRadius: '50%', animation: 'spin 1s linear infinite'
             }} />
-            <p className="empty-state-text" style={{ margin: 0 }}>Filtering tasks...</p>
+            <p className="empty-state-text" style={{ margin: 0 }}>Loading tasks...</p>
             <style>{`
               @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
             `}</style>

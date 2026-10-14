@@ -38,6 +38,72 @@ interface FilterArgs {
 }
 
 /**
+ * Get all tasks for a specific project (Lazy Loading) with self-healing safety net for orderIndex.
+ */
+export async function getProjectTasks(projectId: string, userId: string) {
+  try {
+    const actorId = await verifyUserAccess(userId);
+
+    // Verify actor has access to this project
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        OR: [
+          { userId: actorId },
+          { collaborators: { some: { userId: actorId } } }
+        ]
+      }
+    });
+
+    if (!project) {
+      throw new Error("Project not found or unauthorized");
+    }
+
+    const tasks = await prisma.task.findMany({
+      where: { projectId },
+      include: { labels: true },
+      orderBy: { orderIndex: 'asc' },
+    });
+
+    // Self-healing safety net: Ensure all tasks have valid, distinct orderIndex values.
+    // If any tasks have missing, zero, or duplicate orderIndex, re-index them in one batch transaction.
+    let needsFix = false;
+    const seenOrders = new Set<number>();
+    for (const t of tasks) {
+      if (!t.orderIndex || t.orderIndex === 0 || seenOrders.has(t.orderIndex)) {
+        needsFix = true;
+        break;
+      }
+      seenOrders.add(t.orderIndex);
+    }
+
+    if (needsFix && tasks.length > 0) {
+      const reindexUpdates = tasks.map((t, index) => {
+        const newOrder = index + 1;
+        t.orderIndex = newOrder;
+        return prisma.task.update({
+          where: { id: t.id },
+          data: { orderIndex: newOrder }
+        });
+      });
+      console.log(`[SERVER] Auto-healing orderIndex for ${reindexUpdates.length} tasks in project ${projectId}`);
+      await prisma.$transaction(reindexUpdates);
+    }
+
+    console.log(`[SERVER ACTION] Fetched ${tasks.length} tasks for project: ${projectId}`);
+
+    // Flatten label objects into ID arrays for Zustand store compatibility
+    return tasks.map((t) => ({
+      ...t,
+      labels: t.labels.map((l) => l.id),
+    }));
+  } catch (error) {
+    console.error("[SERVER ACTION ERROR: getProjectTasks]", error);
+    throw new Error("Failed to fetch project tasks");
+  }
+}
+
+/**
  * Get filtered tasks for a specific project
  */
 export async function getFilteredTasks(projectId: string, filters: FilterArgs, userId: string) {

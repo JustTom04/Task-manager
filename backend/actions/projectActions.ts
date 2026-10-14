@@ -49,60 +49,18 @@ export async function getProjects(userId: string) {
           where: { userId: actorId },
           select: { joinedAt: true }
         },
-        tasks: {
-          include: { labels: true },
-          orderBy: { orderIndex: 'asc' }
-        }
       }
     });
 
-    // Self-healing safety net: Ensure all tasks have valid, distinct orderIndex values.
-    // If any tasks have missing, zero, or duplicate orderIndex, re-index them in one batch transaction.
-    const reindexUpdates: any[] = [];
-    for (const project of projects) {
-      let needsFix = false;
-      const seenOrders = new Set<number>();
-      for (const t of project.tasks) {
-        if (!t.orderIndex || t.orderIndex === 0 || seenOrders.has(t.orderIndex)) {
-          needsFix = true;
-          break;
-        }
-        seenOrders.add(t.orderIndex);
-      }
-
-      if (needsFix && project.tasks.length > 0) {
-        project.tasks.forEach((t, index) => {
-          const newOrder = index + 1;
-          t.orderIndex = newOrder;
-          reindexUpdates.push(
-            prisma.task.update({
-              where: { id: t.id },
-              data: { orderIndex: newOrder }
-            })
-          );
-        });
-      }
-    }
-
-    if (reindexUpdates.length > 0) {
-      console.log(`[SERVER] Auto-healing orderIndex for ${reindexUpdates.length} tasks in a single transaction.`);
-      await prisma.$transaction(reindexUpdates);
-    }
-
-    // Format projects and their tasks
-    // The frontend expects task.labels to be an array of IDs, not full objects
+    // Format projects (tasks are excluded for lazy loading)
     const formattedProjects = projects.map((p) => {
       const { collaborators, ...projectData } = p; // Remove collaborators from frontend response
       return {
         ...projectData,
-        tasks: projectData.tasks.map(t => ({
-          ...t,
-          labels: t.labels.map(l => l.id)
-        })),
+        tasks: [], // Empty tasks array initially; tasks are lazy-loaded when project is selected
       };
     });
 
-    console.log(`[SERVER ACTION] Fetched all projects. Total count: ${formattedProjects.length}`);
     return formattedProjects;
   } catch (error) {
     console.error("[SERVER ACTION ERROR: getProjects]", error);

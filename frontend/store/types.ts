@@ -22,6 +22,7 @@ export interface FrontendProject {
   shareCode?: string | null;
   labels: FrontendLabel[];
   tasks: FrontendTask[];
+  tasksLoaded?: boolean;
 }
 
 export interface ProjectSlice {
@@ -31,6 +32,7 @@ export interface ProjectSlice {
   setActiveProjectId: (id: string | null) => void;
   setActiveUserId: (id: string | null) => void;
   fetchProjects: () => Promise<void>;
+  fetchProjectTasks: (projectId: string) => Promise<void>;
   addProject: (name: string) => void;
   deleteProject: (projectId: string) => void;
   renameProject: (projectId: string, newName: string) => void;
