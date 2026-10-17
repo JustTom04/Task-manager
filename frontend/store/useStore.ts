@@ -4,15 +4,17 @@ import { createProjectSlice } from './slices/createProjectSlice';
 import { createLabelSlice } from './slices/createLabelSlice';
 import { createTaskSlice } from './slices/createTaskSlice';
 import { createModalSlice } from './slices/createModalSlice';
+import { createToastSlice } from './slices/createToastSlice';
 
 // Re-export types
-export type { FrontendLabel, FrontendTask, FrontendProject, AppState } from './types';
+export type { FrontendLabel, FrontendTask, FrontendProject, AppState, ToastMessage, ToastType, ToastSlice } from './types';
 
 const useStore = create<AppState>((...a) => ({
   ...createProjectSlice(...a),
   ...createLabelSlice(...a),
   ...createTaskSlice(...a),
-  ...createModalSlice(...a)
+  ...createModalSlice(...a),
+  ...createToastSlice(...a)
 }));
 
 export default useStore;

@@ -11,6 +11,7 @@
   --color-warning: #f59e0b;
   --color-danger: #ef4444;
   --color-task-bg: #1f1f24;
+  --color-toast-bg: #16161b;
   --color-dropdown-bg: #1f1f24;
   --color-dropdown-border: #2c2c35;
   --color-checkbox: #6366f1;
@@ -107,6 +108,7 @@ body {
 
 
 .app-container {
+  position: relative;
   max-width: 800px;
   height: 100dvh;
   margin: 0 auto;

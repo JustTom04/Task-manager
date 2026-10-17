@@ -78,4 +78,20 @@ export interface TaskSlice {
   setDraggingTaskId: (id: string | null) => void;
 }
 
-export interface AppState extends ProjectSlice, LabelSlice, TaskSlice, ModalSlice {}
+export type ToastType = 'success' | 'error' | 'info';
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: ToastType;
+  duration?: number;
+}
+
+export interface ToastSlice {
+  toasts: ToastMessage[];
+  showToast: (message: string, type?: ToastType, duration?: number) => void;
+  removeToast: (id: string) => void;
+}
+
+export interface AppState extends ProjectSlice, LabelSlice, TaskSlice, ModalSlice, ToastSlice {}
+

@@ -230,7 +230,7 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
           
           // ROLLBACK: Revert to the snapshot if the backend fails
           set({ projects: previousProjectsSnapshot });
-          alert("Network error: couldn't save task order. Changes reverted.");
+          get().showToast("Network error: couldn't save task order. Changes reverted.", "error");
         });
     }
   }

@@ -13,6 +13,7 @@ import ItemPicker from "@/frontend/modals/ItemPicker";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import SettingsPanel from "@/frontend/components/SettingsPanel";
 import TopSection from "@/frontend/components/TopSection";
+import ToastContainer from "@/frontend/components/Toast";
 
 import "@/frontend/styles/components/topSection.css";
 import "@/frontend/styles/base/general.css";
@@ -254,6 +255,8 @@ export default function Home() {
         isOpen={settingsOpen}
         setIsOpen={setSettingsOpen}
       />
+
+      <ToastContainer />
     </div>
   );
 }

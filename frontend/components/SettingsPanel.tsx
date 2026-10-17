@@ -24,6 +24,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   const activeProjectId = useStore((state) => state.activeProjectId);
   const activeUserId = useStore((state) => state.activeUserId);
   const onSelectProject = useStore((state) => state.setActiveProjectId);
+  const showToast = useStore((state) => state.showToast);
 
   const _addProject = useStore((state) => state.addProject);
   const _deleteProject = useStore((state) => state.deleteProject);
@@ -186,10 +187,8 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                         setTimeout(() => {
                           setCopiedProjectId((current) => current === p.id ? null : current);
                         }, 2000);
-
-                        console.log("Projekt:", p);
                       } catch (error: any) {
-                        alert("Error generating share code: " + error.message);
+                        showToast("Error generating share code: " + error.message, "error");
                       }
                     }}
                     data-tooltip="Share Project"
