@@ -52,6 +52,21 @@ export async function getProjects(userId: string) {
       }
     });
 
+    // Sort projects deterministically from the current user's perspective:
+    // - If user owns the project: sorted by project creation time (createdAt)
+    // - If user joined via share code: sorted by when user joined (joinedAt)
+    projects.sort((a, b) => {
+      const dateA = a.collaborators[0]?.joinedAt
+        ? new Date(a.collaborators[0].joinedAt).getTime()
+        : new Date(a.createdAt).getTime();
+
+      const dateB = b.collaborators[0]?.joinedAt
+        ? new Date(b.collaborators[0].joinedAt).getTime()
+        : new Date(b.createdAt).getTime();
+
+      return dateA - dateB;
+    });
+
     // Format projects (tasks are excluded for lazy loading)
     const formattedProjects = projects.map((p) => {
       const { collaborators, ...projectData } = p; // Remove collaborators from frontend response

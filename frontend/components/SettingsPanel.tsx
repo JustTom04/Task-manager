@@ -42,8 +42,23 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
 
   const editInputRef = useRef<HTMLInputElement>(null);
   const settingsRef = useRef(null);
+  const projectsListRef = useRef<HTMLDivElement>(null);
+  const prevProjectCount = useRef(projects.length);
 
   useClickOutside(settingsRef, () => { setIsOpen(false) })
+
+  // Auto-scroll to bottom of projects list when a new project is created
+  useEffect(() => {
+    if (projects.length > prevProjectCount.current) {
+      setTimeout(() => {
+        projectsListRef.current?.scrollTo({
+          top: projectsListRef.current.scrollHeight,
+          behavior: "smooth"
+        });
+      }, 50);
+    }
+    prevProjectCount.current = projects.length;
+  }, [projects.length]);
 
   // Focus input automatically when editing starts
   useEffect(() => {
@@ -98,7 +113,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
           🔗 Join
         </button>
       </div>
-      <div className="projects-list">
+      <div className="projects-list" ref={projectsListRef}>
         {projects.map((p) => (
           <div
             key={p.id}
@@ -180,7 +195,11 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
 
                       try {
                         const code = await generateShareCode(p.id, activeUserId);
-                        await useStore.getState().fetchProjects();
+                        useStore.setState((state) => ({
+                          projects: state.projects.map((proj) =>
+                            proj.id === p.id ? { ...proj, shareCode: code } : proj
+                          ),
+                        }));
                         await navigator.clipboard.writeText(code);
 
                         setCopiedProjectId(p.id);
