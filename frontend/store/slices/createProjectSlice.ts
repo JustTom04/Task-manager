@@ -82,7 +82,7 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return;
     if (get().projects.length >= MAX_PROJECTS_PER_USER) return;
 
-    const { projects } = get();
+    const { projects, activeProjectId: previousActiveProjectId } = get();
     const generalLabels = projects[0]?.labels || [];
 
     const newProject: FrontendProject = {
@@ -94,27 +94,36 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
       tasksLoaded: true, // Brand-new project starts with empty tasks already "loaded"
     };
 
-    createProject({ ...newProject, userId: activeUserId })
-      .then(data => console.log("✅ Project created via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
-
     set((state) => ({
       projects: [...state.projects, newProject]
     }));
     get().setActiveProjectId(newProject.id);
+
+    createProject({ ...newProject, userId: activeUserId })
+      .catch((err) => {
+        console.error("❌ Server Action Error (createProject):", err);
+        // ATOMIC ROLLBACK: Remove the failed project and restore the previous active project
+        set((state) => ({
+          projects: state.projects.filter((p) => p.id !== newProject.id)
+        }));
+        if (get().activeProjectId === newProject.id && previousActiveProjectId) {
+          get().setActiveProjectId(previousActiveProjectId);
+        }
+        get().showToast("Network error: Failed to create project. Changes reverted.", "error");
+      });
   },
 
   deleteProject: (projectId) => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
-    deleteProjectAction(projectId, activeUserId)
-      .then(data => console.log("🗑️ Project deleted via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+
+    const { projects, activeProjectId: previousActiveProjectId } = get();
+    const projectIndex = projects.findIndex(p => p.id === projectId);
+    const projectToDelete = projects[projectIndex];
+    if (!projectToDelete || projectIndex <= 0) return; // General project at index 0 cannot be deleted
 
     set((state) => {
       const prevProjects = state.projects;
-      if (prevProjects[0]?.id === projectId) return { projects: prevProjects };
-
       const newProjects = prevProjects.filter((p) => p.id !== projectId);
 
       const stillExists = newProjects.find(p => p.id === state.activeProjectId);
@@ -125,6 +134,21 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
       }
       return { projects: newProjects };
     });
+
+    deleteProjectAction(projectId, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (deleteProject):", err);
+        // ATOMIC ROLLBACK: Re-insert project at original index and restore activeProjectId if needed
+        set((state) => {
+          const restored = [...state.projects];
+          restored.splice(projectIndex, 0, projectToDelete);
+          return { projects: restored };
+        });
+        if (previousActiveProjectId) {
+          get().setActiveProjectId(previousActiveProjectId);
+        }
+        get().showToast("Network error: Failed to delete project. Changes reverted.", "error");
+      });
   },
 
   renameProject: (projectId, newName) => {
@@ -133,12 +157,22 @@ export const createProjectSlice: StateCreator<AppState, [], [], ProjectSlice> = 
     const trimmedName = newName?.trim();
     if (!trimmedName || trimmedName.length > INPUT_LENGTH.PROJECT_NAME) return;
 
+    const targetProject = get().projects.find(p => p.id === projectId);
+    const previousName = targetProject?.name;
+    if (!targetProject || !previousName) return;
+
     set((state) => ({
       projects: state.projects.map(p => p.id === projectId ? { ...p, name: trimmedName } : p)
     }));
 
     updateProjectAction({ id: projectId, name: trimmedName, userId: activeUserId })
-      .then(data => console.log("✅ Project renamed via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+      .catch((err) => {
+        console.error("❌ Server Action Error (updateProject):", err);
+        // ATOMIC ROLLBACK: Revert project name back to previousName
+        set((state) => ({
+          projects: state.projects.map(p => p.id === projectId ? { ...p, name: previousName } : p)
+        }));
+        get().showToast("Network error: Failed to rename project. Changes reverted.", "error");
+      });
   }
 });

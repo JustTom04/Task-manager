@@ -19,14 +19,14 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
   const dragControls = useDragControls();
   const _toggleTask = useStore(s => s.toggleTask);
   const _deleteTask = useStore(s => s.deleteTask);
-  const _deleteTaskLabel = useStore(s => s.deleteTaskLabel);
+  const _toggleLabelOnTask = useStore(s => s.toggleLabelOnTask);
   const draggingTaskId = useStore(s => s.draggingTaskId);
 
   const isDragging = draggingTaskId === task.id;
 
   const toggleTask = () => _toggleTask(task.id);
   const deleteTask = () => _deleteTask(task.id);
-  const deleteTaskLabel = (taskId: string, labelId: string) => _deleteTaskLabel(taskId, labelId);
+  const toggleLabelOnTask = (taskId: string, labelId: string) => _toggleLabelOnTask(taskId, labelId);
 
   const projects = useStore(s => s.projects);
   const activeProjectId = useStore(s => s.activeProjectId);
@@ -200,7 +200,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
               <Label
                 key={label.id}
                 label={label}
-                deleteLabel={() => deleteTaskLabel(task.id, label.id)}
+                deleteLabel={() => toggleLabelOnTask(task.id, label.id)}
                 showDelete={isEditing}
               />
             ))}

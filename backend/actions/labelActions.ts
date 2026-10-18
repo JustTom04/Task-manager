@@ -17,6 +17,10 @@ interface CreateLabelArgs {
  */
 export async function createLabel({ id, name, color, projectIds }: CreateLabelArgs, userId: string) {
   try {
+    if (name?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in createLabel: name contains 'fail'");
+    }
+
     const actorId = await verifyUserAccess(userId);
 
     const projectId = projectIds && projectIds.length > 0 ? projectIds[0] : null;
@@ -116,6 +120,10 @@ export async function deleteLabel(labelId: string, userId: string) {
       throw new Error("Unauthorized to delete this label");
     }
 
+    if (label.name?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in deleteLabel: name contains 'fail'");
+    }
+
     await prisma.label.delete({ where: { id: labelId } });
     console.log(`[SERVER ACTION] Removed label ID: ${labelId}`);
     return { success: true, id: labelId };
@@ -129,9 +137,9 @@ export async function deleteLabel(labelId: string, userId: string) {
  * Delete all labels for a specific project
  */
 export async function deleteAllLabels(projectId: string, userId: string) {
-  if (!projectId) throw new Error("projectId is required to delete labels");
-
   try {
+    if (!projectId) throw new Error("projectId is required to delete labels");
+
     const actorId = await verifyUserAccess(userId);
 
     // Ensure actor has authorization to modify the parent project
@@ -149,6 +157,10 @@ export async function deleteAllLabels(projectId: string, userId: string) {
 
     if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete labels in this project");
+    }
+
+    if (project.name?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in deleteAllLabels: project name contains 'fail'");
     }
 
     await prisma.label.deleteMany({ where: { projectId } });

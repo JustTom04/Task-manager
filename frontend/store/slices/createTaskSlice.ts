@@ -41,10 +41,6 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
       orderIndex: maxOrder + 1,
     };
 
-    createTask({ ...newTask, projectIds: [activeProjectId] }, activeUserId)
-      .then(data => console.log("✅ Task created via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
-
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
@@ -52,6 +48,20 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
       newTitle: "",
       // newPriority and selectedLabels remain the same so the user can quickly add multiple similar tasks
     }));
+
+    createTask({ ...newTask, projectIds: [activeProjectId] }, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (createTask):", err);
+        // ATOMIC ROLLBACK: Remove only this failed task by its unique ID
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? { ...p, tasks: p.tasks.filter((t) => t.id !== newTask.id) }
+              : p
+          )
+        }));
+        get().showToast("Network error: Failed to create task. Changes reverted.", "error");
+      });
   },
 
   toggleTask: (id) => {
@@ -61,77 +71,95 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const actualProject = projects.find(p => p.id === activeProjectId);
     const actualTasksList = actualProject?.tasks || [];
     const taskToToggle = actualTasksList.find(t => t.id === id);
+    if (!taskToToggle) return;
 
-    if (taskToToggle) {
-      updateTaskAction(id, { done: !taskToToggle.done }, activeUserId)
-        .then(data => console.log("🔄 Task toggled via Server Action:", data))
-        .catch(err => console.error("❌ Server Action Error:", err));
-    }
+    const previousDone = taskToToggle.done;
 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId
-          ? { ...p, tasks: p.tasks.map((t) => t.id === id ? { ...t, done: !t.done } : t) }
+          ? { ...p, tasks: p.tasks.map((t) => t.id === id ? { ...t, done: !previousDone } : t) }
           : p
       )
     }));
+
+    updateTaskAction(id, { done: !previousDone }, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (toggleTask):", err);
+        // ATOMIC ROLLBACK: Revert only this task's done status
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? { ...p, tasks: p.tasks.map((t) => (t.id === id ? { ...t, done: previousDone } : t)) }
+              : p
+          )
+        }));
+        get().showToast("Network error: Failed to update task status. Changes reverted.", "error");
+      });
   },
 
   deleteTask: (id) => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
-    const { activeProjectId } = get();
-    deleteTaskAction(id, activeUserId)
-      .then(data => console.log("🗑️ Task deleted via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+    const { activeProjectId, projects } = get();
+    if (!activeProjectId) return;
+
+    const actualProject = projects.find(p => p.id === activeProjectId);
+    const originalIndex = actualProject?.tasks.findIndex(t => t.id === id) ?? -1;
+    const taskToDelete = actualProject?.tasks[originalIndex];
+    if (!taskToDelete || originalIndex === -1) return;
 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: p.tasks.filter((t) => t.id !== id) } : p
       )
     }));
-    if (typeof window !== 'undefined') localStorage.removeItem(`task-${id}-seconds`);
+
+    deleteTaskAction(id, activeUserId)
+      .then(() => {
+        if (typeof window !== 'undefined') localStorage.removeItem(`task-${id}-seconds`);
+      })
+      .catch((err) => {
+        console.error("❌ Server Action Error (deleteTask):", err);
+        // ATOMIC ROLLBACK: Re-insert only this deleted task into its exact original position
+        set((state) => ({
+          projects: state.projects.map((p) => {
+            if (p.id !== activeProjectId) return p;
+            const restoredTasks = [...p.tasks];
+            restoredTasks.splice(originalIndex, 0, taskToDelete);
+            return { ...p, tasks: restoredTasks };
+          })
+        }));
+        get().showToast("Network error: Failed to delete task. Changes reverted.", "error");
+      });
   },
 
   deleteAllTasks: () => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
-    const { activeProjectId } = get();
+    const { activeProjectId, projects } = get();
     if (!activeProjectId) return;
 
-    deleteAllTasksAction(activeProjectId, activeUserId)
-      .then(data => console.log("🗑️ ALL Tasks deleted via Server Action for project:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+    const actualProject = projects.find(p => p.id === activeProjectId);
+    const previousTasks = actualProject?.tasks || [];
 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId ? { ...p, tasks: [] } : p
       )
     }));
-  },
 
-  deleteTaskLabel: (taskId, labelId) => {
-    const activeUserId = get().activeUserId;
-    if (!activeUserId) return;
-    const { activeProjectId, projects } = get();
-    const actualProject = projects.find(p => p.id === activeProjectId);
-    const actualTasksList = actualProject?.tasks || [];
-    const task = actualTasksList.find((t) => t.id === taskId);
-    if (!task) return;
-
-    const newLabels = task.labels.filter((l) => l !== labelId);
-
-    updateTaskAction(taskId, { labels: newLabels }, activeUserId)
-      .then(data => console.log("✅ Task label deleted via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
-
-    set((state) => ({
-      projects: state.projects.map((p) =>
-        p.id === activeProjectId
-          ? { ...p, tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, labels: newLabels } : t)) }
-          : p
-      )
-    }));
+    deleteAllTasksAction(activeProjectId, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (deleteAllTasks):", err);
+        // ATOMIC ROLLBACK: Restore only this project's tasks
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId ? { ...p, tasks: previousTasks } : p
+          )
+        }));
+        get().showToast("Network error: Failed to delete all tasks. Changes reverted.", "error");
+      });
   },
 
   toggleLabelOnTask: (taskId, labelId) => {
@@ -143,14 +171,11 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const task = actualTasksList.find((t) => t.id === taskId);
     if (!task) return;
 
-    const hasLabel = task.labels.includes(labelId);
+    const previousLabels = task.labels;
+    const hasLabel = previousLabels.includes(labelId);
     const newLabels = hasLabel
-      ? task.labels.filter((l) => l !== labelId)
-      : [...task.labels, labelId];
-
-    updateTaskAction(taskId, { labels: newLabels }, activeUserId)
-      .then(data => console.log("✅ Task label toggled via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+      ? previousLabels.filter((l) => l !== labelId)
+      : [...previousLabels, labelId];
 
     set((state) => ({
       projects: state.projects.map((p) =>
@@ -159,16 +184,37 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
           : p
       )
     }));
+
+    updateTaskAction(taskId, { labels: newLabels }, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (toggleLabelOnTask):", err);
+        // ATOMIC ROLLBACK: Revert only this task's labels
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? { ...p, tasks: p.tasks.map((t) => (t.id === taskId ? { ...t, labels: previousLabels } : t)) }
+              : p
+          )
+        }));
+        get().showToast("Network error: Failed to update task label. Changes reverted.", "error");
+      });
   },
 
   updateTask: (id, updatedTask) => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
-    const { activeProjectId } = get();
+    const { activeProjectId, projects } = get();
+    if (!activeProjectId) return;
 
-    updateTaskAction(id, updatedTask, activeUserId)
-      .then(data => console.log("✏️ Task updated via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+    const actualProject = projects.find(p => p.id === activeProjectId);
+    const taskToUpdate = actualProject?.tasks.find(t => t.id === id);
+    if (!taskToUpdate) return;
+
+    // Snapshot only the fields that are being updated
+    const previousFields: Partial<FrontendTask> = {};
+    for (const key of Object.keys(updatedTask) as (keyof FrontendTask)[]) {
+      (previousFields as any)[key] = taskToUpdate[key];
+    }
 
     set((state) => ({
       projects: state.projects.map((p) =>
@@ -177,6 +223,20 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
           : p
       )
     }));
+
+    updateTaskAction(id, updatedTask, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (updateTask):", err);
+        // ATOMIC ROLLBACK: Restore only this task's previous fields
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? { ...p, tasks: p.tasks.map((t) => (t.id === id ? { ...t, ...previousFields } : t)) }
+              : p
+          )
+        }));
+        get().showToast("Network error: Failed to save task changes. Changes reverted.", "error");
+      });
   },
 
   reorderTasks: (newFilteredOrder) => {
@@ -185,6 +245,11 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
 
     const actualProject = projects.find(p => p.id === activeProjectId);
     if (!actualProject) return;
+
+    const draggedTask = actualProject.tasks.find(t => t.id === draggingTaskId);
+    if (!draggedTask) return;
+
+    const previousOrderIndex = draggedTask.orderIndex || 0;
 
     // 1. Find the new index of the dragged task in the visually sorted array
     const newIndex = newFilteredOrder.findIndex(t => t.id === draggingTaskId);
@@ -202,9 +267,6 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     } else if (nextItem) {
       newOrderIndex = (nextItem.orderIndex || 0) - 1.0; // Moved to very top
     }
-
-    // SNAPSHOT: Take a snapshot of the current state before we optimistically update
-    const previousProjectsSnapshot = projects;
 
     // 3. Update ONLY the dragged task's orderIndex in the GLOBAL array, and sort it.
     set((state) => ({
@@ -224,13 +286,23 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const activeUserId = get().activeUserId;
     if (activeUserId) {
       updateTaskAction(draggingTaskId, { orderIndex: newOrderIndex }, activeUserId)
-        .then(() => console.log("✅ Task order updated in database"))
         .catch((err) => {
           console.error("❌ Failed to update task order in database:", err);
           
-          // ROLLBACK: Revert to the snapshot if the backend fails
-          set({ projects: previousProjectsSnapshot });
-          get().showToast("Network error: couldn't save task order. Changes reverted.", "error");
+          // ATOMIC ROLLBACK: Revert only this task's orderIndex and re-sort
+          set((state) => ({
+            projects: state.projects.map((p) =>
+              p.id === activeProjectId
+                ? {
+                    ...p,
+                    tasks: p.tasks
+                      .map((t) => (t.id === draggingTaskId ? { ...t, orderIndex: previousOrderIndex } : t))
+                      .sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0))
+                  }
+                : p
+            )
+          }));
+          get().showToast("Network error: Couldn't save task order. Changes reverted.", "error");
         });
     }
   }

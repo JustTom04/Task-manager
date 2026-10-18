@@ -24,10 +24,6 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
 
     newLabel.projectIds = [activeProjectId];
 
-    createLabel(newLabel, activeUserId)
-      .then(data => console.log("✅ Label created via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
-
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId
@@ -35,15 +31,35 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
           : p
       )
     }));
+
+    createLabel(newLabel, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (createLabel):", err);
+        // ATOMIC ROLLBACK: Remove only this failed label by ID
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? { ...p, labels: (p.labels || []).filter((l) => l.id !== newLabel.id) }
+              : p
+          )
+        }));
+        get().showToast("Network error: Failed to create label. Changes reverted.", "error");
+      });
   },
 
   deleteLabel: (id) => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
     const { activeProjectId } = get();
-    deleteLabelAction(id, activeUserId)
-      .then(data => console.log("🗑️ Label deleted via Server Action:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+    if (!activeProjectId) return;
+
+    const actualProject = get().projects.find(p => p.id === activeProjectId);
+    const labelToDelete = actualProject?.labels?.find(l => l.id === id);
+    const originalLabelIndex = actualProject?.labels?.findIndex(l => l.id === id) ?? -1;
+    if (!labelToDelete || originalLabelIndex === -1) return;
+
+    const tasksWithLabel = actualProject?.tasks.filter(t => t.labels.includes(id)).map(t => t.id) || [];
+    const wasInFilter = get().labelsFilter.includes(id);
 
     set((state) => ({
       projects: state.projects.map((p) =>
@@ -60,6 +76,32 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
       ),
       labelsFilter: state.labelsFilter.filter((lid) => lid !== id)
     }));
+
+    deleteLabelAction(id, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (deleteLabel):", err);
+        // ATOMIC ROLLBACK: Re-insert label at its original index and re-attach to affected tasks
+        set((state) => ({
+          projects: state.projects.map((p) => {
+            if (p.id !== activeProjectId) return p;
+            const restoredLabels = [...(p.labels || [])];
+            restoredLabels.splice(originalLabelIndex, 0, labelToDelete);
+            return {
+              ...p,
+              labels: restoredLabels,
+              tasks: p.tasks.map((task) =>
+                tasksWithLabel.includes(task.id) && !task.labels.includes(id)
+                  ? { ...task, labels: [...task.labels, id] }
+                  : task
+              ),
+            };
+          }),
+          labelsFilter: wasInFilter && !state.labelsFilter.includes(id)
+            ? [...state.labelsFilter, id]
+            : state.labelsFilter
+        }));
+        get().showToast("Network error: Failed to delete label. Changes reverted.", "error");
+      });
   },
 
   deleteAllLabels: () => {
@@ -68,9 +110,10 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
     const { activeProjectId } = get();
     if (!activeProjectId) return;
 
-    deleteAllLabelsAction(activeProjectId, activeUserId)
-      .then(data => console.log("🗑️ ALL Labels deleted via Server Action for project:", data))
-      .catch(err => console.error("❌ Server Action Error:", err));
+    const actualProject = get().projects.find(p => p.id === activeProjectId);
+    const previousLabels = actualProject?.labels || [];
+    const previousTaskLabels = actualProject?.tasks.map(t => ({ id: t.id, labels: t.labels })) || [];
+    const previousLabelsFilter = get().labelsFilter;
 
     set((state) => ({
       projects: state.projects.map((p) =>
@@ -80,5 +123,25 @@ export const createLabelSlice: StateCreator<AppState, [], [], LabelSlice> = (set
       ),
       labelsFilter: []
     }));
+
+    deleteAllLabelsAction(activeProjectId, activeUserId)
+      .catch((err) => {
+        console.error("❌ Server Action Error (deleteAllLabels):", err);
+        // ATOMIC ROLLBACK: Restore only this project's labels and task attachments
+        const labelMap = new Map(previousTaskLabels.map(item => [item.id, item.labels]));
+        set((state) => ({
+          projects: state.projects.map((p) =>
+            p.id === activeProjectId
+              ? {
+                  ...p,
+                  labels: previousLabels,
+                  tasks: p.tasks.map(t => ({ ...t, labels: labelMap.get(t.id) || t.labels }))
+                }
+              : p
+          ),
+          labelsFilter: previousLabelsFilter
+        }));
+        get().showToast("Network error: Failed to delete all labels. Changes reverted.", "error");
+      });
   }
 });

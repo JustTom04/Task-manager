@@ -177,6 +177,10 @@ interface CreateTaskArgs {
  */
 export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds, orderIndex = 0 }: CreateTaskArgs, userId: string) {
   try {
+    if (title?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in createTask: title contains 'fail'");
+    }
+
     const actorId = await verifyUserAccess(userId);
 
     const trimmedTitle = title?.trim();
@@ -271,6 +275,10 @@ export async function updateTask(taskId: string, updatedData: Partial<FrontendTa
       throw new Error("Unauthorized to update this task");
     }
 
+    if (task.title?.toLowerCase().includes("fail") || updatedData.title?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in updateTask: title contains 'fail'");
+    }
+
     if (updatedData.title !== undefined) {
       const trimmedTitle = updatedData.title.trim();
       if (!trimmedTitle) {
@@ -341,6 +349,10 @@ export async function deleteTask(taskId: string, userId: string) {
       throw new Error("Unauthorized to delete this task");
     }
 
+    if (task.title?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in deleteTask: title contains 'fail'");
+    }
+
     await prisma.task.delete({ where: { id: taskId } });
     console.log(`[SERVER ACTION] Removed task ID: ${taskId}`);
     return { success: true, id: taskId };
@@ -374,6 +386,10 @@ export async function deleteAllTasks(projectId: string, userId: string) {
 
     if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to delete tasks in this project");
+    }
+
+    if (project.name?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in deleteAllTasks: project name contains 'fail'");
     }
 
     await prisma.task.deleteMany({ where: { projectId } });

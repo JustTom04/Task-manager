@@ -95,13 +95,15 @@ export default function Home() {
 
   const prevTaskCount = useRef(actualTasksList.length);
   const prevFilterHashForScroll = useRef(activeFilterHash);
+  const prevLastTaskId = useRef(actualTasksList[actualTasksList.length - 1]?.id);
 
   useEffect(() => {
     const container = document.querySelector('.task-list-container');
+    const currentLastTaskId = actualTasksList[actualTasksList.length - 1]?.id;
 
     if (activeFilterHash === prevFilterHashForScroll.current) {
-      // Same filter & project: Scroll to the bottom manually when a new task is added
-      if (actualTasksList.length === prevTaskCount.current + 1) {
+      // Same filter & project: Scroll to the bottom ONLY when a new task is appended at the end
+      if (actualTasksList.length === prevTaskCount.current + 1 && currentLastTaskId !== prevLastTaskId.current) {
         setTimeout(() => {
           container?.scrollTo({
             top: container.scrollHeight,
@@ -116,6 +118,7 @@ export default function Home() {
 
     prevTaskCount.current = actualTasksList.length;
     prevFilterHashForScroll.current = activeFilterHash;
+    prevLastTaskId.current = currentLastTaskId;
   }, [actualTasksList.length, activeFilterHash]);
 
   const actualLabelsList = actualProject?.labels || [];

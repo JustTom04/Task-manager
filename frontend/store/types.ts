@@ -70,7 +70,6 @@ export interface TaskSlice {
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   deleteAllTasks: () => void;
-  deleteTaskLabel: (taskId: string, labelId: string) => void;
   toggleLabelOnTask: (taskId: string, labelId: string) => void;
   updateTask: (id: string, updatedTask: Partial<FrontendTask>) => void;
   reorderTasks: (newTasks: FrontendTask[]) => void;

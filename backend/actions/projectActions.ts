@@ -86,6 +86,10 @@ export async function createProject({ id, name, labels, userId }: CreateProjectA
   }
 
   try {
+    if (trimmedName.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in createProject: name contains 'fail'");
+    }
+
     const actorId = await verifyUserAccess(userId);
 
     // Enforce quota limit: max 50 projects per user
@@ -158,6 +162,10 @@ export async function deleteProject(projectId: string, userId: string) {
       throw new Error("Project not found");
     }
 
+    if (projectToDelete.name?.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in deleteProject: name contains 'fail'");
+    }
+
     if (projectToDelete.userId !== actorId) {
       // Check if they are a collaborator
       const collab = await prisma.projectCollaborator.findUnique({
@@ -196,11 +204,11 @@ interface UpdateProjectArgs {
  * Update a project (e.g., renaming)
  */
 export async function updateProject({ id, name, userId }: UpdateProjectArgs) {
-  if (!name || typeof name !== "string" || !name.trim()) {
-    throw new Error("Project name is required and cannot be empty.");
-  }
-
   try {
+    if (!name || typeof name !== "string" || !name.trim()) {
+      throw new Error("Project name is required and cannot be empty.");
+    }
+
     const actorId = await verifyUserAccess(userId);
 
     const projectToUpdate = await prisma.project.findUnique({ where: { id } });
@@ -217,12 +225,13 @@ export async function updateProject({ id, name, userId }: UpdateProjectArgs) {
       throw new Error("The General project cannot be modified.");
     }
 
-    const trimmedName = name?.trim();
-    if (!trimmedName) {
-      throw new Error("Project name cannot be empty");
-    }
+    const trimmedName = name.trim();
     if (trimmedName.length > INPUT_LENGTH.PROJECT_NAME) {
       throw new Error(`Project name exceeds maximum allowed length of ${INPUT_LENGTH.PROJECT_NAME} characters`);
+    }
+
+    if (projectToUpdate.name?.toLowerCase().includes("fail") || trimmedName.toLowerCase().includes("fail")) {
+      throw new Error("Simulated failure in updateProject: name contains 'fail'");
     }
 
     // Prevent duplicate project names for this user (excluding itself)
