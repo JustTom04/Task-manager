@@ -8,6 +8,7 @@ export interface FrontendLabel {
 export interface FrontendTask {
   id: string;
   title: string;
+  description?: string | null;
   done: boolean;
   priority: string;
   labels: string[]; // Frontend only expects an array of label IDs
@@ -57,16 +58,18 @@ export interface ModalSlice {
 
 export interface TaskSlice {
   newTitle: string;
+  newDescription: string;
   newPriority: string;
   statusFilter: string;
   priorityFilter: string;
   isLoadingTasks: boolean;
   setNewTitle: (val: string | ((prev: string) => string)) => void;
+  setNewDescription: (val: string | ((prev: string) => string)) => void;
   setNewPriority: (val: string | ((prev: string) => string)) => void;
   setStatusFilter: (filter: string) => void;
   setPriorityFilter: (filter: string) => void;
   setIsLoadingTasks: (loading: boolean) => void;
-  addTask: (newTitle: string, newPriority: string, selectedLabels: string[]) => void;
+  addTask: (newTitle: string, newPriority: string, selectedLabels: string[], description?: string) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   deleteAllTasks: () => void;

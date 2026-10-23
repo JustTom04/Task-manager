@@ -1,8 +1,10 @@
+import { useState } from "react";
 import FiltersBar from "./TopSectionComponents/FiltersBar";
 import DeleteActions from "./TopSectionComponents/DeleteActions";
 import AddLabelDropdown from "./TopSectionComponents/AddLabelDropdown";
 import AddTaskForm from "./TopSectionComponents/AddTaskForm";
 import CreateLabelButton from "./TopSectionComponents/CreateLabelButton";
+import TaskDescriptionInput from "./TopSectionComponents/TaskDescriptionInput";
 
 interface TopSectionProps {
   isMobile?: boolean;
@@ -11,6 +13,7 @@ interface TopSectionProps {
 function TopSection({
   isMobile,
 }: TopSectionProps) {
+  const [isDescriptionOpen, setIsDescriptionOpen] = useState(false);
 
   // =====================================================
   // ===================== MOBILE ========================
@@ -25,22 +28,29 @@ function TopSection({
             <FiltersBar />
           </div>
 
-          {/* ===== Labels Section ===== */}
+          {/* ===== Delete Actions Section ===== */}
           <div className="section buttons">
             <AddLabelDropdown />
-            <CreateLabelButton />
+            <DeleteActions />
           </div>
         </div>
 
         <div className="section-group">
           {/* ===== Add Task Section ===== */}
-          <AddTaskForm isMobile={true} />
+          <AddTaskForm
+            isMobile={true}
+            isDescriptionOpen={isDescriptionOpen}
+            setIsDescriptionOpen={setIsDescriptionOpen}
+          />
 
-          {/* ===== Delete Actions Section ===== */}
+          {/* ===== Create Label Section ===== */}
           <div className="section buttons">
-            <DeleteActions />
+            <CreateLabelButton />
           </div>
         </div>
+
+        {/* ===== Row 3: Full Width Task Description ===== */}
+        <TaskDescriptionInput isOpen={isDescriptionOpen} />
 
       </div>
     );
@@ -58,23 +68,30 @@ function TopSection({
           <FiltersBar />
         </div>
 
+        {/* ===== Delete Actions Section ===== */}
+        <div className="section buttons">
+          <DeleteActions />
+        </div>
+      </div>
+
+      <div className="section-group">
+        {/* ===== Add Task Section ===== */}
+        <AddTaskForm
+          isMobile={false}
+          isDescriptionOpen={isDescriptionOpen}
+          setIsDescriptionOpen={setIsDescriptionOpen}
+        >
+          <AddLabelDropdown />
+        </AddTaskForm>
+
         {/* ===== Create Label Section ===== */}
         <div className="section buttons">
           <CreateLabelButton />
         </div>
       </div>
 
-      <div className="section-group">
-        {/* ===== Add Task Section ===== */}
-        <AddTaskForm isMobile={false}>
-          <AddLabelDropdown />
-        </AddTaskForm>
-
-        {/* ===== Delete Actions Section ===== */}
-        <div className="section buttons">
-          <DeleteActions />
-        </div>
-      </div>
+      {/* ===== Row 3: Full Width Task Description ===== */}
+      <TaskDescriptionInput isOpen={isDescriptionOpen} />
 
     </div>
   );

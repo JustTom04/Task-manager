@@ -5,6 +5,7 @@ import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAct
 
 export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, get) => ({
   newTitle: "",
+  newDescription: "",
   newPriority: "mid",
   statusFilter: "ALL",
   priorityFilter: "ALL",
@@ -12,16 +13,19 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
   draggingTaskId: null,
 
   setNewTitle: (val) => set({ newTitle: typeof val === 'function' ? val(get().newTitle) : val }),
+  setNewDescription: (val) => set({ newDescription: typeof val === 'function' ? val(get().newDescription) : val }),
   setNewPriority: (val) => set({ newPriority: typeof val === 'function' ? val(get().newPriority) : val }),
   setStatusFilter: (filter) => set({ statusFilter: filter }),
   setPriorityFilter: (filter) => set({ priorityFilter: filter }),
   setIsLoadingTasks: (loading) => set({ isLoadingTasks: loading }),
   setDraggingTaskId: (id) => set({ draggingTaskId: id }),
 
-  addTask: (newTitle, newPriority, selectedLabels) => {
+  addTask: (newTitle, newPriority, selectedLabels, description) => {
     const activeUserId = get().activeUserId;
     if (!activeUserId) return;
     if (!newTitle.trim() || newTitle.length > INPUT_LENGTH.TASK_TITLE) return;
+    const trimmedDescription = description?.trim() || null;
+    if (trimmedDescription && trimmedDescription.length > INPUT_LENGTH.TASK_DESCRIPTION) return;
 
     const { activeProjectId } = get();
     if (!activeProjectId) return;
@@ -34,6 +38,7 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const newTask: FrontendTask = {
       id: crypto.randomUUID(),
       title: newTitle,
+      description: trimmedDescription,
       done: false,
       priority: newPriority,
       labels: selectedLabels,
@@ -46,6 +51,7 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
         p.id === activeProjectId ? { ...p, tasks: [...p.tasks, newTask] } : p
       ),
       newTitle: "",
+      newDescription: "",
       // newPriority and selectedLabels remain the same so the user can quickly add multiple similar tasks
     }));
 

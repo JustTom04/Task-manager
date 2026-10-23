@@ -164,6 +164,7 @@ export async function getFilteredTasks(projectId: string, filters: FilterArgs, u
 interface CreateTaskArgs {
   id?: string;
   title: string;
+  description?: string | null;
   done?: boolean;
   priority?: string;
   labels?: string[];
@@ -172,13 +173,21 @@ interface CreateTaskArgs {
   orderIndex?: number;
 }
 
+
+const MAX_RAW_DESCRIPTION_LENGTH = INPUT_LENGTH.TASK_DESCRIPTION * 2;
+
 /**
  * Create a new task and link any attached labels
  */
-export async function createTask({ id, title, done = false, priority, labels = [], projectId, projectIds, orderIndex = 0 }: CreateTaskArgs, userId: string) {
+export async function createTask({ id, title, description, done = false, priority, labels = [], projectId, projectIds, orderIndex = 0 }: CreateTaskArgs, userId: string) {
   try {
     if (title?.toLowerCase().includes("fail")) {
       throw new Error("Simulated failure in createTask: title contains 'fail'");
+    }
+
+    // Early guard on the raw input (see MAX_RAW_DESCRIPTION_LENGTH); the exact limit is checked after trim()
+    if (typeof description === "string" && description.length > MAX_RAW_DESCRIPTION_LENGTH) {
+      throw new Error("Task description is too long");
     }
 
     const actorId = await verifyUserAccess(userId);
@@ -191,24 +200,29 @@ export async function createTask({ id, title, done = false, priority, labels = [
       throw new Error(`Task title exceeds maximum allowed length of ${INPUT_LENGTH.TASK_TITLE} characters`);
     }
 
+    const trimmedDescription = description?.trim() || null;
+    if (trimmedDescription && trimmedDescription.length > INPUT_LENGTH.TASK_DESCRIPTION) {
+      throw new Error(`Task description exceeds maximum allowed length of ${INPUT_LENGTH.TASK_DESCRIPTION} characters`);
+    }
+
     const activeProjectId = projectId || (projectIds && projectIds.length > 0 ? projectIds[0] : null);
     if (!activeProjectId) {
       throw new Error("Task must belong to a project");
     }
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ 
+    const project = await prisma.project.findUnique({
       where: { id: activeProjectId },
       include: { collaborators: true }
     });
-    
+
     if (!project) {
       throw new Error("Project not found");
     }
-    
+
     const isOwner = project.userId === actorId;
     const isCollaborator = project.collaborators.some(c => c.userId === actorId);
-    
+
     if (!isOwner && !isCollaborator) {
       throw new Error("Unauthorized to add tasks to this project");
     }
@@ -227,6 +241,7 @@ export async function createTask({ id, title, done = false, priority, labels = [
       data: {
         id: id || undefined,
         title: trimmedTitle,
+        description: trimmedDescription,
         done,
         priority: priority || "low",
         projectId: activeProjectId,
@@ -247,21 +262,28 @@ export async function createTask({ id, title, done = false, priority, labels = [
   }
 }
 
+const UPDATABLE_TASK_FIELDS = ["title", "description", "done", "priority", "orderIndex"] as const;
+
 /**
  * Update an existing task (title, done status, priority, or attached labels)
  */
 export async function updateTask(taskId: string, updatedData: Partial<FrontendTask>, userId: string) {
   try {
+    // Early guard on the raw input (see MAX_RAW_DESCRIPTION_LENGTH); the exact limit is checked after trim()
+    if (typeof updatedData.description === "string" && updatedData.description.length > MAX_RAW_DESCRIPTION_LENGTH) {
+      throw new Error("Task description is too long");
+    }
+
     const actorId = await verifyUserAccess(userId);
 
     // Ensure actor has authorization to modify the parent project
-    const task = await prisma.task.findUnique({ 
-      where: { id: taskId }, 
-      include: { 
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
         project: {
           include: { collaborators: true }
         }
-      } 
+      }
     });
 
     if (!task) {
@@ -290,11 +312,20 @@ export async function updateTask(taskId: string, updatedData: Partial<FrontendTa
       updatedData.title = trimmedTitle;
     }
 
-    const prismaUpdateData: any = { ...updatedData };
+    if (updatedData.description !== undefined) {
+      const trimmedDescription = updatedData.description?.trim() || null;
+      if (trimmedDescription && trimmedDescription.length > INPUT_LENGTH.TASK_DESCRIPTION) {
+        throw new Error(`Task description exceeds maximum allowed length of ${INPUT_LENGTH.TASK_DESCRIPTION} characters`);
+      }
+      updatedData.description = trimmedDescription;
+    }
 
-    // Remove virtual fields from update payload to prevent Prisma schema validation errors
-    if (prismaUpdateData.projectIds) {
-      delete prismaUpdateData.projectIds;
+    // Whitelist: only these fields may be written, so a crafted request cannot change id, projectId, etc.
+    const prismaUpdateData: Record<string, unknown> = {};
+    for (const key of UPDATABLE_TASK_FIELDS) {
+      if (updatedData[key] !== undefined) {
+        prismaUpdateData[key] = updatedData[key];
+      }
     }
 
     // Transform label ID arrays into Prisma relation mutation syntax
@@ -329,13 +360,13 @@ export async function deleteTask(taskId: string, userId: string) {
     const actorId = await verifyUserAccess(userId);
 
     // Verify task ownership via project
-    const task = await prisma.task.findUnique({ 
-      where: { id: taskId }, 
-      include: { 
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
         project: {
           include: { collaborators: true }
         }
-      } 
+      }
     });
 
     if (!task) {
@@ -372,15 +403,15 @@ export async function deleteAllTasks(projectId: string, userId: string) {
     const actorId = await verifyUserAccess(userId);
 
     // Ensure actor has authorization to modify the parent project
-    const project = await prisma.project.findUnique({ 
+    const project = await prisma.project.findUnique({
       where: { id: projectId },
       include: { collaborators: true }
     });
-    
+
     if (!project) {
       throw new Error("Project not found");
     }
-    
+
     const isOwner = project.userId === actorId;
     const isCollaborator = project.collaborators.some(c => c.userId === actorId);
 

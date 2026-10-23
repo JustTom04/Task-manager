@@ -8,6 +8,7 @@ export const MAX_LABELS_PER_PROJECT = 50;
 
 export const INPUT_LENGTH = {
   TASK_TITLE: 60,
+  TASK_DESCRIPTION: 2000,
   PROJECT_NAME: 60,
   LABEL_NAME: 40,
 } as const;

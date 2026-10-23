@@ -6,12 +6,20 @@ import { INPUT_LENGTH, DROPDOWN_OPTIONS } from "@/frontend/constants";
 interface AddTaskFormProps {
   isMobile?: boolean;
   children?: React.ReactNode;
+  isDescriptionOpen: boolean;
+  setIsDescriptionOpen: (val: boolean | ((prev: boolean) => boolean)) => void;
 }
 
-export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
+export default function AddTaskForm({
+  isMobile,
+  children,
+  isDescriptionOpen,
+  setIsDescriptionOpen,
+}: AddTaskFormProps) {
   const newTitleRef = useRef<HTMLInputElement>(null);
   const newTitle = useStore((s) => s.newTitle);
   const setNewTitle = useStore((s) => s.setNewTitle);
+  const newDescription = useStore((s) => s.newDescription);
   const newPriority = useStore((s) => s.newPriority);
   const setNewPriority = useStore((s) => s.setNewPriority);
   const selectedLabels = useStore((s) => s.selectedLabels);
@@ -26,8 +34,12 @@ export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
       setTimeout(() => setShowError(false), 3000);
       return;
     }
-    _addTask(newTitle, newPriority, selectedLabels);
+    _addTask(newTitle, newPriority, selectedLabels, newDescription);
     setShowError(false);
+    // Collapse back to the compact bar, unless the store refused the task and kept the text
+    if (!useStore.getState().newDescription) {
+      setIsDescriptionOpen(false);
+    }
   };
 
   return (
@@ -53,6 +65,16 @@ export default function AddTaskForm({ isMobile, children }: AddTaskFormProps) {
         onChange={setNewPriority}
         options={DROPDOWN_OPTIONS.PRIORITY}
       />
+
+      <button
+        type="button"
+        id="toggle-description-button"
+        className={`notes-toggle ${isDescriptionOpen || newDescription ? "active" : ""}`}
+        aria-expanded={isDescriptionOpen}
+        onClick={() => setIsDescriptionOpen((open) => !open)}
+      >
+        📝 Notes
+      </button>
 
       <button type="submit" className="task-button done">
         Add task

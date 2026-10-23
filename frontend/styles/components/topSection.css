@@ -26,6 +26,61 @@
 
 
 
+
+/* ===== Task description (creation bar) ===== */
+.notes-toggle {
+  background-color: transparent;
+  border: 1px solid var(--color-panel-border);
+  color: var(--color-muted);
+  font-weight: normal;
+}
+
+.notes-toggle:hover {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+}
+
+.notes-toggle.active {
+  color: var(--color-text);
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.top-section-description {
+  width: 100%;
+  overflow: hidden;
+}
+
+.top-section-description .description-input {
+  display: block;
+  width: 100%;
+  min-height: 4.5rem;
+  max-height: 200px;
+  padding: 0.6rem 0.8rem;
+  resize: none;
+
+  background-color: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-panel-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-soft);
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.top-section-description .description-input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: var(--shadow-focus);
+}
+
+.top-section-description .description-input::placeholder {
+  opacity: 0.7;
+  color: rgb(70, 70, 70);
+}
+
 /* ===== Delete labels ===== */
 .button-delete.active-delete {
   background-color: #c0392b;
