@@ -134,4 +134,124 @@ describe("createTaskSlice", () => {
     expect(toasts[0].type).toBe("error");
     expect(toasts[0].message).toContain("Failed to create task");
   });
+
+  it("optimistically toggles task done status and rolls back on failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    (taskActions.updateTask as jest.Mock).mockRejectedValueOnce(new Error("Update failed"));
+
+    const initialTask = {
+      id: "toggle-task-1",
+      title: "Task to toggle",
+      done: false,
+      priority: "mid" as const,
+      labels: [],
+      projectId: mockProjectId,
+      orderIndex: 0,
+    };
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks: [initialTask],
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    // Act: Toggle task
+    useStore.getState().toggleTask("toggle-task-1");
+
+    // 1. Optimistic assertion: done is immediately flipped to true
+    let project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks[0].done).toBe(true);
+
+    // 2. Wait for async error rollback
+    await new Promise(process.nextTick);
+
+    // 3. Rollback assertion: done is reverted to false
+    project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks[0].done).toBe(false);
+    expect(useStore.getState().toasts[0].message).toContain("Failed to update task status");
+  });
+
+  it("optimistically deletes task and restores it at original index on failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    (taskActions.deleteTask as jest.Mock).mockRejectedValueOnce(new Error("Delete failed"));
+
+    const tasks = [
+      { id: "t-1", title: "First", done: false, priority: "mid" as const, labels: [], projectId: mockProjectId, orderIndex: 0 },
+      { id: "t-2", title: "Target to delete", done: false, priority: "high" as const, labels: [], projectId: mockProjectId, orderIndex: 1 },
+      { id: "t-3", title: "Third", done: false, priority: "low" as const, labels: [], projectId: mockProjectId, orderIndex: 2 },
+    ];
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks,
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    // Act: Delete middle task (index 1)
+    useStore.getState().deleteTask("t-2");
+
+    // 1. Optimistic assertion: t-2 is immediately removed
+    let project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks).toHaveLength(2);
+    expect(project?.tasks.map((t) => t.id)).toEqual(["t-1", "t-3"]);
+
+    // 2. Wait for async rollback
+    await new Promise(process.nextTick);
+
+    // 3. Rollback assertion: t-2 is restored at exact original index (1)
+    project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks).toHaveLength(3);
+    expect(project?.tasks[1].id).toBe("t-2");
+    expect(useStore.getState().toasts[0].message).toContain("Failed to delete task");
+  });
+
+  it("optimistically deletes all tasks and restores previous array on failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    (taskActions.deleteAllTasks as jest.Mock).mockRejectedValueOnce(new Error("Batch delete failed"));
+
+    const tasks = [
+      { id: "t-1", title: "Task 1", done: true, priority: "mid" as const, labels: [], projectId: mockProjectId, orderIndex: 0 },
+      { id: "t-2", title: "Task 2", done: true, priority: "low" as const, labels: [], projectId: mockProjectId, orderIndex: 1 },
+    ];
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks,
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    // Act: Delete all tasks
+    useStore.getState().deleteAllTasks();
+
+    // 1. Optimistic assertion: tasks cleared
+    let project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks).toHaveLength(0);
+
+    // 2. Wait for async rollback
+    await new Promise(process.nextTick);
+
+    // 3. Rollback assertion: all previous tasks restored
+    project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks).toHaveLength(2);
+    expect(project?.tasks.map((t) => t.id)).toEqual(["t-1", "t-2"]);
+    expect(useStore.getState().toasts[0].message).toContain("Failed to delete all tasks");
+  });
 });
