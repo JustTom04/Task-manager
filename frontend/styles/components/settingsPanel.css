@@ -4,13 +4,14 @@
   --settings-tooltip-name-max-width: 12.8125rem;
   --settings-tooltip-name-max-width-mobile: 10rem;
   --settings-tooltip-delete-right: -3.125rem;
+  --settings-panel-width: 21.83rem;
 }
 
 .settings-panel {
   position: fixed;
   top: 0;
   right: 0;
-  width: min(21.83rem, 100dvw);
+  width: min(var(--settings-panel-width), 100dvw);
   height: 100vh;
 
   background-color: var(--color-settings-bg);
@@ -180,9 +181,10 @@
 
 
 /* ===== Responsive ===== */
-@media (max-width: 1400px) {
+@media (max-width: 1500px) and (min-width: 1101px) {
   .app-container {
-    margin-right: 300px;
+    margin-right: calc(var(--settings-panel-width) + 0px);
+    margin-left: auto;
   }
 }
 

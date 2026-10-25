@@ -1,5 +1,6 @@
 import React from "react";
 import { FrontendLabel } from "../store/useStore";
+import RemoveButton from "./RemoveButton";
 
 interface LabelProps {
   label: FrontendLabel | { name: string; color: string };
@@ -26,9 +27,12 @@ function Label({ label, isSelected = false, showDelete = false, deleteLabel, mar
         {label.name}
       </span>
       {showDelete && deleteLabel && (
-        <button onClick={deleteLabel} className="remove-button small">
-          ❌
-        </button>
+        <RemoveButton
+          size="small"
+          onClick={deleteLabel}
+          aria-label="Remove label"
+          title="Remove label"
+        />
       )}
     </div>
   );

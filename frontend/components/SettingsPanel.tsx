@@ -13,6 +13,7 @@ import AuthHeader from "./authentication/AuthHeader";
 import useStore, { FrontendProject } from "@/frontend/store/useStore";
 import { generateShareCode, joinProjectByCode } from "@/backend/actions/projectActions";
 import JoinProjectModal from "../modals/JoinProjectModal";
+import RemoveButton from "./RemoveButton";
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -170,7 +171,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
 
             <div style={{ display: "flex", gap: "5px" }}>
               {p.name !== "General" && p.userId === activeUserId && (
-                <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
+                <button className="action-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-success)" : "#4f46e5" }}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -187,7 +188,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
               )}
               {p.name !== "General" && (
                 <div style={{ position: "relative", display: "flex" }}>
-                  <button className="remove-button medium" style={{ backgroundColor: "#10b981" }}
+                  <button className="action-button medium" style={{ backgroundColor: "#10b981" }}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={async (e) => {
                       e.stopPropagation();
@@ -222,27 +223,44 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 </div>
               )}
               {p.name !== "General" && (
-                <button className="remove-button medium" style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (editingProjectId === p.id) {
-                      setEditingProjectId(null);
-                    } else {
-                      const isOwner = p.userId === activeUserId;
+                editingProjectId === p.id || p.userId === activeUserId ? (
+                  <RemoveButton
+                    style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (editingProjectId === p.id) {
+                        setEditingProjectId(null);
+                      } else {
+                        const isOwner = p.userId === activeUserId;
+                        setConfirmConfig({
+                          title: isOwner ? "Delete project?" : "Leave project?",
+                          message: isOwner
+                            ? `Project "${p.name}" will be permanently deleted.`
+                            : `Are you sure you want to leave "${p.name}"?`,
+                          action: () => deleteProject(p.id),
+                        });
+                      }
+                    }}
+                    data-tooltip={editingProjectId === p.id ? "Cancel" : "Delete"}
+                  />
+                ) : (
+                  <button
+                    className="action-button medium"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setConfirmConfig({
-                        title: isOwner ? "Delete project?" : "Leave project?",
-                        message: isOwner
-                          ? `Project "${p.name}" will be permanently deleted.`
-                          : `Are you sure you want to leave "${p.name}"?`,
+                        title: "Leave project?",
+                        message: `Are you sure you want to leave "${p.name}"?`,
                         action: () => deleteProject(p.id),
                       });
-                    }
-                  }}
-                  data-tooltip={editingProjectId === p.id ? "Cancel" : (p.userId === activeUserId ? "Delete" : "Leave")}
-                >
-                  {editingProjectId === p.id ? "✖️" : (p.userId === activeUserId ? "❌" : "🚪")}
-                </button>
+                    }}
+                    data-tooltip="Leave"
+                  >
+                    🚪
+                  </button>
+                )
               )}
             </div>
           </div>

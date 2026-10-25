@@ -10,7 +10,21 @@ function ToastItem({ toast, onRemove }: { toast: ToastMessage; onRemove: (id: st
   const getIcon = () => {
     switch (toast.type) {
       case "error":
-        return "✕";
+        return (
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="12" y1="4.5" x2="12" y2="13" />
+            <line x1="12" y1="18.5" x2="12.01" y2="18.5" />
+          </svg>
+        );
       case "success":
         return "✓";
       case "info":

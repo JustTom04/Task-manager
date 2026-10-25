@@ -5,6 +5,7 @@ import { secondsToReadable, stopAnd } from "@/frontend/utils"
 import Label from "../Label";
 import TaskEdit from "./TaskEdit";
 import TaskNoteBadge from "./TaskNoteBadge";
+import RemoveButton from "../RemoveButton";
 
 import useStore, { FrontendTask } from "@/frontend/store/useStore";
 
@@ -230,12 +231,11 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
       {/* ===== Action Buttons (Delete) ===== */}
       {!isEditing && (
         <div className="task-actions">
-          <button
-            className="remove-button medium"
+          <RemoveButton
             onClick={stopAnd(handleDelete)}
-          >
-            ❌
-          </button>
+            aria-label="Delete task"
+            title="Delete task"
+          />
         </div>
       )}
     </Reorder.Item>

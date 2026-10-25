@@ -16,7 +16,7 @@ interface TaskEditProps {
 export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEditProps) {
   const _updateTask = useStore(s => s.updateTask);
   const _toggleLabelOnTask = useStore(s => s.toggleLabelOnTask);
-  
+
   const updateTask = (updated: Partial<FrontendTask>) => _updateTask(task.id, updated);
   const toggleLabelOnTask = (labelId: string) => _toggleLabelOnTask(task.id, labelId);
 
@@ -47,7 +47,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
   const dropdownPos = useDropdownPosition(labelButtonRef, labelsOpen, () => setLabelsOpen(false));
 
   useClickOutside([labelsRef, labelButtonRef, labelsPanelRef], () => setLabelsOpen(false));
-  useClickOutside([editContainerRef, labelsRef, labelsPanelRef, priorityDropdownRef, taskRef], () => saveEdit());
+  useClickOutside([editContainerRef, labelsRef, labelsPanelRef, priorityDropdownRef, taskRef], () => closeEdit());
 
   // Automatically focus task title input and place cursor at the end
   useEffect(() => {
@@ -101,7 +101,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
     updateTask({
       title: editedTitle.trim(),
       priority: editedPriority,
-      ...(isLoadingDesc ? {} : { description: trimmedDesc || null }),
+      description: trimmedDesc || null,
     });
     closeEdit();
   };
@@ -112,7 +112,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
 
   if (isMobileEdit) {
     if (task.title.length > Math.floor((window.innerWidth - 240) / 8)) {
-      {/* ===== MOBILE LONG TITLE EDIT ===== */}
+      {/* ===== MOBILE LONG TITLE EDIT ===== */ }
       return (
         <div className="task-edit-container" ref={editContainerRef}>
           <div className="edit-panel-mobile">
@@ -172,7 +172,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
         </div>
       );
     } else {
-      {/* ===== MOBILE SHORT TITLE EDIT ===== */}
+      {/* ===== MOBILE SHORT TITLE EDIT ===== */ }
       return (
         <div className="task-edit-container" ref={editContainerRef}>
           <div className="edit-panel-mobile">
@@ -234,7 +234,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
     }
   }
 
-  {/* ===== DESKTOP EDIT ===== */}
+  {/* ===== DESKTOP EDIT ===== */ }
   return (
     <div className="task-edit-container" ref={editContainerRef}>
       <div className="edit-panel-desktop">
