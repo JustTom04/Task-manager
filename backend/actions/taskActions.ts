@@ -24,7 +24,13 @@ export async function getTasks(userId: string) {
       include: { labels: true, project: true },
     });
     console.log(`[SERVER ACTION] Fetched all tasks. Total count: ${tasks.length}`);
-    return tasks;
+    return tasks.map((t) => {
+      const { description, ...rest } = t;
+      return {
+        ...rest,
+        hasDescription: Boolean(description && description.trim().length > 0),
+      };
+    });
   } catch (error) {
     console.error("[SERVER ACTION ERROR: getTasks]", error);
     throw new Error("Failed to fetch tasks");
@@ -92,11 +98,15 @@ export async function getProjectTasks(projectId: string, userId: string) {
 
     console.log(`[SERVER ACTION] Fetched ${tasks.length} tasks for project: ${projectId}`);
 
-    // Flatten label objects into ID arrays for Zustand store compatibility
-    return tasks.map((t) => ({
-      ...t,
-      labels: t.labels.map((l) => l.id),
-    }));
+    // Flatten label objects into ID arrays and omit description string in favor of lightweight hasDescription
+    return tasks.map((t) => {
+      const { description, ...rest } = t;
+      return {
+        ...rest,
+        labels: t.labels.map((l) => l.id),
+        hasDescription: Boolean(description && description.trim().length > 0),
+      };
+    });
   } catch (error) {
     console.error("[SERVER ACTION ERROR: getProjectTasks]", error);
     throw new Error("Failed to fetch project tasks");
@@ -150,14 +160,52 @@ export async function getFilteredTasks(projectId: string, filters: FilterArgs, u
 
     console.log(`[SERVER ACTION] Fetched filtered tasks for project ${projectId}. Count: ${tasks.length}`);
 
-    // Flatten label objects into ID arrays for Zustand store compatibility
-    return tasks.map((t) => ({
-      ...t,
-      labels: t.labels.map((l) => l.id),
-    }));
+    // Flatten label objects into ID arrays and omit description string in favor of lightweight hasDescription
+    return tasks.map((t) => {
+      const { description, ...rest } = t;
+      return {
+        ...rest,
+        labels: t.labels.map((l) => l.id),
+        hasDescription: Boolean(description && description.trim().length > 0),
+      };
+    });
   } catch (error) {
     console.error("[SERVER ACTION ERROR: getFilteredTasks]", error);
     throw new Error("Failed to fetch filtered tasks");
+  }
+}
+
+/**
+ * Get the description of a specific task (Lazy Loaded)
+ */
+export async function getTaskDescription(taskId: string, userId: string): Promise<string | null> {
+  try {
+    const actorId = await verifyUserAccess(userId);
+
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+      include: {
+        project: {
+          include: { collaborators: true }
+        }
+      }
+    });
+
+    if (!task) {
+      throw new Error("Task not found");
+    }
+
+    const isOwner = task.project.userId === actorId;
+    const isCollaborator = task.project.collaborators.some(c => c.userId === actorId);
+
+    if (!isOwner && !isCollaborator) {
+      throw new Error("Unauthorized to access this task");
+    }
+
+    return task.description || null;
+  } catch (error) {
+    console.error("[SERVER ACTION ERROR: getTaskDescription]", error);
+    throw new Error("Failed to fetch task description");
   }
 }
 

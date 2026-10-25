@@ -9,6 +9,7 @@ jest.mock("@/backend/actions/taskActions", () => ({
   deleteTask: jest.fn(),
   deleteAllTasks: jest.fn(),
   getProjectTasks: jest.fn(),
+  getTaskDescription: jest.fn(),
 }));
 
 jest.mock("@/backend/actions/projectActions", () => ({
@@ -253,5 +254,152 @@ describe("createTaskSlice", () => {
     expect(project?.tasks).toHaveLength(2);
     expect(project?.tasks.map((t) => t.id)).toEqual(["t-1", "t-2"]);
     expect(useStore.getState().toasts[0].message).toContain("Failed to delete all tasks");
+  });
+
+  it("optimistically adds a task with a description and clears newDescription state", async () => {
+    (taskActions.createTask as jest.Mock).mockResolvedValueOnce({ success: true });
+    useStore.setState({ newDescription: "Important meeting notes" });
+
+    useStore.getState().addTask("Prepare slides", "high", [], "Important meeting notes");
+
+    const project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks).toHaveLength(1);
+    expect(project?.tasks[0].title).toBe("Prepare slides");
+    expect(project?.tasks[0].description).toBe("Important meeting notes");
+    expect(project?.tasks[0].hasDescription).toBe(true);
+    expect(useStore.getState().newDescription).toBe("");
+
+    expect(taskActions.createTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Prepare slides",
+        priority: "high",
+        description: "Important meeting notes",
+      }),
+      mockUserId
+    );
+  });
+
+  it("optimistically updates task description and rolls back on failure", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    (taskActions.updateTask as jest.Mock).mockRejectedValueOnce(new Error("Server error"));
+
+    const initialTask = {
+      id: "task-desc-1",
+      title: "Write documentation",
+      done: false,
+      priority: "mid" as const,
+      labels: [],
+      description: "Initial description",
+      hasDescription: true,
+      projectId: mockProjectId,
+      orderIndex: 0,
+    };
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks: [initialTask],
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    // Act: Update description to empty string
+    useStore.getState().updateTask("task-desc-1", { description: "" });
+
+    // 1. Optimistic assertion: description is cleared, hasDescription is false
+    let project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks[0].description).toBe("");
+    expect(project?.tasks[0].hasDescription).toBe(false);
+
+    // 2. Wait for async rollback
+    await new Promise(process.nextTick);
+
+    // 3. Rollback assertion: initial description and hasDescription restored
+    project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks[0].description).toBe("Initial description");
+    expect(project?.tasks[0].hasDescription).toBe(true);
+    expect(useStore.getState().toasts[0].message).toContain("Failed to save task changes");
+  });
+
+  it("lazily loads task description and caches it in the project task state", async () => {
+    (taskActions.getTaskDescription as jest.Mock).mockResolvedValueOnce("Detailed research notes");
+
+    const taskWithoutLoadedDesc = {
+      id: "task-lazy-1",
+      title: "Research competitors",
+      done: false,
+      priority: "high" as const,
+      labels: [],
+      hasDescription: true,
+      description: undefined,
+      projectId: mockProjectId,
+      orderIndex: 0,
+    };
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks: [taskWithoutLoadedDesc],
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    // Act: Fetch description
+    const result = await useStore.getState().loadTaskDescription("task-lazy-1");
+
+    expect(result).toBe("Detailed research notes");
+    expect(taskActions.getTaskDescription).toHaveBeenCalledTimes(1);
+    expect(taskActions.getTaskDescription).toHaveBeenCalledWith("task-lazy-1", mockUserId);
+
+    // Assert that the store cached the description
+    const project = useStore.getState().projects.find((p) => p.id === mockProjectId);
+    expect(project?.tasks[0].description).toBe("Detailed research notes");
+    expect(project?.tasks[0].hasDescription).toBe(true);
+
+    // Act again: Should return cached description immediately without calling server action again
+    const cachedResult = await useStore.getState().loadTaskDescription("task-lazy-1");
+    expect(cachedResult).toBe("Detailed research notes");
+    expect(taskActions.getTaskDescription).toHaveBeenCalledTimes(1);
+  });
+
+  it("handles failure when lazy loading task description", async () => {
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    (taskActions.getTaskDescription as jest.Mock).mockRejectedValueOnce(new Error("Network failure"));
+
+    const taskToLoad = {
+      id: "task-lazy-fail",
+      title: "Task with network issue",
+      done: false,
+      priority: "mid" as const,
+      labels: [],
+      hasDescription: true,
+      description: undefined,
+      projectId: mockProjectId,
+      orderIndex: 0,
+    };
+
+    useStore.setState({
+      projects: [
+        {
+          id: mockProjectId,
+          name: "Test Project",
+          tasks: [taskToLoad],
+          labels: [],
+          tasksLoaded: true,
+        },
+      ],
+    });
+
+    const result = await useStore.getState().loadTaskDescription("task-lazy-fail");
+    expect(result).toBeNull();
+    expect(useStore.getState().toasts[0].message).toContain("Failed to load description");
   });
 });

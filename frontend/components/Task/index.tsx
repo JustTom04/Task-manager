@@ -4,6 +4,7 @@ import { Reorder, useDragControls } from "framer-motion";
 import { secondsToReadable, stopAnd } from "@/frontend/utils"
 import Label from "../Label";
 import TaskEdit from "./TaskEdit";
+import TaskNoteBadge from "./TaskNoteBadge";
 
 import useStore, { FrontendTask } from "@/frontend/store/useStore";
 
@@ -154,12 +155,28 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
       )}
 
       <div className="task-left-container">
-        <div>
-          {/* ===== EDIT MODE OR VIEW MODE ===== */}
-          {isEditing ? (
-            <TaskEdit task={task} closeEdit={() => setIsEditing(false)} taskRef={internalRef} />
-          ) : (
-            <>
+        {/* ===== EDIT MODE OR VIEW MODE ===== */}
+        {isEditing ? (
+          <TaskEdit task={task} closeEdit={() => setIsEditing(false)} taskRef={internalRef}>
+            <div className="task-labels">
+              {allLabels
+                .filter((label) => task.labels.includes(label.id))
+                .map((label) => (
+                  <Label
+                    key={label.id}
+                    label={label}
+                    deleteLabel={(e) => {
+                      e.stopPropagation();
+                      toggleLabelOnTask(task.id, label.id);
+                    }}
+                    showDelete={true}
+                  />
+                ))}
+            </div>
+          </TaskEdit>
+        ) : (
+          <>
+            <div>
               {/* ===== Checkbox ===== */}
               <button
                 className={`task-button mark-btn ${task.done ? "completed" : ""}`}
@@ -177,6 +194,9 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
                 {`${task.title}`}
               </span>
 
+              {/* ===== Description Badge ===== */}
+              <TaskNoteBadge hasDescription={task.hasDescription} description={task.description} />
+
               {/* ===== Timer ===== */}
               <span
                 style={{
@@ -188,23 +208,23 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
               >
                 ⏱ {secondsToReadable(seconds)}
               </span>
-            </>
-          )}
-        </div>
+            </div>
 
-        {/* ===== Labels Container ===== */}
-        <div className="task-labels">
-          {allLabels
-            .filter((label) => task.labels.includes(label.id))
-            .map((label) => (
-              <Label
-                key={label.id}
-                label={label}
-                deleteLabel={() => toggleLabelOnTask(task.id, label.id)}
-                showDelete={isEditing}
-              />
-            ))}
-        </div>
+            {/* ===== Labels Container ===== */}
+            <div className="task-labels">
+              {allLabels
+                .filter((label) => task.labels.includes(label.id))
+                .map((label) => (
+                  <Label
+                    key={label.id}
+                    label={label}
+                    deleteLabel={() => toggleLabelOnTask(task.id, label.id)}
+                    showDelete={false}
+                  />
+                ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ===== Action Buttons (Delete) ===== */}
@@ -221,5 +241,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
     </Reorder.Item>
   );
 });
+
+Task.displayName = "Task";
 
 export default Task;

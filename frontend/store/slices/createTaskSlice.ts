@@ -1,7 +1,7 @@
 import { StateCreator } from 'zustand';
 import { AppState, TaskSlice, FrontendTask } from '../types';
 import { INPUT_LENGTH, MAX_TASKS_PER_PROJECT } from '@/frontend/constants';
-import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction } from "@/backend/actions/taskActions";
+import { createTask, updateTask as updateTaskAction, deleteTask as deleteTaskAction, deleteAllTasks as deleteAllTasksAction, getTaskDescription as getTaskDescriptionAction } from "@/backend/actions/taskActions";
 
 export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, get) => ({
   newTitle: "",
@@ -35,10 +35,13 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
 
     const maxOrder = actualProject?.tasks.reduce((max, t) => Math.max(max, t.orderIndex || 0), 0) || 0;
 
+    const hasDescription = Boolean(trimmedDescription && trimmedDescription.length > 0);
+
     const newTask: FrontendTask = {
       id: crypto.randomUUID(),
       title: newTitle,
       description: trimmedDescription,
+      hasDescription,
       done: false,
       priority: newPriority,
       labels: selectedLabels,
@@ -216,16 +219,22 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
     const taskToUpdate = actualProject?.tasks.find(t => t.id === id);
     if (!taskToUpdate) return;
 
+    // If description is updated, keep hasDescription synchronized
+    const patch: Partial<FrontendTask> = { ...updatedTask };
+    if (updatedTask.description !== undefined) {
+      patch.hasDescription = Boolean(updatedTask.description && updatedTask.description.trim().length > 0);
+    }
+
     // Snapshot only the fields that are being updated
     const previousFields: Partial<FrontendTask> = {};
-    for (const key of Object.keys(updatedTask) as (keyof FrontendTask)[]) {
+    for (const key of Object.keys(patch) as (keyof FrontendTask)[]) {
       (previousFields as any)[key] = taskToUpdate[key];
     }
 
     set((state) => ({
       projects: state.projects.map((p) =>
         p.id === activeProjectId
-          ? { ...p, tasks: p.tasks.map((t) => (t.id === id ? { ...t, ...updatedTask } : t)) }
+          ? { ...p, tasks: p.tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) }
           : p
       )
     }));
@@ -243,6 +252,49 @@ export const createTaskSlice: StateCreator<AppState, [], [], TaskSlice> = (set, 
         }));
         get().showToast("Network error: Failed to save task changes. Changes reverted.", "error");
       });
+  },
+
+  loadTaskDescription: async (taskId) => {
+    const activeUserId = get().activeUserId;
+    if (!activeUserId) return null;
+    const { activeProjectId, projects } = get();
+    if (!activeProjectId) return null;
+
+    const actualProject = projects.find(p => p.id === activeProjectId);
+    const task = actualProject?.tasks.find(t => t.id === taskId);
+    if (!task) return null;
+
+    // In-memory cache: if description was already loaded, return immediately without network call
+    if (task.description !== undefined) {
+      return task.description;
+    }
+
+    try {
+      const description = await getTaskDescriptionAction(taskId, activeUserId);
+      set((state) => ({
+        projects: state.projects.map((p) =>
+          p.id === activeProjectId
+            ? {
+                ...p,
+                tasks: p.tasks.map((t) =>
+                  t.id === taskId
+                    ? {
+                        ...t,
+                        description,
+                        hasDescription: Boolean(description && description.trim().length > 0),
+                      }
+                    : t
+                ),
+              }
+            : p
+        ),
+      }));
+      return description;
+    } catch (err) {
+      console.error("❌ Server Action Error (getTaskDescription):", err);
+      get().showToast("Network error: Failed to load description.", "error");
+      return null;
+    }
   },
 
   reorderTasks: (newFilteredOrder) => {

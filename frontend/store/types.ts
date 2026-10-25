@@ -9,6 +9,7 @@ export interface FrontendTask {
   id: string;
   title: string;
   description?: string | null;
+  hasDescription?: boolean;
   done: boolean;
   priority: string;
   labels: string[]; // Frontend only expects an array of label IDs
@@ -75,6 +76,7 @@ export interface TaskSlice {
   deleteAllTasks: () => void;
   toggleLabelOnTask: (taskId: string, labelId: string) => void;
   updateTask: (id: string, updatedTask: Partial<FrontendTask>) => void;
+  loadTaskDescription: (taskId: string) => Promise<string | null>;
   reorderTasks: (newTasks: FrontendTask[]) => void;
   draggingTaskId: string | null;
   setDraggingTaskId: (id: string | null) => void;
