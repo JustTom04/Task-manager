@@ -4,6 +4,7 @@ export default function CreateLabelButton() {
   const setShowLabelModal = useStore(s => s.setShowLabelModal);
   return (
     <button
+      type="button"
       className="done"
       onClick={() => setShowLabelModal(true)}
     >

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import CustomDropdown from "../CustomDropdown";
+import CreateLabelButton from "./CreateLabelButton";
 import useStore from "@/frontend/store/useStore";
 import { INPUT_LENGTH, DROPDOWN_OPTIONS } from "@/frontend/constants";
 
@@ -42,6 +43,55 @@ export default function AddTaskForm({
     }
   };
 
+  if (isMobile) {
+    return (
+      <form onSubmit={addTask} className="section form-container mobile-task-form">
+        <div className="task-input-row">
+          {children}
+
+          <input
+            type="text"
+            className={showError ? "input-error shake-animation" : ""}
+            maxLength={INPUT_LENGTH.TASK_TITLE}
+            placeholder={showError ? "Title cannot be empty!" : "Task title"}
+            value={newTitle}
+            onChange={(e) => {
+              setNewTitle(e.target.value);
+              if (showError) setShowError(false);
+            }}
+            ref={newTitleRef}
+          />
+
+          <CustomDropdown
+            value={newPriority}
+            wrapperClass="add-task-selection priority-dropdown"
+            onChange={setNewPriority}
+            options={DROPDOWN_OPTIONS.PRIORITY}
+          />
+
+          <button
+            type="button"
+            id="toggle-description-button"
+            className={`notes-toggle ${isDescriptionOpen || newDescription ? "active" : ""}`}
+            aria-expanded={isDescriptionOpen}
+            aria-label="Toggle notes"
+            onClick={() => setIsDescriptionOpen((open) => !open)}
+          >
+            <span>📝</span>
+            <span className="notes-text"> Notes</span>
+          </button>
+        </div>
+
+        <div className="task-action-row">
+          <button type="submit" className="task-button done">
+            Add task
+          </button>
+          <CreateLabelButton />
+        </div>
+      </form>
+    );
+  }
+
   return (
     <form onSubmit={addTask} className="section form-container">
       {children}
@@ -61,7 +111,7 @@ export default function AddTaskForm({
 
       <CustomDropdown
         value={newPriority}
-        wrapperClass={isMobile ? "add-task-selection" : "priority-dropdown"}
+        wrapperClass="priority-dropdown"
         onChange={setNewPriority}
         options={DROPDOWN_OPTIONS.PRIORITY}
       />
@@ -71,9 +121,11 @@ export default function AddTaskForm({
         id="toggle-description-button"
         className={`notes-toggle ${isDescriptionOpen || newDescription ? "active" : ""}`}
         aria-expanded={isDescriptionOpen}
+        aria-label="Toggle notes"
         onClick={() => setIsDescriptionOpen((open) => !open)}
       >
-        📝 Notes
+        <span>📝</span>
+        <span className="notes-text"> Notes</span>
       </button>
 
       <button type="submit" className="task-button done">

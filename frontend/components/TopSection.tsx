@@ -36,17 +36,12 @@ function TopSection({
         </div>
 
         <div className="section-group">
-          {/* ===== Add Task Section ===== */}
+          {/* ===== Add Task Section (includes Create Label on mobile) ===== */}
           <AddTaskForm
             isMobile={true}
             isDescriptionOpen={isDescriptionOpen}
             setIsDescriptionOpen={setIsDescriptionOpen}
           />
-
-          {/* ===== Create Label Section ===== */}
-          <div className="section buttons">
-            <CreateLabelButton />
-          </div>
         </div>
 
         {/* ===== Row 3: Full Width Task Description ===== */}

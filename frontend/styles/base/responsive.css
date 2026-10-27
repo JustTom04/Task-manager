@@ -28,6 +28,59 @@
     flex: 2 1 0;
   }
 
+  .top-section .form-container .notes-toggle {
+    flex: 0 0 auto;
+    padding: 0 0.6rem;
+  }
+
+  .notes-toggle .notes-text {
+    display: none;
+  }
+
+  /* ===== Mobile task form (2 rows) ===== */
+  .mobile-task-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .mobile-task-form .task-input-row {
+    display: flex;
+    width: 100%;
+    gap: clamp(0.4rem, 1dvw, 0.6rem);
+    align-items: center;
+  }
+
+  .mobile-task-form .task-input-row input {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .mobile-task-form .task-input-row .add-task-selection {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 5.2rem;
+  }
+
+  .mobile-task-form .task-input-row .notes-toggle {
+    flex: 0 0 auto;
+    padding: 0 0.6rem;
+  }
+
+  .mobile-task-form .task-action-row {
+    display: flex;
+    width: 100%;
+    gap: clamp(0.4rem, 1dvw, 0.6rem);
+    align-items: center;
+  }
+
+  .mobile-task-form .task-action-row .task-button,
+  .mobile-task-form .task-action-row button {
+    flex: 1 1 0;
+    width: 100%;
+  }
+
 
   .section-group {
     flex-direction: column;
