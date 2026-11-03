@@ -46,3 +46,6 @@ FramerMotion-DragAndDrop-WithAI/
 
 # TypeScript Cache
 tsconfig.tsbuildinfo
+
+# Old image assets 
+oldImages/

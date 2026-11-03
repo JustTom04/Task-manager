@@ -22,11 +22,12 @@ This repository demonstrates a unified monolithic structure where front-end UI a
 The project incorporates a clean separation of presentation, state management, and direct backend actions:
 
 ### Frontend (Client Components & State)
-- **`app/`** → Next.js App Router root layout (`layout.js`) and main application dashboard (`page.js`)
+- **`app/`** → Next.js App Router root layout (`layout.tsx`) and main application dashboard (`page.tsx`)
 - **`frontend/components/`** → Reusable interactive React components
   - **`Task/`** → Task rendering, inline editing, and state-synced background timer logic
   - **`TopSectionComponents/`** → High-level interactive elements (Dropdowns, Filters, Project actions)
   - **`authentication/`** → Login, registration forms, and Auth header UI
+  - **`Toast/`** → Toast notifications for user feedback
 - **`frontend/store/`** → Centralized Zustand global state management and isolated store slices
 - **`frontend/modals/`** → Popup dialogues and interactive item pickers wrapped in Framer Motion `AnimatePresence`
 - **`frontend/styles/`** → Modular custom CSS stylesheets
@@ -35,10 +36,13 @@ The project incorporates a clean separation of presentation, state management, a
 - **`public/assets/`** → Static media, icons, and interface SVGs
 
 ### Backend (Server Actions & ORM)
-- **`backend/actions/`** → Next.js Server Actions (`projectActions.js`, `taskActions.js`, `labelActions.js`) for direct database mutations
+- **`backend/actions/`** → Next.js Server Actions (`projectActions.ts`, `taskActions.ts`, `labelActions.ts`) for direct database mutations
 - **`backend/lib/prisma.js`** → Cached global Prisma Client portal designed for efficient connection pooling during development
 - **`backend/utils/`** → Seeding structures and initial defaults for brand-new users (`defaultData.js`)
 - **`prisma/`** → Database architecture definitions (`schema.prisma`)
+
+### Testing
+- **`tests/`** → Jest unit tests for store slices and utilities
 
 ---
 
@@ -47,7 +51,7 @@ The project incorporates a clean separation of presentation, state management, a
 - **Authentication & Multi-User System**
   - Full JWT-based credential authentication (Login/Registration).
   - Secure HTTP-only cookie session management.
-  - Complete data isolation (users can only see and modify their own projects and tasks).
+  - Complete data isolation (users can only see and modify their own projects and tasks, plus projects explicitly shared with them).
 
    ![Registration](assets/authentication.png)
 
@@ -57,6 +61,10 @@ The project incorporates a clean separation of presentation, state management, a
   
   ![Projects](assets/projects.png)
 
+- **Project sharing & collaboration**
+  - Share a project via a unique 6-character invite code.
+  - Role-based access: the **owner** and **collaborators** have different permissions. Collaborators can manage tasks and labels, while only the owner can rename or delete the project.
+
 - **Labels**
   - Each new project has unique labels.
   - Add labels to tasks.
@@ -65,9 +73,10 @@ The project incorporates a clean separation of presentation, state management, a
   ![Labels](assets/labels.png)
 
 - **Task management**
-  - Add new tasks to projects.
+  - Add new tasks to projects, with an optional description for extra details.
   - Edit, delete, and update task status (done / in progress).
   - Track time spent on tasks with **background-syncing timers** using timestamps, ensuring accurate duration tracking even when navigating away or closing the app.
+  - **Drag-and-drop reordering** powered by Framer Motion, with the custom order persisted in the database.
   
   ![Task Edit](assets/edit_task.png)
 
@@ -106,6 +115,8 @@ The project incorporates a clean separation of presentation, state management, a
 * **ACID Transactions & Data Migration:** Failsafe database transactions ensure total data safety. When a user registers and opts to migrate their guest data, the transaction guarantees that if the complex transfer of projects and tasks fails midway, the registration safely rolls back without deleting the original guest account. 
 * **Optimized Data Loading:** Implemented lazy loading so tasks are only fetched when viewing a specific project, massively reducing initial load times and memory footprint.
 * **Optimistic UI:** Robust client-side optimistic updates combined with network race-condition protections ensure a seamless UX.
+* **Persistent Task Ordering:** Tasks are ordered by a floating-point `orderIndex`, saved after each drag-and-drop. A self-healing step re-indexes tasks with missing or duplicate values in a single batch transaction.
+* **Project Sharing:** Access is modeled with a `ProjectCollaborator` join table (unique per project and user). Every server action checks whether the caller is the project owner or a collaborator before reading or modifying data.
 
 ---
 
@@ -165,14 +176,17 @@ classDiagram
         String id [PK]
         String name
         String userId [FK]
+        String shareCode
         DateTime createdAt
     }
     
     class Task {
         String id [PK]
         String title
+        String description
         Boolean done
         String priority
+        Float orderIndex
         String projectId [FK]
         DateTime createdAt
     }
@@ -189,4 +203,13 @@ classDiagram
     Project "1" --> "*" Task : contains
     Project "1" --> "*" Label : owns
     Task "*" -- "*" Label : has
+
+    class ProjectCollaborator {
+        String id [PK]
+        String projectId [FK]
+        String userId [FK]
+        DateTime joinedAt
+    }
+    User "1" --> "*" ProjectCollaborator : joins
+    Project "1" --> "*" ProjectCollaborator : shared with
 ```
