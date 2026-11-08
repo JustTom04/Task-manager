@@ -80,7 +80,11 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
   }, [task.done, task.id]);
 
   // ===== Functions =====
-  const colorMap: Record<string, string> = { high: "red", mid: "orange", low: "green" };
+  const colorMap: Record<string, string> = {
+    high: "red",
+    mid: "orange",
+    low: task.done ? "#86efac" : "green",
+  };
   const color = colorMap[task.priority] || "green";
 
   const handleDelete = () => {
@@ -234,7 +238,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
           <RemoveButton
             onClick={stopAnd(handleDelete)}
             aria-label="Delete task"
-            title="Delete task"
+            data-tooltip="Delete"
           />
         </div>
       )}

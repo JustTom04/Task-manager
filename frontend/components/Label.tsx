@@ -7,10 +7,11 @@ interface LabelProps {
   isSelected?: boolean;
   showDelete?: boolean;
   deleteLabel?: (e: React.MouseEvent) => void;
+  deleteTooltip?: string;
   marginRight?: number;
 }
 
-function Label({ label, isSelected = false, showDelete = false, deleteLabel, marginRight = 0 }: LabelProps) {
+function Label({ label, isSelected = false, showDelete = false, deleteLabel, deleteTooltip = "Remove", marginRight = 0 }: LabelProps) {
   return (
     <div
       className={`label-item ${isSelected ? "selected" : ""}`}
@@ -30,8 +31,8 @@ function Label({ label, isSelected = false, showDelete = false, deleteLabel, mar
         <RemoveButton
           size="small"
           onClick={deleteLabel}
-          aria-label="Remove label"
-          title="Remove label"
+          aria-label={`${deleteTooltip} label`}
+          data-tooltip={deleteTooltip}
         />
       )}
     </div>

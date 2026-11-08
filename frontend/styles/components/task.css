@@ -139,6 +139,7 @@
 .task-item:not(.dragging):hover {
   filter: brightness(0.9);
   box-shadow: var(--shadow-task-hover);
+  z-index: 5;
 }
 
 .task-item.active {
@@ -156,7 +157,7 @@
   font-size: 1.2rem;
   color: var(--color-task-title);
   position: relative;
-  display: inline-block;
+  display: inline;
   transition: color 0.3s ease, opacity 0.3s ease;
 }
 

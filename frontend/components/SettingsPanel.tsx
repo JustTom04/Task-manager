@@ -141,7 +141,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => setEditValue(e.target.value)}
-                onBlur={() => handleEditSubmit(p.id, p.name)}
+                onBlur={() => setEditingProjectId(null)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
@@ -223,26 +223,17 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 </div>
               )}
               {p.name !== "General" && (
-                editingProjectId === p.id || p.userId === activeUserId ? (
+                p.userId === activeUserId ? (
                   <RemoveButton
-                    style={{ backgroundColor: editingProjectId === p.id ? "var(--color-muted)" : "" }}
-                    onMouseDown={(e) => e.preventDefault()}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (editingProjectId === p.id) {
-                        setEditingProjectId(null);
-                      } else {
-                        const isOwner = p.userId === activeUserId;
-                        setConfirmConfig({
-                          title: isOwner ? "Delete project?" : "Leave project?",
-                          message: isOwner
-                            ? `Project "${p.name}" will be permanently deleted.`
-                            : `Are you sure you want to leave "${p.name}"?`,
-                          action: () => deleteProject(p.id),
-                        });
-                      }
+                      setConfirmConfig({
+                        title: "Delete project?",
+                        message: `Project "${p.name}" will be permanently deleted.`,
+                        action: () => deleteProject(p.id),
+                      });
                     }}
-                    data-tooltip={editingProjectId === p.id ? "Cancel" : "Delete"}
+                    data-tooltip="Delete"
                   />
                 ) : (
                   <button

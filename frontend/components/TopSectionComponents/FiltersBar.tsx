@@ -17,6 +17,7 @@ export default function FiltersBar() {
   const activeProjectId = useStore((s) => s.activeProjectId);
   const actualProject = projects.find((p) => p.id === activeProjectId);
   const actualLabelsList = actualProject?.labels || [];
+  const selectedFilterCount = actualLabelsList.filter((l) => labelsFilter.includes(l.id)).length;
 
   const deleteLabel = (id: string) => _deleteLabel(id);
 
@@ -40,7 +41,7 @@ export default function FiltersBar() {
             ref={ref as React.RefObject<HTMLDivElement>}
           />
         )}
-        customTitle={"Select labels"}
+        customTitle={selectedFilterCount > 0 ? `Select labels (${selectedFilterCount})` : "Select labels"}
       />
 
       <CustomDropdown

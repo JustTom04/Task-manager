@@ -14,11 +14,12 @@ export default function AddLabelDropdown() {
 
   const selectedLabels = useStore(s => s.selectedLabels);
   const setSelectedLabels = useStore(s => s.setSelectedLabels);
-  
+
   const projects = useStore(s => s.projects);
   const activeProjectId = useStore(s => s.activeProjectId);
   const actualProject = projects.find(p => p.id === activeProjectId);
   const actualLabelsList = actualProject?.labels || [];
+  const selectedCount = actualLabelsList.filter(l => selectedLabels.includes(l.id)).length;
 
   return (
     <div className="labels-select" ref={labelsRef}>
@@ -28,7 +29,7 @@ export default function AddLabelDropdown() {
         className="labels-button"
         onClick={() => setLabelsOpen((prev) => !prev)}
       >
-        Add labels
+        {selectedCount > 0 ? `Add labels (${selectedCount})` : "Add labels"}
       </button>
 
       {labelsOpen && (

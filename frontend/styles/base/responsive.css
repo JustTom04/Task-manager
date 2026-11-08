@@ -8,12 +8,12 @@
 
 @media (max-width: 668px) {
   html {
-    font-size: 14px; 
+    font-size: 14px;
   }
 
   /* ===== Top-section ===== */
-  .top-section .section > :not(:is(input, .add-task-selection, .task-button)) {
-    flex: 1; 
+  .top-section .section> :not(:is(input, .add-task-selection, .task-button)) {
+    flex: 1;
   }
 
   .form-container input {
@@ -33,9 +33,6 @@
     padding: 0 0.6rem;
   }
 
-  .notes-toggle .notes-text {
-    display: none;
-  }
 
   /* ===== Mobile task form (2 rows) ===== */
   .mobile-task-form {
@@ -97,7 +94,7 @@
   #completed-counter {
     margin-top: -0.2rem;
     margin-left: -0.2rem;
-  } 
+  }
 
 
   /* ===== Task ===== */
@@ -115,14 +112,14 @@
 
 @media (max-width: 450px) {
   html {
-    font-size: 13px; 
+    font-size: 13px;
   }
 
 
   /* ===== Task ===== */
   .edit-panel {
     flex-direction: column;
-    align-items: stretch;   
+    align-items: stretch;
   }
 
   .edit-top-row {
@@ -134,13 +131,16 @@
     width: 100%;
   }
 
-  .edit-top-row > * {
+  .edit-top-row>* {
     flex: 1 1 0;
   }
 
   .edit-bottom-row .task-button {
     flex: 1 1 0;
   }
+
+  .notes-toggle .notes-text {
+    display: none;
+  }
+
 }
-
-

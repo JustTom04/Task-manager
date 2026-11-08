@@ -51,7 +51,7 @@ function getDefaultProjectsData() {
                             orderIndex: 5
                         },
                         {
-                            title: 'Rename this project by clicking on its title',
+                            title: 'Rename this task by clicking on its title',
                             priority: 'low',
                             done: true,
                             orderIndex: 6

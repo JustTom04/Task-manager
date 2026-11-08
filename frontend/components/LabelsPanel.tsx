@@ -68,6 +68,7 @@ const LabelsPanel = forwardRef<HTMLDivElement, LabelsPanelProps>(({
                 isSelected={isChecked}
                 deleteLabel={() => deleteLabel?.(label.id)}
                 showDelete={showDelete}
+                deleteTooltip="Delete"
                 marginRight={5}
               />
             </label>

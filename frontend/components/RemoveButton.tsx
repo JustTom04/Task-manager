@@ -10,8 +10,6 @@ const RemoveButton = forwardRef<HTMLButtonElement, RemoveButtonProps>(({
   type = "button",
   ...props
 }, ref) => {
-  const iconSize = size === "small" ? 13 : 18;
-
   return (
     <button
       ref={ref}
@@ -20,8 +18,8 @@ const RemoveButton = forwardRef<HTMLButtonElement, RemoveButtonProps>(({
       {...props}
     >
       <svg
-        width={iconSize}
-        height={iconSize}
+        width={18}
+        height={18}
         viewBox="0 0 16 16"
         fill="none"
         stroke="currentColor"

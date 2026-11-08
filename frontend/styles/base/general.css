@@ -234,7 +234,7 @@ select,
 input,
 button,
 .select-wrapper {
-  padding: clamp(0.2rem, 0.75dvh, 0.4rem) clamp(0.2rem, 0.75dvw, 0.4rem);
+  padding: clamp(0.2rem, 0.75dvh, 0.4rem) 0.4rem;
   font-size: 0.9rem;
 }
 
@@ -316,11 +316,13 @@ button.undone {
 
   --btn-scale-small: 0.6;
   --btn-scale-small-hover: 0.52;
+  --btn-scale-small-active: 0.45;
 
   --tooltip-font-size: 0.85rem;
 }
 
 .action-button {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -345,6 +347,14 @@ button.undone {
     background-color 0.15s ease;
 }
 
+/* Keep the click/hover hit area at the normal (unshrunk) size when the button scales down */
+.action-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
 .action-button:hover {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
 }
@@ -358,6 +368,10 @@ button.action-button.medium:hover {
   transform: scale(var(--btn-scale-medium-hover)) !important;
 }
 
+button.action-button.medium:hover::before {
+  transform: scale(calc(var(--btn-scale-medium) / var(--btn-scale-medium-hover)));
+}
+
 /* Counter-scale the tooltip so the text size matches unscaled elements */
 button.action-button.medium[data-tooltip]:hover::after {
   font-size: calc(var(--tooltip-font-size) / var(--btn-scale-medium-hover));
@@ -365,6 +379,10 @@ button.action-button.medium[data-tooltip]:hover::after {
 
 button.action-button.medium:active {
   transform: scale(var(--btn-scale-medium-active)) !important;
+}
+
+button.action-button.medium:active::before {
+  transform: scale(calc(var(--btn-scale-medium) / var(--btn-scale-medium-active)));
 }
 
 button.action-button.small {
@@ -376,12 +394,20 @@ button.action-button.small:hover {
   transform: scale(var(--btn-scale-small-hover)) !important;
 }
 
+button.action-button.small:hover::before {
+  transform: scale(calc(var(--btn-scale-small) / var(--btn-scale-small-hover)));
+}
+
 button.action-button.small[data-tooltip]:hover::after {
   font-size: calc(var(--tooltip-font-size) / var(--btn-scale-small-hover));
 }
 
 button.action-button.small:active {
-  transform: scale(0.45) !important;
+  transform: scale(var(--btn-scale-small-active)) !important;
+}
+
+button.action-button.small:active::before {
+  transform: scale(calc(var(--btn-scale-small) / var(--btn-scale-small-active)));
 }
 
 /* ===== Remove button (specialized delete modifier) ===== */
