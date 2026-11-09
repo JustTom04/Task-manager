@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { INPUT_LENGTH, MODAL_ANIMATION } from "@/frontend/constants";
+import { useModalKeyboard } from "@/frontend/utils";
 
 export interface ItemPickerResult {
   name: string;
@@ -24,6 +25,9 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
   const [error, setError] = useState("");
   const [showError, setShowError] = useState(false);
   const inputRef = useRef(null);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useModalKeyboard(modalRef, () => onClose(null));
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -62,17 +66,23 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
       {...MODAL_ANIMATION.overlay}
     >
       <motion.div 
+        ref={modalRef}
         className="modal" 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="item-picker-title"
         onMouseDown={(e) => e.stopPropagation()} 
         onClick={(e) => e.stopPropagation()}
         {...MODAL_ANIMATION.content}
       >
-        <h2>{title}</h2>
+        <h2 id="item-picker-title">{title}</h2>
 
         <input
           type="text"
           className={showError ? "input-error shake-animation" : ""}
           placeholder={showError ? "Name cannot be empty!" : `${title} name`}
+          aria-label={`${title} name`}
+          aria-invalid={showError}
           maxLength={inputMaxLength}
           value={name}
           ref={inputRef}
@@ -87,8 +97,8 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
         />
 
         {error && (
-          <div className="auth-error-box" style={{ marginBottom: "15px" }}>
-            <span className="auth-error-icon">⚠️</span>
+          <div className="auth-error-box" role="alert" style={{ marginBottom: "15px" }}>
+            <span className="auth-error-icon" aria-hidden="true">⚠️</span>
             <span>{error}</span>
           </div>
         )}
@@ -96,6 +106,7 @@ function ItemPicker({ onClose, title, inputMaxLength, includeColor = false, init
         {includeColor && (
           <input
             type="color"
+            aria-label="Choose label color"
             value={color}
             onChange={(e) => setColor(e.target.value)}
           />

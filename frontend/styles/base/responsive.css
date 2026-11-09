@@ -13,7 +13,12 @@
 
   /* ===== Top-section ===== */
   .top-section .section> :not(:is(input, .add-task-selection, .task-button)) {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .top-section .section>.labels-filter-dropdown {
+    flex: 1.35 1 0;
   }
 
   .form-container input {

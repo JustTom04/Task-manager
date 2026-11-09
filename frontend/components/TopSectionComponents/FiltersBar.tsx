@@ -25,6 +25,8 @@ export default function FiltersBar() {
     <>
       <CustomDropdown
         icon="filter-icon"
+        ariaLabel="Filter by labels"
+        wrapperClass="labels-filter-dropdown"
         value={null}
         options={[]}
         customPanel={({ close, position, ref }) => (
@@ -38,6 +40,7 @@ export default function FiltersBar() {
             }
             deleteLabel={deleteLabel}
             position={position}
+            onClose={() => close()}
             ref={ref as React.RefObject<HTMLDivElement>}
           />
         )}
@@ -46,6 +49,7 @@ export default function FiltersBar() {
 
       <CustomDropdown
         icon="filter-icon"
+        ariaLabel="Filter by status"
         options={DROPDOWN_OPTIONS.STATUS_FILTER}
         value={statusFilter}
         onChange={setStatusFilter}
@@ -53,6 +57,7 @@ export default function FiltersBar() {
 
       <CustomDropdown
         icon="filter-icon"
+        ariaLabel="Filter by priority"
         options={DROPDOWN_OPTIONS.PRIORITY_FILTER}
         value={priorityFilter}
         onChange={setPriorityFilter}

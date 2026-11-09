@@ -95,29 +95,32 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
   };
 
   return (
-    <div className={`settings-panel ${isOpen ? "open" : ""}`} ref={settingsRef} >
+    <div className={`settings-panel ${isOpen ? "open" : ""}`} ref={settingsRef} role="region" aria-label="Projects and settings">
       <AuthHeader />
       <h2 className="settings-title">Projects</h2>
       <div style={{ display: "flex", gap: "10px" }}>
         <button
           className="done add-project-button"
           style={{ flex: 1 }}
+          aria-label="Create project"
           onClick={() => setShowProjectModal(true)}
         >
-          ➕ Add
+          <span aria-hidden="true">➕</span> Add
         </button>
         <button
           className="done add-project-button"
           style={{ flex: 1, backgroundColor: "#10b981" }}
+          aria-label="Join shared project"
           onClick={() => setShowJoinModal(true)}
         >
-          🔗 Join
+          <span aria-hidden="true">🔗</span> Join
         </button>
       </div>
-      <div className="projects-list" ref={projectsListRef}>
+      <div className="projects-list" ref={projectsListRef} role="list" aria-label="Projects list">
         {projects.map((p) => (
           <div
             key={p.id}
+            role="listitem"
             className={`project-item ${p.id === activeProjectId ? "active" : ""}`}
             onClick={() => onSelectProject(p.id)}
             onDoubleClick={() => startEditing(p)}
@@ -127,6 +130,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                 ref={editInputRef}
                 type="text"
                 value={editValue}
+                aria-label="Project name"
                 maxLength={INPUT_LENGTH.PROJECT_NAME}
                 className="project-item-title"
                 style={{
@@ -155,11 +159,11 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
             ) : (
               <div className="project-item-title" style={{ cursor: p.name !== "General" ? "text" : "default" }}>
                 {p.userId !== activeUserId ? (
-                  <span className="project-badge project-badge-settings shared" data-tooltip="Shared">
+                  <span className="project-badge project-badge-settings shared" data-tooltip="Shared" role="img" aria-label="Shared project">
                     👥
                   </span>
                 ) : p.shareCode ? (
-                  <span className="project-badge project-badge-settings owner" data-tooltip="Owner">
+                  <span className="project-badge project-badge-settings owner" data-tooltip="Owner" role="img" aria-label="Project owner">
                     👑
                   </span>
                 ) : null}
@@ -181,9 +185,10 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                       startEditing(p);
                     }
                   }}
+                  aria-label={editingProjectId === p.id ? `Save ${p.name}` : `Rename ${p.name}`}
                   data-tooltip={editingProjectId === p.id ? "Save" : "Rename"}
                 >
-                  {editingProjectId === p.id ? "💾" : "✏️"}
+                  <span aria-hidden="true">{editingProjectId === p.id ? "💾" : "✏️"}</span>
                 </button>
               )}
               {p.name !== "General" && (
@@ -211,12 +216,13 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                         showToast("Error generating share code: " + error.message, "error");
                       }
                     }}
+                    aria-label={`Share ${p.name}`}
                     data-tooltip="Share Project"
                   >
-                    🔗
+                    <span aria-hidden="true">🔗</span>
                   </button>
                   {copiedProjectId === p.id && (
-                    <div className="copy-popup">
+                    <div className="copy-popup" role="status" aria-live="polite">
                       Code copied!
                     </div>
                   )}
@@ -233,6 +239,7 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                         action: () => deleteProject(p.id),
                       });
                     }}
+                    aria-label={`Delete ${p.name}`}
                     data-tooltip="Delete"
                   />
                 ) : (
@@ -247,9 +254,10 @@ function SettingsPanel({ isOpen, setIsOpen }: SettingsPanelProps) {
                         action: () => deleteProject(p.id),
                       });
                     }}
+                    aria-label={`Leave ${p.name}`}
                     data-tooltip="Leave"
                   >
-                    🚪
+                    <span aria-hidden="true">🚪</span>
                   </button>
                 )
               )}

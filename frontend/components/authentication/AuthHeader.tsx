@@ -40,14 +40,24 @@ export default function AuthHeader() {
         <div className="user-profile-card">
           <div 
             className="user-profile-info" 
+            role="button"
+            tabIndex={0}
+            aria-label={`User profile: ${username}`}
+            aria-expanded={showEmailTooltip}
             onClick={() => setShowEmailTooltip(!showEmailTooltip)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setShowEmailTooltip(!showEmailTooltip);
+              }
+            }}
             style={{ position: "relative" }}
             ref={profileInfoRef}
           >
-            <div className="user-avatar">{initial}</div>
+            <div className="user-avatar" aria-hidden="true">{initial}</div>
             <span className="user-name">{username}</span>
             
-            <div className={`custom-email-tooltip ${showEmailTooltip ? 'show' : ''}`}>
+            <div className={`custom-email-tooltip ${showEmailTooltip ? 'show' : ''}`} role="tooltip">
               {email}
             </div>
           </div>

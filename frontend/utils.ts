@@ -45,7 +45,7 @@ export function useClickOutside(refs: RefObject<HTMLElement | null> | RefObject<
   const refsArray = Array.isArray(refs) ? refs : [refs];
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
+    function handleOutside(event: MouseEvent | FocusEvent) {
       const isInside = refsArray.some(
         (ref) => ref.current && ref.current.contains(event.target as Node)
       );
@@ -55,10 +55,62 @@ export function useClickOutside(refs: RefObject<HTMLElement | null> | RefObject<
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () =>
-      document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("focusin", handleOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("focusin", handleOutside);
+    };
   }, [refsArray, onOutsideClick]);
+}
+
+export function useModalKeyboard(
+  modalRef: RefObject<HTMLElement | null>,
+  onClose: () => void,
+  disabled: boolean = false
+) {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (disabled) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        onCloseRef.current();
+        return;
+      }
+
+      if (e.key === "Tab" && modalRef.current) {
+        const focusable = Array.from(
+          modalRef.current.querySelectorAll<HTMLElement>(
+            'input:not(:disabled), button:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+        if (focusable.length === 0) return;
+
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const active = document.activeElement as HTMLElement;
+
+        if (e.shiftKey) {
+          if (active === first || !modalRef.current.contains(active)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (active === last || !modalRef.current.contains(active)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modalRef, disabled]);
 }
 
 

@@ -8,7 +8,7 @@ export default function CreateLabelButton() {
       className="done"
       onClick={() => setShowLabelModal(true)}
     >
-      ➕ Create label
+      <span aria-hidden="true">➕</span> Create label
     </button>
   );
 }

@@ -31,7 +31,7 @@ function Label({ label, isSelected = false, showDelete = false, deleteLabel, del
         <RemoveButton
           size="small"
           onClick={deleteLabel}
-          aria-label={`${deleteTooltip} label`}
+          aria-label={`${deleteTooltip} ${label.name} label`}
           data-tooltip={deleteTooltip}
         />
       )}

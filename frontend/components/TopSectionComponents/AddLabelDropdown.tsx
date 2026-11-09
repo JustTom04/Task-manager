@@ -27,7 +27,18 @@ export default function AddLabelDropdown() {
         type="button"
         ref={labelsButtonRef}
         className="labels-button"
+        aria-expanded={labelsOpen}
+        aria-haspopup="true"
         onClick={() => setLabelsOpen((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            setLabelsOpen(true);
+          } else if (e.key === "Escape" && labelsOpen) {
+            e.preventDefault();
+            setLabelsOpen(false);
+          }
+        }}
       >
         {selectedCount > 0 ? `Add labels (${selectedCount})` : "Add labels"}
       </button>
@@ -44,6 +55,10 @@ export default function AddLabelDropdown() {
           )}
           showDelete={false}
           position={dropdownPos}
+          onClose={() => {
+            setLabelsOpen(false);
+            labelsButtonRef.current?.focus();
+          }}
         />
       )}
     </div>

@@ -8,13 +8,17 @@ const RemoveButton = forwardRef<HTMLButtonElement, RemoveButtonProps>(({
   size = "medium",
   className = "",
   type = "button",
+  "aria-label": ariaLabel,
   ...props
 }, ref) => {
+  const computedAriaLabel = ariaLabel || (props as Record<string, any>)["data-tooltip"] || "Remove";
+
   return (
     <button
       ref={ref}
       type={type}
       className={`action-button remove-button ${size} ${className}`.trim()}
+      aria-label={computedAriaLabel}
       {...props}
     >
       <svg
@@ -26,6 +30,7 @@ const RemoveButton = forwardRef<HTMLButtonElement, RemoveButtonProps>(({
         strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        aria-hidden="true"
       >
         <line x1="2.5" y1="2.5" x2="13.5" y2="13.5" />
         <line x1="13.5" y1="2.5" x2="2.5" y2="13.5" />

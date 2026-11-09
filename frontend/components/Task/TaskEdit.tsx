@@ -110,6 +110,23 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
     closeEdit();
   };
 
+  const handleLabelButtonKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      e.stopPropagation();
+      setLabelsOpen(true);
+    } else if (e.key === "Escape" && labelsOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      setLabelsOpen(false);
+    }
+  };
+
+  const closeLabelsPanel = () => {
+    setLabelsOpen(false);
+    labelButtonRef.current?.focus();
+  };
+
   if (isMobileEdit) {
     if (task.title.length > Math.floor((window.innerWidth - 240) / 8)) {
       {/* ===== MOBILE LONG TITLE EDIT ===== */ }
@@ -118,10 +135,10 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
           <div className="edit-panel-mobile">
             <div className="mobile-top-row">
               <div className="labels-select" ref={labelsRef}>
-                <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev))}>
+                <button ref={labelButtonRef} type="button" className="labels-button" aria-expanded={labelsOpen} aria-haspopup="true" onClick={stopAnd(() => setLabelsOpen(prev => !prev))} onKeyDown={handleLabelButtonKeyDown}>
                   Add label
                 </button>
-                {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
+                {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} onClose={closeLabelsPanel} />}
               </div>
               <input
                 ref={titleInputRef}
@@ -129,6 +146,8 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
                 type="text"
                 className={showError ? "input-error shake-animation" : ""}
                 placeholder={showError ? "Title cannot be empty!" : "Task title"}
+                aria-label="Edit task title"
+                aria-invalid={showError}
                 maxLength={INPUT_LENGTH.TASK_TITLE}
                 value={editedTitle}
                 onChange={(e) => {
@@ -142,6 +161,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
             <div className="mobile-bottom-row">
               <CustomDropdown
                 value={editedPriority}
+                ariaLabel="Task priority"
                 wrapperClass="priority-dropdown"
                 onChange={setEditedPriority}
                 options={DROPDOWN_OPTIONS.PRIORITY}
@@ -178,10 +198,10 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
           <div className="edit-panel-mobile">
             <div className="mobile-top-row">
               <div className="labels-select" ref={labelsRef}>
-                <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev))}>
+                <button ref={labelButtonRef} type="button" className="labels-button" aria-expanded={labelsOpen} aria-haspopup="true" onClick={stopAnd(() => setLabelsOpen(prev => !prev))} onKeyDown={handleLabelButtonKeyDown}>
                   Add label
                 </button>
-                {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} />}
+                {labelsOpen && <LabelsPanel ref={labelsPanelRef} labels={allLabels} selectedIds={task.labels} onToggle={toggleLabelOnTask} position={dropdownPos} onClose={closeLabelsPanel} />}
               </div>
               <input
                 ref={titleInputRef}
@@ -189,6 +209,8 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
                 type="text"
                 className={showError ? "input-error shake-animation" : ""}
                 placeholder={showError ? "Title cannot be empty!" : "Task title"}
+                aria-label="Edit task title"
+                aria-invalid={showError}
                 maxLength={INPUT_LENGTH.TASK_TITLE}
                 value={editedTitle}
                 onChange={(e) => {
@@ -200,6 +222,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
               />
               <CustomDropdown
                 value={editedPriority}
+                ariaLabel="Task priority"
                 wrapperClass="priority-dropdown"
                 onChange={setEditedPriority}
                 options={DROPDOWN_OPTIONS.PRIORITY}
@@ -240,7 +263,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
       <div className="edit-panel-desktop">
         <div className="desktop-left-group">
           <div className="labels-select" ref={labelsRef}>
-            <button ref={labelButtonRef} type="button" className="labels-button" onClick={stopAnd(() => setLabelsOpen(prev => !prev))}>
+            <button ref={labelButtonRef} type="button" className="labels-button" aria-expanded={labelsOpen} aria-haspopup="true" onClick={stopAnd(() => setLabelsOpen(prev => !prev))} onKeyDown={handleLabelButtonKeyDown}>
               Add label
             </button>
             {labelsOpen && (
@@ -250,6 +273,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
                 selectedIds={task.labels}
                 onToggle={toggleLabelOnTask}
                 position={dropdownPos}
+                onClose={closeLabelsPanel}
               />
             )}
           </div>
@@ -259,6 +283,8 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
             type="text"
             className={showError ? "input-error shake-animation" : ""}
             placeholder={showError ? "Title cannot be empty!" : "Task title"}
+            aria-label="Edit task title"
+            aria-invalid={showError}
             maxLength={INPUT_LENGTH.TASK_TITLE}
             value={editedTitle}
             onChange={(e) => {
@@ -272,6 +298,7 @@ export default function TaskEdit({ task, closeEdit, taskRef, children }: TaskEdi
         <div className="desktop-right-group">
           <CustomDropdown
             value={editedPriority}
+            ariaLabel="Task priority"
             wrapperClass="priority-dropdown"
             onChange={setEditedPriority}
             options={[

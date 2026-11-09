@@ -17,9 +17,10 @@ interface CustomDropdownProps {
   icon?: string;
   wrapperClass?: string;
   portalRef?: React.RefObject<HTMLUListElement | null>;
+  ariaLabel?: string;
 }
 
-function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass, portalRef }: CustomDropdownProps) {
+function CustomDropdown({ options, value, onChange, customPanel, customTitle, icon, wrapperClass, portalRef, ariaLabel }: CustomDropdownProps) {
   
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef(null);
@@ -29,6 +30,7 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle, ic
 
   const selectedOption = options?.find(opt => opt.value === value);
   const displayTitle = customTitle ?? selectedOption?.label ?? "Select";
+  const accessibleLabel = ariaLabel || (typeof displayTitle === "string" ? displayTitle : "Select option");
 
   useClickOutside([dropdownRef, wrapperRef], () => setOpen(false))
 
@@ -38,26 +40,56 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle, ic
     <div
       className={`select-wrapper ${open ? "open" : ""} ${icon ? "has-icon" : ""} ${wrapperClass || ""}`}
       ref={wrapperRef}
-      onClick={(e) =>  setOpen(prev => !prev)}
+      role="button"
+      tabIndex={0}
+      aria-haspopup="listbox"
+      aria-expanded={open}
+      aria-label={accessibleLabel}
+      onClick={(e) => setOpen(prev => !prev)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          setOpen(prev => !prev);
+        } else if (e.key === "Escape" && open) {
+          e.preventDefault();
+          setOpen(false);
+        } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+          e.preventDefault();
+          if (customPanel) {
+            setOpen(true);
+          } else if (options && options.length > 0 && onChange) {
+            if (!open) {
+              setOpen(true);
+            }
+            const currentIndex = options.findIndex(opt => opt.value === value);
+            const nextIndex = e.key === "ArrowDown"
+              ? (currentIndex < options.length - 1 ? currentIndex + 1 : 0)
+              : (currentIndex > 0 ? currentIndex - 1 : options.length - 1);
+            onChange(options[nextIndex].value);
+          }
+        }
+      }}
     >
       <div className="filter-select">
-        {icon && <span className={icon}></span>}
+        {icon && <span className={icon} aria-hidden="true"></span>}
 
         <span className="selected-text">
           {displayTitle}
         </span>
 
-        <span className={`arrow ${open ? "open" : ""}`}></span>
+        <span className={`arrow ${open ? "open" : ""}`} aria-hidden="true"></span>
       </div>
 
       {open && (
         customPanel ? (
           // Custom panels might already be portaled or positioned by the caller
-          customPanel({ close: () => setOpen(false), ref: dropdownRef, position: dropdownPos })
+          customPanel({ close: () => { setOpen(false); wrapperRef.current?.focus(); }, ref: dropdownRef, position: dropdownPos })
         ) : (
           createPortal(
             <ul 
               className="dropdown-filter dropdown" 
+              role="listbox"
+              aria-label={accessibleLabel}
               ref={dropdownRef}
               style={{
                 top: `${dropdownPos.top}px`,
@@ -71,6 +103,8 @@ function CustomDropdown({ options, value, onChange, customPanel, customTitle, ic
               {options.map((opt) => (
                 <li
                   key={opt.value}
+                  role="option"
+                  aria-selected={opt.value === value}
                   className={opt.value === value ? "selected" : ""}
                   onClick={stopAnd(() => { onChange(opt.value); setOpen(false); })}
                 >

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
-import { useClickOutside, getUserId } from "@/frontend/utils";
+import { getUserId } from "@/frontend/utils";
 import { INPUT_LENGTH } from "@/frontend/constants";
 import useStore from "@/frontend/store/useStore";
 import { useSession } from "next-auth/react";
@@ -50,8 +50,6 @@ export default function Home() {
   }, []);
 
   // ===== States =====
-  const [labelsOpen, setLabelsOpen] = useState(false);
-  const [filterlabelsOpen, setFilterLabelsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
 
@@ -59,10 +57,6 @@ export default function Home() {
   const setShowLabelModal = useStore((state) => state.setShowLabelModal);
   const confirmConfig = useStore((state) => state.confirmConfig);
   const setConfirmConfig = useStore((state) => state.setConfirmConfig);
-
-  // ===== Ref =====
-  const labelsRef = useRef(null);
-  const filterLabelsRef = useRef(null);
 
   const fetchProjects = useStore((state) => state.fetchProjects);
   const projects = useStore((state) => state.projects);
@@ -138,9 +132,6 @@ export default function Home() {
   // ===== Completed tasks counter =====
   const completedCount = actualTasksList ? actualTasksList.filter((t) => t.done).length : 0;
 
-  useClickOutside(labelsRef, () => setLabelsOpen(false));
-  useClickOutside(filterLabelsRef, () => setFilterLabelsOpen(false));
-
   // Delayed loading screen (150ms) to prevent flicker
   useEffect(() => {
     let timer;
@@ -166,16 +157,26 @@ export default function Home() {
     <div className="app-container">
       <span
         className={`settings-toggle ${settingsOpen ? "active" : ""}`}
+        role="button"
+        tabIndex={0}
+        aria-label="Toggle projects panel"
+        aria-expanded={settingsOpen}
         onClick={() => setSettingsOpen((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setSettingsOpen((prev) => !prev);
+          }
+        }}
       />
 
       <div id="title-row" >
         {actualProject.userId !== activeUserId ? (
-          <span className="project-badge project-badge-title shared" data-tooltip="Shared Project">
+          <span className="project-badge project-badge-title shared" data-tooltip="Shared Project" role="img" aria-label="Shared Project">
             👥
           </span>
         ) : actualProject.shareCode ? (
-          <span className="project-badge project-badge-title owner" data-tooltip="Owner">
+          <span className="project-badge project-badge-title owner" data-tooltip="Owner" role="img" aria-label="Owner">
             👑
           </span>
         ) : null}
@@ -187,21 +188,21 @@ export default function Home() {
         isMobile={isMobile}
       />
 
-      <span id="completed-counter">
+      <span id="completed-counter" aria-live="polite">
         Completed: {completedCount}/{actualTasksList.length}
       </span>
 
       <div className="task-list-container" style={{ overflowY: draggingTaskId ? "hidden" : "auto" }}>
         {actualTasksList.length === 0 && !isLoadingTasks && (statusFilter === 'ALL' && priorityFilter === 'ALL' && labelsFilter.length === 0) ? (
-          <div className="empty-state">
-            <span className="empty-state-icon">🎉</span>
+          <div className="empty-state" role="status">
+            <span className="empty-state-icon" aria-hidden="true">🎉</span>
             <p className="empty-state-text">
               You currently have no tasks. Sit back and relax, or create a new one!
             </p>
           </div>
         ) : isLoadingTasks ? (
-          <div className="empty-state" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
-            <div className="loading-spinner" style={{
+          <div className="empty-state" role="status" aria-live="polite" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '15px' }}>
+            <div className="loading-spinner" aria-hidden="true" style={{
               width: '40px', height: '40px', border: '4px solid rgba(255,255,255,0.1)',
               borderTopColor: '#ff2c55', borderRadius: '50%', animation: 'spin 1s linear infinite'
             }} />
@@ -211,7 +212,7 @@ export default function Home() {
             `}</style>
           </div>
         ) : actualTasksList && actualTasksList.length === 0 ? (
-          <div className="empty-state">
+          <div className="empty-state" role="status">
             <p className="empty-state-text">No tasks match your current filters.</p>
           </div>
         ) : (

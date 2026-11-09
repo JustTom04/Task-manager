@@ -59,6 +59,7 @@ export default function TaskDescriptionInput({
             id={id || "task-description-input"}
             ref={descriptionRef}
             className="description-input"
+            aria-label="Task description"
             rows={2}
             maxLength={INPUT_LENGTH.TASK_DESCRIPTION}
             placeholder={placeholder}

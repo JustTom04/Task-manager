@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
 import { registerUser } from "@/backend/actions/authActions";
-import { getUserId } from "@/frontend/utils";
+import { getUserId, useModalKeyboard } from "@/frontend/utils";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import { motion } from "framer-motion";
 import { MODAL_ANIMATION, AUTH_LIMITS } from "@/frontend/constants";
@@ -18,6 +18,9 @@ export default function AuthModal({ onClose }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useModalKeyboard(modalRef, onClose, loading || step === 2);
 
   useEffect(() => {
     setMounted(true);
@@ -121,18 +124,24 @@ export default function AuthModal({ onClose }) {
   return createPortal(
     <motion.div className="modal-overlay" onMouseDown={onClose} {...MODAL_ANIMATION.overlay}>
       <motion.div 
+        ref={modalRef}
         className="modal" 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-title"
         onMouseDown={(e) => e.stopPropagation()} 
         onClick={(e) => e.stopPropagation()}
         {...MODAL_ANIMATION.content}
       >
         
-        <h2>{isLogin ? "Log In" : "Register"}</h2>
+        <h2 id="auth-modal-title">{isLogin ? "Log In" : "Register"}</h2>
 
         <form onSubmit={handleFirstStepSubmit} className="auth-form" noValidate>
           <input 
             type="email" 
             placeholder="Email" 
+            aria-label="Email address"
+            autoComplete="email"
             className="auth-input"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -141,6 +150,8 @@ export default function AuthModal({ onClose }) {
           <input 
             type="password" 
             placeholder="Password" 
+            aria-label="Password"
+            autoComplete={isLogin ? "current-password" : "new-password"}
             className="auth-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -148,8 +159,8 @@ export default function AuthModal({ onClose }) {
           />
 
           {error && (
-            <div className="auth-error-box">
-              <span className="auth-error-icon">⚠️</span>
+            <div className="auth-error-box" role="alert">
+              <span className="auth-error-icon" aria-hidden="true">⚠️</span>
               <span>{error}</span>
             </div>
           )}
@@ -162,7 +173,18 @@ export default function AuthModal({ onClose }) {
           <span className="auth-switch-text">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
           </span>
-          <span onClick={() => setIsLogin(!isLogin)} className="auth-switch-link">
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsLogin(!isLogin)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setIsLogin(!isLogin);
+              }
+            }}
+            className="auth-switch-link"
+          >
             {isLogin ? "Register" : "Log In"}
           </span>
         </div>

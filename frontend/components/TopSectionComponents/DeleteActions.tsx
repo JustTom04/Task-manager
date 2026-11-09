@@ -35,7 +35,18 @@ export default function DeleteActions() {
           type="button"
           ref={deleteLabelsButtonRef}
           className="button-delete"
+          aria-expanded={deleteLabelsOpen}
+          aria-haspopup="true"
           onClick={() => setDeleteLabelsOpen(prev => !prev)}
+          onKeyDown={(e) => {
+            if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+              e.preventDefault();
+              setDeleteLabelsOpen(true);
+            } else if (e.key === "Escape" && deleteLabelsOpen) {
+              e.preventDefault();
+              setDeleteLabelsOpen(false);
+            }
+          }}
         >
           Delete labels
         </button>
@@ -48,6 +59,10 @@ export default function DeleteActions() {
             deleteLabel={deleteLabel}
             position={deleteLabelsPos}
             showCheckbox={false}
+            onClose={() => {
+              setDeleteLabelsOpen(false);
+              deleteLabelsButtonRef.current?.focus();
+            }}
             footer={
               <button
                 onClick={(e) => {

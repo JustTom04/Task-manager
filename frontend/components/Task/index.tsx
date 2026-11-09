@@ -129,6 +129,8 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
       {!isEditing && (
         <div
           className="task-drag-handle"
+          role="button"
+          aria-label="Drag to reorder task"
           onPointerDown={(e) => {
             preventClickRef.current = true; // Mark that mousedown started on the drag handle
             e.stopPropagation();
@@ -153,7 +155,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
           }}
           onClick={(e) => e.stopPropagation()} // Prevent opening edit mode
         >
-          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
             <path d="M10 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM10 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM10 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 6a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 12a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM18 18a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" />
           </svg>
         </div>
@@ -185,6 +187,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
               {/* ===== Checkbox ===== */}
               <button
                 className={`task-button mark-btn ${task.done ? "completed" : ""}`}
+                aria-pressed={task.done}
                 onClick={stopAnd(toggleTask)}
               >
                 ✓ {task.done ? "Completed" : "Mark complete"}
@@ -204,6 +207,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
 
               {/* ===== Timer ===== */}
               <span
+                aria-label={`Elapsed time: ${secondsToReadable(seconds)}`}
                 style={{
                   marginLeft: "10px",
                   fontSize: "0.85rem",
@@ -211,7 +215,7 @@ const Task = forwardRef<any, TaskProps>(({ task, onDragEnd, isNew, isLast, listR
                   whiteSpace: "nowrap",
                 }}
               >
-                ⏱ {secondsToReadable(seconds)}
+                <span aria-hidden="true">⏱</span> {secondsToReadable(seconds)}
               </span>
             </div>
 

@@ -54,6 +54,8 @@ export default function AddTaskForm({
             className={showError ? "input-error shake-animation" : ""}
             maxLength={INPUT_LENGTH.TASK_TITLE}
             placeholder={showError ? "Title cannot be empty!" : "Task title"}
+            aria-label="Task title"
+            aria-invalid={showError}
             value={newTitle}
             onChange={(e) => {
               setNewTitle(e.target.value);
@@ -64,6 +66,7 @@ export default function AddTaskForm({
 
           <CustomDropdown
             value={newPriority}
+            ariaLabel="Task priority"
             wrapperClass="add-task-selection priority-dropdown"
             onChange={setNewPriority}
             options={DROPDOWN_OPTIONS.PRIORITY}
@@ -77,7 +80,7 @@ export default function AddTaskForm({
             aria-label="Toggle notes"
             onClick={() => setIsDescriptionOpen((open) => !open)}
           >
-            <span>📝</span>
+            <span aria-hidden="true">📝</span>
             <span className="notes-text"> Notes</span>
           </button>
         </div>
@@ -101,6 +104,8 @@ export default function AddTaskForm({
         className={showError ? "input-error shake-animation" : ""}
         maxLength={INPUT_LENGTH.TASK_TITLE}
         placeholder={showError ? "Title cannot be empty!" : "Task title"}
+        aria-label="Task title"
+        aria-invalid={showError}
         value={newTitle}
         onChange={(e) => {
           setNewTitle(e.target.value);
@@ -111,6 +116,7 @@ export default function AddTaskForm({
 
       <CustomDropdown
         value={newPriority}
+        ariaLabel="Task priority"
         wrapperClass="priority-dropdown"
         onChange={setNewPriority}
         options={DROPDOWN_OPTIONS.PRIORITY}
@@ -124,7 +130,7 @@ export default function AddTaskForm({
         aria-label="Toggle notes"
         onClick={() => setIsDescriptionOpen((open) => !open)}
       >
-        <span>📝</span>
+        <span aria-hidden="true">📝</span>
         <span className="notes-text"> Notes</span>
       </button>
 
