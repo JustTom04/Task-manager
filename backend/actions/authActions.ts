@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
 import { AUTH_LIMITS } from "@/shared/constants";
+import { sendWelcomeEmail } from "@/backend/lib/email";
 
 export async function registerUser(email: string, password: string, guestUserId: string, saveProjects: boolean) {
   try {
@@ -62,6 +63,12 @@ export async function registerUser(email: string, password: string, guestUserId:
       }
     }, {
       timeout: 15000 
+    });
+
+    // Send welcome email asynchronously after transaction commits successfully
+    // We intentionally do not await or let its failure block the registration response
+    sendWelcomeEmail(trimmedEmail).catch((err) => {
+      console.error("[AUTH] Background welcome email dispatch failed:", err);
     });
 
     return { success: true, userId: newUserId };
