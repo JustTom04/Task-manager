@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
-import { registerUser } from "@/backend/actions/authActions";
+import { registerUser, resendVerificationEmail } from "@/backend/actions/authActions";
 import { getUserId, useModalKeyboard } from "@/frontend/utils";
 import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import { motion } from "framer-motion";
@@ -12,15 +12,17 @@ import "@/frontend/styles/components/authentication.css";
 
 export default function AuthModal({ onClose }) {
   const [isLogin, setIsLogin] = useState(true);
-  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [isUnverified, setIsUnverified] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
 
-  useModalKeyboard(modalRef, onClose, loading || step === 2);
+  useModalKeyboard(modalRef, onClose, loading);
 
   useEffect(() => {
     setMounted(true);
@@ -44,12 +46,14 @@ export default function AuthModal({ onClose }) {
     if (isLogin) {
       handleLogin();
     } else {
-      setStep(2);
+      handleRegister();
     }
   };
 
   const handleLogin = async () => {
     setLoading(true);
+    setIsUnverified(false);
+    setResendStatus("");
     const res = await signIn("credentials", {
       redirect: false,
       email,
@@ -57,67 +61,97 @@ export default function AuthModal({ onClose }) {
     });
 
     if (res?.error) {
-      setError("Invalid email or password.");
+      if (res.error === "EMAIL_NOT_VERIFIED" || res.code === "EMAIL_NOT_VERIFIED") {
+        setError("Your email address is not verified yet. Please check your inbox.");
+        setIsUnverified(true);
+      } else {
+        setError("Invalid email or password.");
+      }
       setLoading(false);
     } else {
       window.location.reload();
     }
   };
 
-  const handleRegister = async (saveProjects) => {
+  const handleResend = async () => {
+    if (!email) return;
+    setResendStatus("Sending...");
+    const result = await resendVerificationEmail(email);
+    if (result?.success) {
+      setResendStatus("Verification email sent! Check your inbox.");
+    } else {
+      setResendStatus(result?.error || "Failed to resend. Please try again.");
+    }
+  };
+
+  const handleRegister = async () => {
     setLoading(true);
     setError("");
     try {
-      const guestUserId = getUserId();
-      const registerRes = await registerUser(email, password, guestUserId, saveProjects);
+      const registerRes = await registerUser(email, password);
       
       if (registerRes?.error) {
         setError(registerRes.error);
-        setStep(1);
         setLoading(false);
         return;
       }
 
-      // If the user migrated their projects, their guest account is consumed.
-      // Remove the old IDs so they start fresh if they ever log out.
-      if (saveProjects) {
-        localStorage.removeItem('taskManager_userId');
-        localStorage.removeItem('activeProjectId');
-      }
-
-      // Auto login after successful registration
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (res?.error) {
-        setError("Registration succeeded but login failed.");
-        setLoading(false);
-      } else {
-        window.location.reload();
-      }
-    } catch (err) {
-      setError(err.message);
       setLoading(false);
-      setStep(1);
+      setVerificationSent(true);
+    } catch (err: any) {
+      setError(err?.message || "Failed to register.");
+      setLoading(false);
     }
   };
 
   if (!mounted) return null;
 
-  if (step === 2) {
-    return (
-      <ConfirmModal
-        title="Save Projects?"
-        message="Do you want to save your current unlogin projects to your new account?"
-        confirmText="Yes, save them"
-        cancelText="No, start fresh"
-        onConfirm={() => handleRegister(true)}
-        onCancel={() => handleRegister(false)}
-        disabled={loading}
-      />
+  if (verificationSent) {
+    return createPortal(
+      <motion.div className="modal-overlay" onMouseDown={onClose} {...MODAL_ANIMATION.overlay}>
+        <motion.div
+          ref={modalRef}
+          className="modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+          {...MODAL_ANIMATION.content}
+        >
+          <div style={{ textAlign: "center", padding: "10px 0" }}>
+            <div style={{
+              width: "52px",
+              height: "52px",
+              borderRadius: "50%",
+              backgroundColor: "rgba(99, 102, 241, 0.15)",
+              color: "#818cf8",
+              fontSize: "26px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px auto"
+            }}>
+              ✉
+            </div>
+            <h2 id="auth-modal-title" style={{ marginBottom: "8px" }}>Check your inbox</h2>
+            <p style={{ color: "var(--color-text-secondary, #a1a1aa)", fontSize: "14px", lineHeight: "1.5", marginBottom: "20px" }}>
+              We sent a verification link to <strong style={{ color: "#fff" }}>{email}</strong>. Please click the link to activate your account.
+            </p>
+            <button
+              type="button"
+              className="done auth-submit-btn"
+              onClick={() => {
+                setVerificationSent(false);
+                setIsLogin(true);
+              }}
+            >
+              Back to Log In
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>,
+      document.body
     );
   }
 
@@ -161,7 +195,31 @@ export default function AuthModal({ onClose }) {
           {error && (
             <div className="auth-error-box" role="alert">
               <span className="auth-error-icon" aria-hidden="true">⚠️</span>
-              <span>{error}</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                <span>{error}</span>
+                {isUnverified && (
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#818cf8",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      padding: 0,
+                      fontSize: "13px",
+                      textAlign: "left",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Resend verification email
+                  </button>
+                )}
+                {resendStatus && (
+                  <span style={{ fontSize: "12px", color: "#a1a1aa" }}>{resendStatus}</span>
+                )}
+              </div>
             </div>
           )}
           <button type="submit" className="done auth-submit-btn" disabled={loading}>

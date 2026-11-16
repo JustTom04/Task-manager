@@ -12,6 +12,13 @@ export default function AuthHeader() {
   const [showEmailTooltip, setShowEmailTooltip] = useState(false);
   const profileInfoRef = useRef(null);
 
+  // Automatically close auth modals when session becomes authenticated (e.g. verified in another tab)
+  useEffect(() => {
+    if (session) {
+      setShowModal(false);
+    }
+  }, [session]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent | TouchEvent) {
       if (profileInfoRef.current && !(profileInfoRef.current as HTMLElement).contains(event.target as Node)) {

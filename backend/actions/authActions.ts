@@ -5,9 +5,108 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { getEmptyGeneralProjectData } from "@/backend/utils/defaultData";
 import { AUTH_LIMITS } from "@/shared/constants";
-import { sendWelcomeEmail } from "@/backend/lib/email";
+import { sendVerificationEmail } from "@/backend/lib/email";
 
-export async function registerUser(email: string, password: string, guestUserId: string, saveProjects: boolean) {
+/**
+ * Creates or refreshes a verification token for an email address.
+ * Tokens expire in 24 hours.
+ */
+export async function createVerificationToken(email: string) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+  // Remove any previous unused verification tokens for this email
+  await prisma.verificationToken.deleteMany({
+    where: { email }
+  });
+
+  const created = await prisma.verificationToken.create({
+    data: {
+      token,
+      email,
+      expiresAt,
+    }
+  });
+
+  return created.token;
+}
+
+/**
+ * Verifies an email token, marks User.emailVerified = true, and deletes the token.
+ */
+export async function verifyEmailToken(token: string) {
+  try {
+    if (!token) {
+      return { error: "Verification token is missing." };
+    }
+
+    const verificationRecord = await prisma.verificationToken.findUnique({
+      where: { token },
+    });
+
+    if (!verificationRecord) {
+      return { error: "Invalid or already used verification link." };
+    }
+
+    const hasExpired = new Date() > new Date(verificationRecord.expiresAt);
+    if (hasExpired) {
+      // Clean up expired token
+      await prisma.verificationToken.delete({ where: { token } });
+      return { error: "This verification link has expired. Please request a new one." };
+    }
+
+    // Mark user as verified and delete used token atomically
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { email: verificationRecord.email },
+        data: { emailVerified: true },
+      }),
+      prisma.verificationToken.delete({
+        where: { token },
+      }),
+    ]);
+
+    return { success: true };
+  } catch (error) {
+    console.error("[AUTH] verifyEmailToken error:", error);
+    return { error: "Failed to verify email. Please try again." };
+  }
+}
+
+/**
+ * Resends a new verification email to a user if their account is unverified.
+ */
+export async function resendVerificationEmail(email: string) {
+  try {
+    const trimmedEmail = email?.trim().toLowerCase();
+    if (!trimmedEmail) {
+      return { error: "Email is required." };
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: trimmedEmail },
+    });
+
+    if (!user) {
+      return { error: "No account found with this email." };
+    }
+
+    if (user.emailVerified) {
+      return { error: "This email is already verified. You can log in." };
+    }
+
+    const token = await createVerificationToken(trimmedEmail);
+    await sendVerificationEmail(trimmedEmail, token);
+
+    return { success: true };
+  } catch (error) {
+    console.error("[AUTH] resendVerificationEmail error:", error);
+    return { error: "Failed to resend verification email." };
+  }
+}
+
+
+export async function registerUser(email: string, password: string) {
   try {
     const trimmedEmail = email?.trim().toLowerCase();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -34,46 +133,86 @@ export async function registerUser(email: string, password: string, guestUserId:
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUserId = crypto.randomUUID();
 
-    // Seed default data for new users to prevent empty UI state crashes if no guest data is being migrated
-    const createData: any = {
-      id: newUserId,
-      email: trimmedEmail,
-      password: hashedPassword,
-    };
-
-    if (!saveProjects) {
-      createData.ownedProjects = getEmptyGeneralProjectData();
-    }
-
-    // Execute complex registration workflow atomically to prevent partial database states
-    await prisma.$transaction(async (tx: any) => {
-      // Create new user
-      const newUser = await tx.user.create({
-        data: createData,
-      });
-
-      // Migrate guest user data to the new permanent account:
-      // Directly reassign ownership of guest projects to the new user.
-      // This preserves all tasks, labels, relations, and orderIndex without duplication overhead.
-      if (saveProjects && guestUserId) {
-        await tx.project.updateMany({
-          where: { userId: guestUserId },
-          data: { userId: newUserId }
-        });
-      }
-    }, {
-      timeout: 15000 
+    // Create user with default empty general project
+    // Data migration from guest user is deferred until first verified login
+    await prisma.user.create({
+      data: {
+        id: newUserId,
+        email: trimmedEmail,
+        password: hashedPassword,
+        emailVerified: false,
+        ownedProjects: getEmptyGeneralProjectData(),
+      },
     });
 
-    // Send welcome email asynchronously after transaction commits successfully
-    // We intentionally do not await or let its failure block the registration response
-    sendWelcomeEmail(trimmedEmail).catch((err) => {
-      console.error("[AUTH] Background welcome email dispatch failed:", err);
+    // Generate verification token and send verification email
+    const verificationToken = await createVerificationToken(trimmedEmail);
+    sendVerificationEmail(trimmedEmail, verificationToken).catch((err) => {
+      console.error("[AUTH] Background verification email dispatch failed:", err);
     });
 
-    return { success: true, userId: newUserId };
+    return { success: true, userId: newUserId, requiresVerification: true };
   } catch (error) {
     console.error("[AUTH] Registration error:", error);
     return { error: "Failed to register user. Please try again." };
+  }
+}
+
+/**
+ * Migrates projects from an anonymous guest user to a verified logged-in user.
+ * Prevents duplicate "General" projects by removing the empty placeholder default project
+ * or merging tasks cleanly.
+ */
+export async function migrateGuestProjects(guestUserId: string, targetUserId: string) {
+  try {
+    if (!guestUserId || !targetUserId || guestUserId === targetUserId) {
+      return { success: false, error: "Invalid user identifiers for migration." };
+    }
+
+    // Check if guest user has any projects to migrate
+    const guestProjects = await prisma.project.findMany({
+      where: { userId: guestUserId },
+      include: { tasks: true, labels: true },
+    });
+
+    if (guestProjects.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    // Find the target user's existing projects
+    const targetProjects = await prisma.project.findMany({
+      where: { userId: targetUserId },
+      include: { tasks: true },
+    });
+
+    await prisma.$transaction(async (tx: any) => {
+      // Find default empty "General" project created during initial signup
+      const emptyGeneral = targetProjects.find(
+        (p: any) => p.name.toLowerCase() === "general" && p.tasks.length === 0
+      );
+
+      const guestGeneral = guestProjects.find(
+        (p: any) => p.name.toLowerCase() === "general"
+      );
+
+      // If the target user has an untouched empty General project and guest has a General project,
+      // delete the empty placeholder so the guest's General cleanly replaces it without duplicates
+      if (emptyGeneral && guestGeneral) {
+        await tx.project.delete({
+          where: { id: emptyGeneral.id },
+        });
+      }
+
+      // Reassign ownership of all guest projects to the verified target user
+      await tx.project.updateMany({
+        where: { userId: guestUserId },
+        data: { userId: targetUserId },
+      });
+    });
+
+    return { success: true, count: guestProjects.length };
+  } catch (error) {
+    console.error("[AUTH] migrateGuestProjects error:", error);
+    return { success: false, error: "Failed to migrate guest projects." };
   }
 }

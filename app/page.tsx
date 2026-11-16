@@ -14,6 +14,7 @@ import ConfirmModal from "@/frontend/modals/ConfirmModal";
 import SettingsPanel from "@/frontend/components/SettingsPanel";
 import TopSection from "@/frontend/components/TopSection";
 import ToastContainer from "@/frontend/components/Toast";
+import { migrateGuestProjects } from "@/backend/actions/authActions";
 
 import "@/frontend/styles/components/topSection.css";
 import "@/frontend/styles/base/general.css";
@@ -52,6 +53,7 @@ export default function Home() {
   // ===== States =====
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showLoading, setShowLoading] = useState(false);
+  const [showMigrationPrompt, setShowMigrationPrompt] = useState(false);
 
   const showLabelModal = useStore((state) => state.showLabelModal);
   const setShowLabelModal = useStore((state) => state.setShowLabelModal);
@@ -128,6 +130,30 @@ export default function Home() {
       fetchProjects();
     }
   }, [status, activeUserId, fetchProjects]);
+
+  // Check if a freshly logged-in user has pending guest projects to migrate
+  useEffect(() => {
+    if (status === "authenticated" && session?.user?.id) {
+      const guestId = localStorage.getItem("taskManager_userId");
+      if (guestId && guestId !== session.user.id) {
+        setShowMigrationPrompt(true);
+      }
+    }
+  }, [status, session]);
+
+  const handleMigrationChoice = async (saveProjects: boolean) => {
+    setShowMigrationPrompt(false);
+    const guestId = localStorage.getItem("taskManager_userId");
+    if (saveProjects && guestId && session?.user?.id) {
+      await migrateGuestProjects(guestId, session.user.id);
+      localStorage.removeItem("taskManager_userId");
+      localStorage.removeItem("activeProjectId");
+      await fetchProjects();
+    } else {
+      localStorage.removeItem("taskManager_userId");
+      localStorage.removeItem("activeProjectId");
+    }
+  };
 
   // ===== Completed tasks counter =====
   const completedCount = actualTasksList ? actualTasksList.filter((t) => t.done).length : 0;
@@ -251,6 +277,19 @@ export default function Home() {
               setConfirmConfig(null);
             }}
             onCancel={() => setConfirmConfig(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showMigrationPrompt && (
+          <ConfirmModal
+            title="Save Projects?"
+            message="Do you want to save your current offline guest projects to your account?"
+            confirmText="Yes, save them"
+            cancelText="No, start fresh"
+            onConfirm={() => handleMigrationChoice(true)}
+            onCancel={() => handleMigrationChoice(false)}
           />
         )}
       </AnimatePresence>
